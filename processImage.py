@@ -1,23 +1,28 @@
-# import the necessary packages
-from pyzbar import pyzbar
+'''Process Image'''
+
 import argparse
-import cv2
-from patch import detectPatches
-from barcode import findBarcodeInImage
+from datetime import datetime
+from cv2 import imread # pylint: disable=E0611
+from patch import extract_patches_from_image
+from barcode import extract_barcode_from_greyscale_image
 
 # construct the argument parser and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--image", required=True,
-	help="path to input image")
-args = vars(ap.parse_args())
+AP = argparse.ArgumentParser()
+AP.add_argument("-i", "--image", required=True, help="path to input image")
+ARGS = vars(AP.parse_args())
 
-imageFilename = args["image"]
-img = cv2.imread(imageFilename)
+def process_image(input_filename):
+    '''Process an image of a cartridge'''
+    input_image = imread(input_filename)
+    input_image_greyscale = imread(input_filename, 0)
+    barcode_value = extract_barcode_from_greyscale_image(input_image_greyscale)
 
-barcodeValue = findBarcodeInImage(img)
+    output_file_prefix = datetime.now().strftime('%Y%m%d%H%M%S')
 
-if(barcodeValue == None):
-	print("No barcode Information found")
-else:
-	print("Barcode '{}' detected".format(barcodeValue))
-	detectPatches(img, barcodeValue)
+    if barcode_value is None:
+        print("No barcode Information found")
+    else:
+        print("Barcode '{}' detected".format(barcode_value))
+        extract_patches_from_image(input_image, barcode_value, output_file_prefix)
+
+process_image(ARGS["image"])

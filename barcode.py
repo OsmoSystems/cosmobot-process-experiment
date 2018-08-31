@@ -1,16 +1,12 @@
-# import the necessary packages
+'''Utility module for barcode extraction from an image'''
 from pyzbar import pyzbar
-import cv2
 
-def findBarcodeInImage(img):
-    # find the barcodes in the image and decode each of the barcodes
-    barcodes = pyzbar.decode(img)
-    barcodeValue = None
-    barcodeType = None
+def extract_barcode_from_greyscale_image(input_image_greyscale):
+    '''find the barcodes in the image and decode each of the barcodes'''
+    barcodes = pyzbar.decode(input_image_greyscale)
+    barcode_value = None
 
-    # loop over the detected barcodes
     for barcode in barcodes:
-        barcodeValue = barcode.data.decode("utf-8")
-        barcodeType = barcode.type
+        barcode_value = barcode.data.decode("utf-8")
 
-    return barcodeValue
+    return barcode_value

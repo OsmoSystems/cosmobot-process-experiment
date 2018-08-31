@@ -1,34 +1,38 @@
-import numpy
-import cv2
+'''d'''
+import json
+from cv2 import Canny, findContours, boundingRect, imwrite, RETR_LIST, CHAIN_APPROX_SIMPLE # pylint: disable=E0611
+from color import average_color_for_image
 
-def detectPatches(img, nodeId):
 
-	gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+def extract_patches_from_image(image, node_id, output_file_prefix):
+    '''d'''
+    edged = Canny(image, 10, 250)
+    (_, contours_detected, _) = findContours(edged.copy(), RETR_LIST, CHAIN_APPROX_SIMPLE)
+    idx = 0
 
-	ret,thresh = cv2.threshold(gray,127,255,1)
+    results_dict = dict()
+    used_contour_dict = dict()
 
-	_, contours, _ = cv2.findContours(thresh,1,2)
+    for contour in contours_detected:
+        x_coor, y_coor, width, height = boundingRect(contour)
 
-	patchIdx = 0
+        if (width > 50 and height > 50) and (width < 200 and height < 200):
+            used_contour_dict_key = '{}{}{}{}'.format(x_coor, y_coor, width, height)
 
-	for cnt in contours:
-		approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
+            if used_contour_dict_key not in used_contour_dict:
+                used_contour_dict[used_contour_dict_key] = True
 
-		if len(approx) == 4: # if rectangle
-			x, y, width, height = cv2.boundingRect(cnt)
-			roi = img[y: y + height, x: x + width]
+                results_dict_key = 'patch{}'.format(idx)
+                idx += 1
+                new_img = image[y_coor:y_coor+height, x_coor:x_coor+width]
+                avg_color = average_color_for_image(new_img)
+                image_filename = "./output/{}_node_{}_patch_{}.png".format(output_file_prefix, node_id, idx)
+                imwrite(image_filename, new_img)
 
-			if(width > 10):
-				avgColor = averageColorForImage(roi)
-				imageFilename = "./output/node{}patch{}.png".format(nodeId, patchIdx)
-				cv2.imwrite(imageFilename, roi)
-				patchIdx = patchIdx + 1
+                results_dict[results_dict_key] = dict()
+                results_dict[results_dict_key]["contour"] = dict(x = x_coor, y = y_coor, width = width, height = height)
+                results_dict[results_dict_key]["avg_color"] = avg_color
 
-def averageColorForImage(img):
-	avg_color_per_row = numpy.average(img, axis=0)
-	avg_color = numpy.average(avg_color_per_row, axis=0)
-	return dict(
-		r=avg_color[2], # values come not in order
-		g=avg_color[1],
-		b=avg_color[0]
-	)
+
+    with open('./output/{}_node{}data.json'.format(output_file_prefix, node_id), 'w') as outfile:
+        json.dump(results_dict, outfile)
