@@ -1,28 +1,26 @@
-import io
+#import io
 from picamera import PiCamera
-from cv2 import imdecode
-import numpy as np
-from np import fromstring
+#from cv2 import imdecode
+#import numpy as np
+#from np import fromstring
 from time import sleep
-
-
+from subprocess import call
 # Create the in-memory stream
-stream = io.BytesIO()
+#stream = io.BytesIO()
 
 
 # create camera object
-camera = PiCamera()
-camera.start_preview()
-sleep(2)
+#camera = PiCamera()
+#camera.awb_mode = 'auto'
+#camera.brightness = 50
+#camera.exposure_mode = 'night'
+#camera.resolution = (2592, 1944)
+#sleep(2)
+#raspistill --raw -hf -o ./raw_hf_flag.jpg
+def captureImage(filename, in_format='jpeg'):
+    comm = 'raspistill --raw -o {}'.format(filename)
+    print(comm)
+    call([comm], shell=True)
+    #camera.capture(filename, format=in_format)
 
-
-def captureImage():
-    capture(stream, format='bgr')  # noqa: F821 presumably this is some built-in pi thing?
-    # Construct a numpy array from the stream
-    data = fromstring(stream.getvalue(), dtype=np.uint8)
-
-    # "Decode" the image from the array, preserving colour
-    image = imdecode(data, 1)
-
-    # OpenCV returns an array with data in BGR order. Reverse for RGB instead
-    return image[:, :, ::-1]
+#captureImage('./output/testyuv.raw', 'yuv')
