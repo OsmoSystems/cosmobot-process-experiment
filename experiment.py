@@ -1,6 +1,5 @@
 '''Process Image'''
 import os
-from shutil import copyfile, rmtree
 from time import sleep
 import argparse
 from datetime import datetime, timedelta
@@ -36,6 +35,7 @@ EXPERIMENT_DICT = dict(
     OUTPUT_FOLDER=OUTPUT_FOLDER
 )
 
+
 def performExperiment():
     SEQUENCE = 1
     while datetime.now() < END_DATETIME:
@@ -54,5 +54,6 @@ def performExperiment():
 
     # remove only this current experiment
     # rmtree(OUTPUT_FOLDER)
+
 
 performExperiment()

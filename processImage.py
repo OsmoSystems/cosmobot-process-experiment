@@ -2,7 +2,7 @@
 
 import argparse
 from datetime import datetime
-from cv2 import imread # pylint: disable=E0611
+from cv2 import imread
 from patch import extract_patches_from_image
 from barcode import extract_barcode_from_greyscale_image
 
@@ -10,6 +10,7 @@ from barcode import extract_barcode_from_greyscale_image
 AP = argparse.ArgumentParser()
 AP.add_argument("-i", "--image", required=True, help="path to input image")
 ARGS = vars(AP.parse_args())
+
 
 def process_image(input_filename):
     '''Process an image of a cartridge'''
@@ -24,5 +25,6 @@ def process_image(input_filename):
     else:
         print("Barcode '{}' detected".format(barcode_value))
         extract_patches_from_image(input_image, barcode_value, output_file_prefix)
+
 
 process_image(ARGS["image"])

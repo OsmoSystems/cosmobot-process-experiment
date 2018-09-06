@@ -1,6 +1,6 @@
 '''d'''
 import json
-from cv2 import Canny, findContours, boundingRect, imwrite, RETR_LIST, CHAIN_APPROX_SIMPLE # pylint: disable=E0611
+from cv2 import Canny, findContours, boundingRect, imwrite, RETR_LIST, CHAIN_APPROX_SIMPLE
 from color import average_color_for_image
 
 
@@ -30,9 +30,13 @@ def extract_patches_from_image(image, node_id, output_file_prefix):
                 imwrite(image_filename, new_img)
 
                 results_dict[results_dict_key] = dict()
-                results_dict[results_dict_key]["contour"] = dict(x = x_coor, y = y_coor, width = width, height = height)
+                results_dict[results_dict_key]["contour"] = dict(
+                    x=x_coor,
+                    y=y_coor,
+                    width=width,
+                    height=height
+                )
                 results_dict[results_dict_key]["avg_color"] = avg_color
-
 
     with open('./output/{}_node{}data.json'.format(output_file_prefix, node_id), 'w') as outfile:
         json.dump(results_dict, outfile)

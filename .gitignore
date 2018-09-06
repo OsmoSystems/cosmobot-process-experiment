@@ -59,3 +59,4 @@ target/
 
 /output/*.png
 /output/*.json
+\.pytest_cache/
