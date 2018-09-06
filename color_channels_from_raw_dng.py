@@ -6,7 +6,8 @@
 # 3) transform and return r,g,b channels
 
 # Dependencies:
-# rawpy (py wrapper for LibRaw, which is a wrapper for dcraw) https://github.com/letmaik/rawpy, https://www.libraw.org/, http://cybercom.net/~dcoffin/dcraw/
+# rawpy (py wrapper for LibRaw, which is a wrapper for dcraw) https://github.com/letmaik/rawpy, https://www.libraw.org/,
+# http://cybercom.net/~dcoffin/dcraw/
 # rawpy used to extract the raw image and color information
 # imageio used for writing images
 # numpy for array manipulation
@@ -26,9 +27,12 @@ Example Bayer image data shape:
  [ 640  640  896 ...  896 1472 1472]]
 
 # Bayer color data:
-# Bayer color data is represented as a two dimension array (pixel y, pixel x) that essentially represents what color channel a
-# value represents in the bayer image data.  The shape of both the bayer image data and the bayer color data are identical,
-# as a value at a location in the raw color array is used to inform which color channel that same location in the raw image array represents.
+# Bayer color data is represented as a two dimension array (pixel y, pixel x) that essentially represents what color
+# channel a
+# value represents in the bayer image data.  The shape of both the bayer image data and the bayer color data are
+# identical,
+# as a value at a location in the raw color array is used to inform which color channel that same location in the raw
+# image array represents.
 # Based on testing outputs of images, the following values represent each color channel # (TODO: better way to verify?)
 # 0 represents red
 # 1 represents green
@@ -46,21 +50,25 @@ Example raw color data shape:           Converted to RGBG
 # Half resolution of R, G, B channel data
 # There are less R, G, B "pixels" than a resolution of a processed image reports.
 # There are half the number of R & B filtered photodiodes then that of the eventual processed image.
-# There are twice the number of G filtered photodiodes than R & B due to how the CMOS sensor is constructed towards a human eye's
+# There are twice the number of G filtered photodiodes than R & B due to how the CMOS sensor is constructed towards a
+# human eye's
 # representation of an image - https://www.cambridgeincolour.com/tutorials/camera-sensors.htm
-# "Each primary color does not receive an equal fraction of the total area because the human eye is more sensitive to green light
-# than both red and blue light.  Redundancy with green pixels produces an image which appears less noisy and has finer detail than
+# "Each primary color does not receive an equal fraction of the total area because the human eye is more sensitive to
+# green light
+# than both red and blue light.  Redundancy with green pixels produces an image which appears less noisy and has finer
+# detail than
 # could be accomplished if each color were treated equally."
 
 # Verfication of algorithm - there are two ways in which values were verfified:
-1) Compare rgb values of a pixel with the algorithm to the rgb picker in RawDigger program.  Repeat for multiple pixels in image.
+1) Compare rgb values of a pixel with the algorithm to the rgb picker in RawDigger program.  Repeat for multiple pixels
+in image.
 2) Reconstruct image and verify through an eye-smell test that the image looks correct
 3) TODO: better validation of algorihm?
 '''
 
 import numpy as np
 import rawpy
-import imageio
+
 
 def color_channels_from_raw_dng(filename):
     # copy bayer raw_image data and raw_color information (bayer raw image data and bayer raw color patterns)
@@ -98,9 +106,11 @@ def color_channels_from_raw_dng(filename):
         blue=filtered_image_blue_channel_yx
     )
 
+
 def compose_rgb_channels_to_Y_X_RGB(red, green, blue):
-    composed_rgb = np.dstack((red,green,blue))
+    composed_rgb = np.dstack((red, green, blue))
     return composed_rgb
+
 
 # tests :)
 # color_channels = color_channels_from_raw_dng('./input/raw_hf_flag.dng')
