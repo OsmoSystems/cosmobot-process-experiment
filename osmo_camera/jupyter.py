@@ -50,7 +50,8 @@ def show_image(image, figsize=None):
 
 
 def show_color(cv_color):
-    show_image(_make_solid_color_image(cv_color), figsize=(0.3, 0.3))
+    image_size = 0.5  # just print a little swatch. This will be interpreted in inches
+    show_image(_make_solid_color_image(cv_color), figsize=(image_size, image_size))
 
 
 def plot_histogram(image, minimal=True):

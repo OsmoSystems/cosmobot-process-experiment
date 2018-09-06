@@ -20,5 +20,5 @@ def test_crop_image():
         [14, 15],
         [18, 19],
     ]
-    
+
     np.testing.assert_array_equal(module.crop_image(image, region), expected)
