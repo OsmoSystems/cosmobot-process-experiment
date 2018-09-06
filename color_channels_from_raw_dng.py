@@ -63,44 +63,46 @@ import rawpy
 import imageio
 
 def color_channels_from_raw_dng(filename):
+    # copy bayer raw_image data and raw_color information (bayer raw image data and bayer raw color patterns)
     with rawpy.imread(filename) as raw:
-
-        # copy bayer raw_image data and raw_color information (bayer raw image data and bayer raw color patterns)
         raw_image = raw.raw_image.copy()
         raw_colors = raw.raw_colors.copy()
-        image_width = raw_colors.shape[1]
-        image_height = raw_colors.shape[0]
 
-        # the width and height of each color channel is half that of the full image
-        half_image_width = (int)(image_width / 2)
-        half_image_height = (int)(image_height / 2)
+    image_width = raw_colors.shape[1]
+    image_height = raw_colors.shape[0]
 
-        # flatten image and color data to linear array to extract color data by channel
-        raw_img = raw_image.flatten()
-        raw_clr = raw_colors.flatten()
+    # the width and height of each color channel is half that of the full image
+    half_image_width = int(image_width / 2)
+    half_image_height = int(image_height / 2)
 
-        # retrieve indices of specific color from bayer raw_color
-        red_indices = np.argwhere(raw_clr == 0)
-        green_indices = np.argwhere(raw_clr == 1)
-        blue_indices = np.argwhere(raw_clr == 2)
+    # flatten image and color data to linear array to extract color data by channel
+    raw_img = raw_image.flatten()
+    raw_clr = raw_colors.flatten()
 
-        # filter array with indices representing a specific color sensor
-        # and reshape linear color array to 2 dimensional array that represents a value in a color channel at a pixel
-        filtered_image_red_channel_yx = raw_img[red_indices].reshape(half_image_height, half_image_width)
-        filtered_image_green_channel_yx = raw_img[green_indices].reshape(half_image_height, half_image_width)
-        filtered_image_blue_channel_yx = raw_img[blue_indices].reshape(half_image_height, half_image_width)
+    # TODO: research if second green channel should be combined somehow to improve our green count
 
-        return dict(
-            red=filtered_image_red_channel_yx,
-            green=filtered_image_green_channel_yx,
-            blue=filtered_image_blue_channel_yx
-        )
+    # retrieve indices of specific color from bayer raw_color
+    red_indices = np.argwhere(raw_clr == 0)
+    green_indices = np.argwhere(raw_clr == 1)
+    blue_indices = np.argwhere(raw_clr == 2)
 
-def compose_rgb_channels_to_X_Y_RGB(r, g, b):
-    composed_rgb = np.dstack((r,g,b))
+    # filter array with indices representing a specific color sensor
+    # and reshape linear color array to 2 dimensional array that represents a value in a color channel at a pixel
+    filtered_image_red_channel_yx = raw_img[red_indices].reshape(half_image_height, half_image_width)
+    filtered_image_green_channel_yx = raw_img[green_indices].reshape(half_image_height, half_image_width)
+    filtered_image_blue_channel_yx = raw_img[blue_indices].reshape(half_image_height, half_image_width)
+
+    return dict(
+        red=filtered_image_red_channel_yx,
+        green=filtered_image_green_channel_yx,
+        blue=filtered_image_blue_channel_yx
+    )
+
+def compose_rgb_channels_to_Y_X_RGB(red, green, blue):
+    composed_rgb = np.dstack((red,green,blue))
     return composed_rgb
 
 # tests :)
-# color_channels = color_channels_from_raw_dng('./input.dng')
-# composed_rgb = compose_rgb_channels_to_X_Y_RGB(color_channels['red'], color_channels['green'], color_channels['blue'])
+# color_channels = color_channels_from_raw_dng('./input/raw_hf_flag.dng')
+# composed_rgb = compose_rgb_channels_to_Y_X_RGB(**color_channels)
 # imageio.imwrite('./output.tiff', composed_rgb)
