@@ -1,26 +1,25 @@
-#import io
-from picamera import PiCamera
-#from cv2 import imdecode
-#import numpy as np
-#from np import fromstring
-from time import sleep
+# import io
+# from picamera import PiCamera
+# from cv2 import imdecode
+# import numpy as np
+# from np import fromstring
 from subprocess import call
 # Create the in-memory stream
-#stream = io.BytesIO()
+# stream = io.BytesIO()
 
 
 # create camera object
-#camera = PiCamera()
-#camera.awb_mode = 'auto'
-#camera.brightness = 50
-#camera.exposure_mode = 'night'
-#camera.resolution = (2592, 1944)
-#sleep(2)
-#raspistill --raw -hf -o ./raw_hf_flag.jpg
+# camera = PiCamera()
+# camera.awb_mode = 'auto'
+# camera.brightness = 50
+# camera.exposure_mode = 'night'
+# camera.resolution = (2592, 1944)
+# sleep(2)
+# raspistill --raw -hf -o ./raw_hf_flag.jpg
 def captureImage(filename, in_format='jpeg'):
     comm = 'raspistill --raw -o {}'.format(filename)
     print(comm)
     call([comm], shell=True)
-    #camera.capture(filename, format=in_format)
+    # camera.capture(filename, format=in_format)
 
-#captureImage('./output/testyuv.raw', 'yuv')
+# captureImage('./output/testyuv.raw', 'yuv')
