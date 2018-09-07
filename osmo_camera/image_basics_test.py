@@ -1,6 +1,6 @@
 import numpy as np
 
-import image_basics as module
+import osmo_camera.image_basics as module
 
 
 def test_crop_image():
