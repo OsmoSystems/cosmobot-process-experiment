@@ -14,6 +14,7 @@ setup(
         'opencv-python',
         'pandas',
         'plotly >= 2, < 3',
+        'rawpy',
     ],
     include_package_data=True
 )
