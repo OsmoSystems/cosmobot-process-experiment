@@ -51,7 +51,13 @@ def show_image(image, figsize=None):
         figsize: 2-tuple of desired figure size in inches; will be passed to `plt.figure()`
     '''
     plt.figure(figsize=figsize)
-    plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    try:
+        # If this is a normal OpenCV-style image, it will need to be converted.
+        converted_colors_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        plt.imshow(converted_colors_image)
+    except Exception:
+        # If it is a RAW, OpenCV will choke on the conversion and raise a generic "Error". Just display what you have.
+        plt.imshow(image)
     plt.show()
 
 
