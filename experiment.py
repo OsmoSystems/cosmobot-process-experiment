@@ -1,22 +1,35 @@
-'''Process Image'''
+'''Perform camera capture experiment'''
+
 import os
 from time import sleep
 import argparse
 from datetime import datetime, timedelta
-from upload import upload_files
-import camera
+from camera import capture_image
+from process_experiment import convert_img_in_dir_to_dng, s3_sync_output_dir
 
-# construct the argument parser and parse the arguments
 AP = argparse.ArgumentParser()
 AP.add_argument("-d", "--duration", required=True, type=int, help="duration in seconds")
-AP.add_argument("-i", "--interval", required=True, type=int, help="interval for image capture in seconds")
+AP.add_argument("-i", "--interval",
+                required=True,
+                type=int,
+                help="interval for image capture in seconds")
 AP.add_argument("-n", "--name", required=True, type=str, help="name for experiment")
-AP.add_argument(
-    "--addl_capture_params",
-    required=False,
-    type=str,
-    help="additional parameters passed to raspistill when capturing images"
-)
+AP.add_argument("-c", "--convert_to_dng",
+                required=False,
+                nargs='?',
+                type=bool,
+                default=True,
+                help="convert images to dng after experiment is complete, keep the original files")
+AP.add_argument("-s", "--sync",
+                required=False,
+                nargs='?',
+                type=bool,
+                default=True,
+                help="Sync to s3 after experiment is complete")
+AP.add_argument("--addl_capture_params",
+                required=False,
+                type=str,
+                help="additional parameters passed to raspistill when capturing images")
 
 ARGS = vars(AP.parse_args())
 
@@ -24,6 +37,8 @@ DURATION = ARGS['duration']
 INTERVAL = ARGS['interval']
 EXP_NAME = ARGS['name']
 ADDITIONAL_CAPTURE_PARAMS = ARGS['addl_capture_params']
+SHOULD_CONVERT_TO_DNG = ARGS['convert_to_dng']
+SHOULD_SYNC = ARGS['sync']
 
 OUTPUT_FOLDER = datetime.now().strftime('./output/%Y%m%d%H%M%S_{}'.format(EXP_NAME))
 
@@ -44,24 +59,27 @@ EXPERIMENT_DICT = dict(
 )
 
 
-def performExperiment():
-    SEQUENCE = 1
-    while datetime.now() < END_DATETIME:
-        IMAGE_FILENAME = OUTPUT_FOLDER + "/{}.jpeg".format(SEQUENCE)
-        camera.captureImage(IMAGE_FILENAME, additional_capture_params=ADDITIONAL_CAPTURE_PARAMS)
+def perform_experiment():
+    '''
+    Perform while loop while time is less than END_DATETIME
+    (seconds from start of program passed in duration arg)
+    '''
 
-        SEQUENCE = SEQUENCE + 1
+    # image sequence during camera capture
+    sequence = 1
+
+    while datetime.now() < END_DATETIME:
+        image_filename = OUTPUT_FOLDER + "/{}.jpeg".format(sequence)
+        capture_image(image_filename, additional_capture_params=ADDITIONAL_CAPTURE_PARAMS)
+
+        sequence = sequence + 1
         sleep(INTERVAL)
 
-    S3_BASE = ""
-    S3_LOCATION = S3_BASE + OUTPUT_FOLDER
+    if SHOULD_CONVERT_TO_DNG is not None:
+        convert_img_in_dir_to_dng(OUTPUT_FOLDER)
 
-    print("Uploading Experiment to S3 - {}".format(S3_LOCATION))
-    # upload to s3 the experiments that exist in output
-    upload_files('./output')
-
-    # remove only this current experiment
-    # rmtree(OUTPUT_FOLDER)
+    if SHOULD_SYNC is not None:
+        s3_sync_output_dir()
 
 
-performExperiment()
+perform_experiment()
