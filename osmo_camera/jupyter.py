@@ -25,7 +25,7 @@ def choose_regions(image):
     '''
     window_name = 'ROIs selection'
     cv2.namedWindow(window_name, cv2.WINDOW_GUI_EXPANDED)  # WINDOW_GUI_EXPANDED seems to allow you to resize the window
-    
+
     # Resize the window to a manageable default.
     window_size = 600  # in pixels
     cv2.resizeWindow(window_name, window_size, window_size)
