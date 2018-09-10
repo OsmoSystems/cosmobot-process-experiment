@@ -15,8 +15,8 @@ def convert_img_in_dir_to_dng(directory):
     for _, _, files in os.walk(directory):
         for input_file in files:
             filename, _ = os.path.splitext(input_file)
-            output_file = directory + filename + '.dng'
-            convert_to_dng(directory + input_file, output_file)
+            output_file = directory + '/' + filename + '.dng'
+            convert_to_dng(directory + '/' + input_file, output_file)
 
 
 def s3_sync_output_dir():
