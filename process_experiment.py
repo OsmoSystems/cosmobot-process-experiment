@@ -2,11 +2,13 @@
 import os
 from subprocess import call
 
+
 def convert_to_dng(input_file, output_file):
     '''Perform conversion of jpeg+exif to dng'''
     comm = 'raspi_dng {} {}'.format(input_file, output_file)
     print("Converting jpeg to dng: {}".format(comm))
     call([comm], shell=True)
+
 
 def convert_img_in_dir_to_dng(directory):
     '''Convert all jpegs in a directory to dng'''
@@ -15,6 +17,7 @@ def convert_img_in_dir_to_dng(directory):
             filename, _ = os.path.splitext(input_file)
             output_file = directory + filename + '.dng'
             convert_to_dng(directory + input_file, output_file)
+
 
 def s3_sync_output_dir():
     '''Runs aws s3 sync command with output folder'''
