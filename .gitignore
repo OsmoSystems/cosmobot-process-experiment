@@ -57,6 +57,5 @@ docs/_build/
 # PyBuilder
 target/
 
-/output/*.png
-/output/*.json
+/output/
 \.pytest_cache/
