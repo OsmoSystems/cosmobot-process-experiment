@@ -11,11 +11,19 @@ AP = argparse.ArgumentParser()
 AP.add_argument("-d", "--duration", required=True, type=int, help="duration in seconds")
 AP.add_argument("-i", "--interval", required=True, type=int, help="interval for image capture in seconds")
 AP.add_argument("-n", "--name", required=True, type=str, help="name for experiment")
+AP.add_argument(
+    "--addl_capture_params",
+    required=False,
+    type=str,
+    help="additional parameters passed to raspistill when capturing images"
+)
+
 ARGS = vars(AP.parse_args())
 
 DURATION = ARGS['duration']
 INTERVAL = ARGS['interval']
 EXP_NAME = ARGS['name']
+ADDITIONAL_CAPTURE_PARAMS = ARGS['addl_capture_params']
 
 OUTPUT_FOLDER = datetime.now().strftime('./output/%Y%m%d%H%M%S_{}'.format(EXP_NAME))
 
@@ -40,7 +48,7 @@ def performExperiment():
     SEQUENCE = 1
     while datetime.now() < END_DATETIME:
         IMAGE_FILENAME = OUTPUT_FOLDER + "/{}.jpeg".format(SEQUENCE)
-        camera.captureImage(IMAGE_FILENAME)
+        camera.captureImage(IMAGE_FILENAME, additional_capture_params=ADDITIONAL_CAPTURE_PARAMS)
 
         SEQUENCE = SEQUENCE + 1
         sleep(INTERVAL)
