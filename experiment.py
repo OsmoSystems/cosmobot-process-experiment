@@ -52,6 +52,7 @@ EXPERIMENT_DICT = dict(
     OUTPUT_FOLDER=OUTPUT_FOLDER
 )
 
+
 def perform_experiment():
     '''
     Perform while loop while time is less than END_DATETIME
@@ -73,5 +74,6 @@ def perform_experiment():
 
     if SHOULD_SYNC is not None:
         s3_sync_output_dir()
+
 
 perform_experiment()

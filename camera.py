@@ -8,6 +8,7 @@ DEBIAN_DIST = 'debian'
 
 LOCAL_CP_COMMAND = 'cp ./image_for_development.jpeg {}'
 
+
 def capture_image(filename):
     '''Capture raw image JPEG+EXIF using command line'''
     comm = 'raspistill --raw -o {}'.format(filename)
