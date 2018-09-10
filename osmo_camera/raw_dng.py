@@ -112,6 +112,10 @@ def compose_rgb_channels_to_Y_X_RGB(red, green, blue):
     return composed_rgb
 
 
+def compose_rgb_channels_to_opencv_format(red, green, blue):
+    return np.dstack((blue, green, red)) / 2 ** 16
+
+
 # tests :)
 # color_channels = color_channels_from_raw_dng('./input/raw_hf_flag.dng')
 # composed_rgb = compose_rgb_channels_to_Y_X_RGB(**color_channels)
