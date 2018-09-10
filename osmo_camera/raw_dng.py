@@ -75,7 +75,7 @@ def color_channels_from_raw_dng(filename, fix_flipped_colors=False):
 
     Arguments:
         filename: name of the file (usually a .dng) to process
-        fix_flipped_colors: boolean, whether to fix an apparent issue with raspberry pi raspiraw DNG files where the 
+        fix_flipped_colors: boolean, whether to fix an apparent issue with raspberry pi raspiraw DNG files where the
             bayer filter map is flipped left-to-right.
 
     Returns:
