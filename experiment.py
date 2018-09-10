@@ -82,4 +82,5 @@ def perform_experiment():
         s3_sync_output_dir()
 
 
-perform_experiment()
+if __name__ == '__main__':
+    perform_experiment()
