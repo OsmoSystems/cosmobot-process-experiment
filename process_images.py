@@ -1,4 +1,4 @@
-'''Process Image'''
+'''Process experiment results'''
 import os
 from subprocess import call
 
