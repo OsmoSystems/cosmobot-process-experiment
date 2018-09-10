@@ -70,11 +70,23 @@ import numpy as np
 import rawpy
 
 
-def color_channels_from_raw_dng(filename):
+def color_channels_from_raw_dng(filename, fix_flipped_colors=False):
+    ''' Get red, green amd blue color channels
+
+    Arguments:
+        filename: name of the file (usually a .dng) to process
+        fix_flipped_colors: boolean, whether to fix an apparent issue with raspberry pi raspiraw DNG files where the
+            bayer filter map is flipped left-to-right.
+
+    Returns:
+        dict of {red: red grayscale image, green: green grayscale image, blue: blue grayscale image} where each
+            grayscale image is a numpy 2D array of integers from the raw data.
+    '''
     # copy bayer raw_image data and raw_color information (bayer raw image data and bayer raw color patterns)
     with rawpy.imread(filename) as raw:
         raw_image = raw.raw_image.copy()
-        raw_colors = raw.raw_colors.copy()
+        original_colors = raw.raw_colors.copy()
+        raw_colors = np.fliplr(original_colors) if fix_flipped_colors else original_colors
 
     image_width = raw_colors.shape[1]
     image_height = raw_colors.shape[0]
