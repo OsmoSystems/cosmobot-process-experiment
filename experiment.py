@@ -26,11 +26,17 @@ AP.add_argument("-s", "--sync",
                 type=bool,
                 default=True,
                 help="Sync to s3 after experiment is complete")
+AP.add_argument("--addl_capture_params",
+                required=False,
+                type=str,
+                help="additional parameters passed to raspistill when capturing images")
+
 ARGS = vars(AP.parse_args())
 
 DURATION = ARGS['duration']
 INTERVAL = ARGS['interval']
 EXP_NAME = ARGS['name']
+ADDITIONAL_CAPTURE_PARAMS = ARGS['addl_capture_params']
 SHOULD_CONVERT_TO_DNG = ARGS['convert_to_dng']
 SHOULD_SYNC = ARGS['sync']
 
@@ -64,7 +70,7 @@ def perform_experiment():
 
     while datetime.now() < END_DATETIME:
         image_filename = OUTPUT_FOLDER + "/{}.jpeg".format(sequence)
-        capture_image(image_filename)
+        capture_image(image_filename, additional_capture_params=ADDITIONAL_CAPTURE_PARAMS)
 
         sequence = sequence + 1
         sleep(INTERVAL)
