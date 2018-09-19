@@ -68,6 +68,27 @@ in image.
 
 import numpy as np
 import rawpy
+import exifread
+import os
+import datetime
+
+
+def get_create_date(filename):
+    '''filename is in an EXIF key formatted like
+    'EXIF DateTimeOriginal': (0x0132) ASCII=2018:09:10 20:01:19 @ 59140
+    the right side is an EXIF key value; getting ex_key.values
+    gives you a nice ISO8601-ish string
+    '''
+
+    filename_prefix, file_extension = os.path.splitext(filename)
+    jpeg_filename = f'{filename_prefix}.jpeg'
+    desired_tag = 'EXIF DateTimeOriginal'
+
+    with open(jpeg_filename, 'rb') as fh:
+        tags = exifread.process_file(fh)
+
+    date_taken = tags[desired_tag]
+    return datetime.datetime.strptime(date_taken.values, '%Y:%m:%d %H:%M:%S')
 
 
 def color_channels_from_raw_dng(filename, fix_flipped_colors=False):
@@ -126,6 +147,15 @@ def compose_rgb_channels_to_Y_X_RGB(red, green, blue):
 
 def compose_rgb_channels_to_opencv_format(red, green, blue):
     return np.dstack((blue, green, red)) / 2 ** 16
+
+
+def open_image(filename):
+    return compose_rgb_channels_to_opencv_format(
+        **color_channels_from_raw_dng(
+            filename,
+            fix_flipped_colors=True
+        )
+    )
 
 
 # tests :)
