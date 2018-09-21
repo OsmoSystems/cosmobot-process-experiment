@@ -11,7 +11,6 @@ def as_rgb(dng_filename):
     Returns:
         An `RGB image`
     '''
-
     with rawpy.imread(dng_filename) as raw:
         # NOTE: to make this behave exactly the same as Jeremy's original code, we could set `four_color_rgb=True`,
         # which results in an RGBG image: a 2D numpy array of pixels, in which each pixel has a value for each of RGBG.

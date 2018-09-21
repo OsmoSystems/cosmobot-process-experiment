@@ -24,7 +24,14 @@ def _process_roi(roi_crop):
     return flattened_channel_stats
 
 
-def process_image(raw_image_filename, ROIs):
+def open_rgb_image(raw_image_path, raspi_raw_location):
+    dng_image_path = raw.convert.to_dng(raw_image_path, raspi_raw_location)
+    rgb_image = dng.open.as_rgb(dng_image_path)
+
+    return rgb_image
+
+
+def process_image(raw_image_path, raspi_raw_location, ROIs):
     ''' Process all the ROIs in a single image into summary statistics
 
     1. Convert JPEG+RAW -> .DNG
@@ -33,17 +40,15 @@ def process_image(raw_image_filename, ROIs):
         b. Calculate summary stats
 
     Args:
-        raw_image_filename: The filename of the JPEG+RAW image from a RaspberryPi camera.
+        raw_image_path: The full file path of the JPEG+RAW image from a RaspberryPi camera.
         ROIs: Regions of Interest (ROIs) to crop and summarize
 
     Returns:
         An array of summary statistics dictionaries - one for each ROI
     '''
 
-    dng_image_filename = raw.convert.to_dng(raw_image_filename)
-    rgb_image = dng.open.as_rgb(dng_image_filename)
-
-    jupyter.show_image(rgb_image)
+    dng_image_path = raw.convert.to_dng(raw_image_path, raspi_raw_location)
+    rgb_image = dng.open.as_rgb(dng_image_path)
 
     ROI_crops = {
         roi_name: rgb.image_basics.crop_image(rgb_image, roi_definition)
@@ -52,8 +57,8 @@ def process_image(raw_image_filename, ROIs):
 
     return [
         {
-            'timestamp': dng.metadata.capture_date(raw_image_filename),
-            'image': os.path.basename(raw_image_filename),
+            'timestamp': dng.metadata.capture_date(raw_image_path),
+            'image': os.path.basename(raw_image_path),
             'ROI': roi_name,
             **_process_roi(roi_crop)
         }
@@ -61,7 +66,7 @@ def process_image(raw_image_filename, ROIs):
     ]
 
 
-def process_images(raw_images_dir, ROIs):
+def process_images(raw_images_dir, raspi_raw_location, ROIs):
     ''' Process all images in a given directory
 
     Args:
@@ -72,7 +77,7 @@ def process_images(raw_images_dir, ROIs):
         An pandas DataFrame in which each row contains summary statistics for a single ROI in a single image
     '''
 
-    raw_image_filenames = [
+    raw_image_paths = [
         os.path.join(raw_images_dir, filename)
         for filename in os.listdir(raw_images_dir)
         if filename.endswith('.jpeg')  # TODO: don't save .dngs alongside jpegs?
@@ -85,8 +90,8 @@ def process_images(raw_images_dir, ROIs):
     summary_statistics = pd.DataFrame(
         # Flatten all ROI summaries for all images into a single 1D list
         list(chain.from_iterable([
-            process_image(raw_image_filename, ROIs)
-            for raw_image_filename in raw_image_filenames
+            process_image(raw_image_path, raspi_raw_location, ROIs)
+            for raw_image_path in raw_image_paths
         ]))
     ).sort_values('timestamp').reset_index(drop=True)
 
