@@ -70,7 +70,6 @@ import numpy as np
 import rawpy
 
 
-# TODO: is there an existing library that does this?
 def color_channels_from_raw_dng(filename, fix_flipped_colors=False):
     ''' Get red, green amd blue color channels from raw dng
 

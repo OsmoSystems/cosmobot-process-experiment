@@ -3,7 +3,7 @@ import os
 
 import pandas as pd
 
-from osmo_camera import dng, raw, rgb, jupyter
+from osmo_camera import dng, raw, rgb
 
 
 def _process_roi(roi_crop):
@@ -24,14 +24,7 @@ def _process_roi(roi_crop):
     return flattened_channel_stats
 
 
-def open_rgb_image(raw_image_path, raspi_raw_location):
-    dng_image_path = raw.convert.file_to_dng(raw_image_path, raspi_raw_location)
-    rgb_image = dng.open.as_rgb(dng_image_path)
-
-    return rgb_image
-
-
-def process_image(raw_image_path, raspi_raw_location, ROIs):
+def process_image(raw_image_path, raspiraw_location, ROIs):
     ''' Process all the ROIs in a single image into summary statistics
 
     1. Convert JPEG+RAW -> .DNG
@@ -47,7 +40,7 @@ def process_image(raw_image_path, raspi_raw_location, ROIs):
         An array of summary statistics dictionaries - one for each ROI
     '''
 
-    dng_image_path = raw.convert.file_to_dng(raw_image_path, raspi_raw_location)
+    dng_image_path = raw.convert.to_dng(raspiraw_location, raw_image_path=raw_image_path)
     rgb_image = dng.open.as_rgb(dng_image_path)
 
     ROI_crops = {
@@ -66,7 +59,7 @@ def process_image(raw_image_path, raspi_raw_location, ROIs):
     ]
 
 
-def process_images(raw_images_dir, raspi_raw_location, ROIs):
+def process_images(raw_images_dir, raspiraw_location, ROIs):
     ''' Process all images in a given directory
 
     Args:
@@ -80,17 +73,17 @@ def process_images(raw_images_dir, raspi_raw_location, ROIs):
     raw_image_paths = [
         os.path.join(raw_images_dir, filename)
         for filename in os.listdir(raw_images_dir)
-        if filename.endswith('.jpeg')  # TODO: don't save .dngs alongside jpegs?
+        if filename.endswith('.jpeg')
     ]
 
     # Generate "summary" images: a few representative full images with outlines of ROIs selected
     # Just generates and save them in the current folder
-    # generate_summary_images() # TODO: implement
+    # generate_summary_images()
 
     summary_statistics = pd.DataFrame(
         # Flatten all ROI summaries for all images into a single 1D list
         list(chain.from_iterable([
-            process_image(raw_image_path, raspi_raw_location, ROIs)
+            process_image(raw_image_path, raspiraw_location, ROIs)
             for raw_image_path in raw_image_paths
         ]))
     ).sort_values('timestamp').reset_index(drop=True)

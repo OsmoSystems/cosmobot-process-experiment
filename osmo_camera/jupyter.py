@@ -13,7 +13,7 @@ def _make_solid_color_image(cv_color):
 
 
 # TODO: should this allow passing through any matplotlib figure kwargs?
-def show_image(rgb_image, figsize=None):
+def show_image(rgb_image, figsize=None, title=''):
     ''' Show an image in an ipython notebook.
 
     Args:
@@ -22,6 +22,7 @@ def show_image(rgb_image, figsize=None):
     '''
     plt.figure(figsize=figsize)
     plt.imshow(rgb_image)
+    plt.title(title)
     plt.show()
 
 
