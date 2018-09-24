@@ -9,7 +9,7 @@ from osmo_camera import dng, jupyter
 
 # TODO: optional flag for whether to output cropped images
 # TODO: make a dropdown for `experiment_dir`?
-def process_experiment(experiment_dir, raspi_raw_location, ROI_definitions=[]):
+def process_experiment(experiment_dir, local_sync_dir, raspi_raw_location, ROI_definitions=[]):
     ''' Process all images from an experiment:
         1. Sync images from s3
         2. Select ROIs
@@ -17,6 +17,8 @@ def process_experiment(experiment_dir, raspi_raw_location, ROI_definitions=[]):
 
     Args:
         experiment_dir: The name of the experiment directory in s3
+        local_sync_dir: TBD
+        raspi_raw_location: TBD
         ROI_definitions: pre-selected ROI definition(s), optional
 
     Returns:
@@ -24,7 +26,7 @@ def process_experiment(experiment_dir, raspi_raw_location, ROI_definitions=[]):
         ROI_definitions: The ROI definitions used in the processing
     '''
     # 1. Sync images from s3 to local tmp folder
-    raw_images_dir = sync_images_from_s3(experiment_dir)
+    raw_images_dir = sync_images_from_s3(experiment_dir, local_sync_dir)
 
     # 2. Convert all images from raw to dng
     convert_all_raw_to_dng(raw_images_dir, raspi_raw_location)

@@ -3,7 +3,7 @@ import numpy as np
 from plotly.offline import iplot
 import plotly.graph_objs as go
 
-from .rgb.image_basics import get_channels
+from osmo_camera.rgb.image_basics import get_channels
 
 
 def _make_solid_color_image(cv_color):
