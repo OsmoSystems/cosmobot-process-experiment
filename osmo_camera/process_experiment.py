@@ -1,10 +1,9 @@
 import os
 
 from osmo_camera.s3_sync import sync_images_from_s3
-from osmo_camera.process_images import process_images
+from osmo_camera.process_images import process_images, open_rgb_image
 from osmo_camera.select_ROI import prompt_for_ROI_selection
-from osmo_camera.raw.convert import convert_all_raw_to_dng
-from osmo_camera import dng, jupyter
+from osmo_camera import raw, dng, jupyter
 
 
 # TODO: optional flag for whether to output cropped images
@@ -29,7 +28,7 @@ def process_experiment(experiment_dir, local_sync_dir, raspi_raw_location, ROI_d
     raw_images_dir = sync_images_from_s3(experiment_dir, local_sync_dir)
 
     # 2. Convert all images from raw to dng
-    convert_all_raw_to_dng(raw_images_dir, raspi_raw_location)
+    raw.convert.folder_to_dng(raw_images_dir, raspi_raw_location)
 
     dng_image_paths = [
         os.path.join(raw_images_dir, filename)
@@ -48,9 +47,8 @@ def process_experiment(experiment_dir, local_sync_dir, raspi_raw_location, ROI_d
     if not ROI_definitions:
         ROIs = prompt_for_ROI_selection(first_rgb_image)
 
-        # TODO: prompt to name ROIs instead of numbering them
         ROI_definitions = {
-            f'ROI_{index}': ROI
+            input(f'Name ROI Selection {index + 1}: '): ROI
             for index, ROI in enumerate(ROIs)
         }
 

@@ -25,7 +25,7 @@ def _process_roi(roi_crop):
 
 
 def open_rgb_image(raw_image_path, raspi_raw_location):
-    dng_image_path = raw.convert.to_dng(raw_image_path, raspi_raw_location)
+    dng_image_path = raw.convert.file_to_dng(raw_image_path, raspi_raw_location)
     rgb_image = dng.open.as_rgb(dng_image_path)
 
     return rgb_image
@@ -47,7 +47,7 @@ def process_image(raw_image_path, raspi_raw_location, ROIs):
         An array of summary statistics dictionaries - one for each ROI
     '''
 
-    dng_image_path = raw.convert.to_dng(raw_image_path, raspi_raw_location)
+    dng_image_path = raw.convert.file_to_dng(raw_image_path, raspi_raw_location)
     rgb_image = dng.open.as_rgb(dng_image_path)
 
     ROI_crops = {
