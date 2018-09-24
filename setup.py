@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='osmo_camera',
@@ -8,7 +8,7 @@ setup(
     author_email='dev@osmobot.com',
     description='Prototype code for an osmobot camera sensor',
     url='https://www.github.com/osmosystems/camera-sensor',
-    packages=['osmo_camera'],
+    packages=find_packages(),
     install_requires=[
         'numpy',
         'opencv-python',
