@@ -34,7 +34,7 @@ Set up credentials:
 ### raspiraw
 1. Clone our forked repo:
 ```
-git clone https://github.com/OsmoSystems/camera-sensor-prototype.git
+git clone https://github.com/OsmoSystems/raspiraw.git
 ```
 
 2. Navigate to that directory and run `make`, e.g.:

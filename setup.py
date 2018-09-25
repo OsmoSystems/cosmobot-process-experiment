@@ -12,6 +12,7 @@ setup(
     install_requires=[
         'boto',
         'numpy',
+        'exifread',
         'opencv-python',
         'pandas',
         'plotly >= 2, < 3',
