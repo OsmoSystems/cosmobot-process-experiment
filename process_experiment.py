@@ -1,27 +1,6 @@
 '''Process experiment results'''
 import os
-from subprocess import call
-
-
-def convert_to_dng(input_file, output_file):
-    '''Perform conversion of jpeg+exif to dng'''
-    # Requires that raspi_dng is made using the makefile from and copied to /usr/local/bin
-    # 1) git clone https://github.com/illes/raspiraw
-    # 2) cd ~/raspiraw-master && make
-    # 3) sudo cp ~/raspiraw-master/raspi_dng /user/local/bin
-    comm = 'raspi_dng {} {}'.format(input_file, output_file)
-    print("Converting jpeg to dng: {}".format(comm))
-    call([comm], shell=True)
-
-
-def convert_img_in_dir_to_dng(directory):
-    '''Convert all jpegs in a directory to dng'''
-    for _, _, files in os.walk(directory):
-        for input_file in files:
-            filename, _ = os.path.splitext(input_file)
-            output_file = directory + '/' + filename + '.dng'
-            convert_to_dng(directory + '/' + input_file, output_file)
-
+from subprocess import call, check_output
 
 def s3_sync_output_dir(directory='./output'):
     '''Runs aws s3 sync command with output folder'''
@@ -34,3 +13,11 @@ def s3_sync_output_dir(directory='./output'):
     # https://docs.aws.amazon.com/cli/latest/reference/s3/sync.html
     comm = 'aws s3 sync {} s3://camera-sensor-experiments'.format(directory)
     call([comm], shell=True)
+
+def is_repo_present():
+    return os.path.exists('./.gitignore') # TODO: better check?
+
+def get_git_hash():
+    comm = 'git rev-parse HEAD'
+    comm_output = check_output(comm, shell=True).decode("utf-8")
+    print(comm_output)
