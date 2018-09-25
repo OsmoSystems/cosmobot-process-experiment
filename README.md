@@ -19,6 +19,7 @@ camerasensor
 
 
 # Usage
+(These directions are pretty minimal - check with software team if you have questions)
 
 ## Pre-reqs
 Some set up is required before you can run `process_experiment` locally
