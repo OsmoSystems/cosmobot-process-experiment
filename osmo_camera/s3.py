@@ -32,8 +32,14 @@ def sync_images_from_s3(experiment_dir, local_sync_dir=None):
 
 
 def list_experiments():
-    # TODO: don't check in access keys! (should deactivate this one and get a new one)
-    s3 = boto.connect_s3('AKIAI4OKPYSTXJ2PZNYQ', 'Nu8t0W57FLQLIQx2WfKokz4Kcu/JDOZEaez3H3WR')
+    ''' Lists all experiment folders in the "camera-sensor-experiments" bucket
+    '''
+    try:
+        s3 = boto.connect_s3()
+    except boto.exception.NoAuthHandlerFound:
+        print('You must have aws credentials already saved, e.g. via `aws configure`. \n')
+        return []
+
     bucket = s3.get_bucket('camera-sensor-experiments')
     experiment_folders = bucket.list('', '/')
 
