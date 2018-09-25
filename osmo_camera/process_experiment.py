@@ -1,6 +1,6 @@
 import os
 
-from osmo_camera.s3_sync import sync_images_from_s3
+from osmo_camera.s3 import sync_images_from_s3
 from osmo_camera.process_images import process_images
 from osmo_camera.select_ROI import prompt_for_ROI_selection
 from osmo_camera import raw, dng, jupyter
@@ -16,16 +16,12 @@ from osmo_camera import raw, dng, jupyter
 #  - Clean up `stats.py`
 
 # Nice-to-have:
-#  - Use boto instead of relying on aws cli
+#  - fix opencv brokenness
+#  - "auto-exposure" brightening for ROI selection
+#  ------
 #  - Don't rely on knowing the location of raspiraw installation?
-#  - Make a dropdown for `experiment_dir`?
 #  - Better ROI labelling?
 #  - Make it easier to label "high" and "low"?
-
-# Required follow-on features:
-#  - Generate summary images
-#  - Optionally save cropped images
-#  - Save summary statistics as a .csv
 
 
 # TODO: probably move this to be more generically used to open a representative image
@@ -43,6 +39,8 @@ def open_first_image(raw_images_dir):
     return first_rgb_image
 
 
+# TODO (SOFT-510): generate and save "summary images"
+# TODO (SOFT-511): optionally generate and save an .html file with all of the cropped images
 def process_experiment(experiment_dir, raspiraw_location, ROI_definitions=[], local_sync_dir=None):
     ''' Process all images from an experiment:
         1. Sync raw images from s3
@@ -59,12 +57,12 @@ def process_experiment(experiment_dir, raspiraw_location, ROI_definitions=[], lo
     Returns:
         image_summary_data: A pandas DataFrame of summary statistics
         ROI_definitions: The ROI definitions used in the processing
+
+        Saves the image_summary_data as a .csv in the directory where this function was called.
     '''
-    # 1. Sync images from s3 to local tmp folder
     print('1. Sync images from s3 to local tmp folder...')
     raw_images_dir = sync_images_from_s3(experiment_dir, local_sync_dir)
 
-    # 2. Convert all images from raw to dng
     print('2. Convert all images from raw to dng...')
     raw.convert.to_dng(raspiraw_location, raw_images_dir=raw_images_dir)
 
@@ -72,18 +70,15 @@ def process_experiment(experiment_dir, raspiraw_location, ROI_definitions=[], lo
     first_rgb_image = open_first_image(raw_images_dir)
     jupyter.show_image(first_rgb_image, title='Reference image (first)', figsize=[7, 7])
 
-    # 3. Prompt for ROI selections (if not provided)
     print('3. Prompt for ROI selections (if not provided)...')
     if not ROI_definitions:
         ROI_definitions = prompt_for_ROI_selection(first_rgb_image)
 
-    # 4. Process images into a single DataFrame of summary statistics - one row for each ROI in each image
     print('4. Process images into summary statistics...')
     image_summary_data = process_images(raw_images_dir, raspiraw_location, ROI_definitions)
 
-    # Output:
-    #   summary image(s) # TODO: implement
-    #   ROI_definition(s)
-    #   csv of data (make it extensible - think about path to adding new columns to this) # TODO: save to csv
-    #   optional: html file with cropped images embedded & labeled # TODO: implement
+    csv_name = f'{experiment_dir} - summary statistics.csv'
+    image_summary_data.to_csv(csv_name)
+    print(f'Summary statistics saved as:\n{csv_name}\n')
+
     return image_summary_data, ROI_definitions

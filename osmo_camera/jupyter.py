@@ -1,15 +1,23 @@
+import ipywidgets
+from IPython.display import display
+
 from matplotlib import pyplot as plt
 import numpy as np
 from plotly.offline import iplot
 import plotly.graph_objs as go
 
 from osmo_camera.rgb.image_basics import get_channels
+from osmo_camera.s3 import list_experiments
 
 
-def _make_solid_color_image(cv_color):
-    image = np.zeros((10, 10, len(cv_color)), np.uint8)
-    image[:] = cv_color
-    return image
+def select_experiment():
+    ''' Display a dropdown of experiment names, pulled from s3
+    '''
+
+    selection = ipywidgets.Dropdown(options=list_experiments(), value=None, layout={'width': 'initial'})
+    print('Select experiment to process:')
+    display(selection)
+    return selection
 
 
 # TODO: should this allow passing through any matplotlib figure kwargs?
@@ -24,6 +32,12 @@ def show_image(rgb_image, figsize=None, title=''):
     plt.imshow(rgb_image)
     plt.title(title)
     plt.show()
+
+
+def _make_solid_color_image(cv_color):
+    image = np.zeros((10, 10, len(cv_color)), np.uint8)
+    image[:] = cv_color
+    return image
 
 
 def show_color(cv_color):

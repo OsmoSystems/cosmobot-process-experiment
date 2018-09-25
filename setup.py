@@ -10,6 +10,7 @@ setup(
     url='https://www.github.com/osmosystems/camera-sensor',
     packages=find_packages(),
     install_requires=[
+        'boto',
         'numpy',
         'opencv-python',
         'pandas',

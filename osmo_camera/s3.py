@@ -2,6 +2,7 @@ import platform
 import os
 import tempfile
 from subprocess import call
+import boto
 
 
 def sync_images_from_s3(experiment_dir, local_sync_dir=None):
@@ -22,8 +23,21 @@ def sync_images_from_s3(experiment_dir, local_sync_dir=None):
 
     sync_folder_location = os.path.join(local_sync_dir, experiment_dir)
 
-    # TODO: use boto?
+    # Would be better to use boto, but neither boto nor boto3 support sync
+    # https://github.com/boto/boto3/issues/358
     command = f'aws s3 sync s3://camera-sensor-experiments/{experiment_dir} {sync_folder_location}'
     call([command], shell=True)
 
     return sync_folder_location
+
+
+def list_experiments():
+    # TODO: don't check in access keys! (should deactivate this one and get a new one)
+    s3 = boto.connect_s3('AKIAI4OKPYSTXJ2PZNYQ', 'Nu8t0W57FLQLIQx2WfKokz4Kcu/JDOZEaez3H3WR')
+    bucket = s3.get_bucket('camera-sensor-experiments')
+    experiment_folders = bucket.list('', '/')
+
+    experiment_names = [folder.name.strip('/') for folder in experiment_folders]
+
+    # Reverse list of folders to sort most recent first (assumes folder name starts with ISO date)
+    return list(reversed(experiment_names))
