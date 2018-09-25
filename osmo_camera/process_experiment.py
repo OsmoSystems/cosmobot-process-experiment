@@ -1,6 +1,6 @@
 import os
 
-from osmo_camera.s3 import sync_images_from_s3
+from osmo_camera.s3 import sync_experiment_dir
 from osmo_camera.process_images import process_images
 from osmo_camera.select_ROI import prompt_for_ROI_selection
 from osmo_camera import raw, dng, jupyter
@@ -16,7 +16,6 @@ from osmo_camera import raw, dng, jupyter
 #  - Clean up `stats.py`
 
 # Nice-to-have:
-#  - fix opencv brokenness
 #  - "auto-exposure" brightening for ROI selection
 #  ------
 #  - Don't rely on knowing the location of raspiraw installation?
@@ -24,8 +23,8 @@ from osmo_camera import raw, dng, jupyter
 #  - Make it easier to label "high" and "low"?
 
 
-# TODO: probably move this to be more generically used to open a representative image
-def open_first_image(raw_images_dir):
+# TODO (SOFT-510): probably make this function more generic and use in generating summary images
+def _open_first_image(raw_images_dir):
     # Assumes images have already been converted to .DNGs
     dng_image_paths = [
         os.path.join(raw_images_dir, filename)
@@ -61,13 +60,13 @@ def process_experiment(experiment_dir, raspiraw_location, ROI_definitions=[], lo
         Saves the image_summary_data as a .csv in the directory where this function was called.
     '''
     print('1. Sync images from s3 to local tmp folder...')
-    raw_images_dir = sync_images_from_s3(experiment_dir, local_sync_dir)
+    raw_images_dir = sync_experiment_dir(experiment_dir, local_sync_dir)
 
     print('2. Convert all images from raw to dng...')
     raw.convert.to_dng(raspiraw_location, raw_images_dir=raw_images_dir)
 
     # Open and display the first image for reference
-    first_rgb_image = open_first_image(raw_images_dir)
+    first_rgb_image = _open_first_image(raw_images_dir)
     jupyter.show_image(first_rgb_image, title='Reference image (first)', figsize=[7, 7])
 
     print('3. Prompt for ROI selections (if not provided)...')

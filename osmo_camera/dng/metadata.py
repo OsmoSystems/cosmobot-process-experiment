@@ -7,7 +7,7 @@ import exifread
 EXIF_DATE_TIME_ORIGINAL_TAG = 'EXIF DateTimeOriginal'
 
 
-# TODO: stop assuming the jpeg version of the file is alongside the DNG file. Either copy over metadata to .DNG, or..?
+# TODO (SOFT-512): stop assuming the jpeg version of the file is alongside the DNG file. Copy over metadata to .DNG
 def capture_date(dng_image_path):
     ''' Extracts original capture date from a .DNG file
 

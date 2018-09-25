@@ -2,8 +2,6 @@ import os
 from subprocess import call
 
 
-# TODO: don't depend on knowing where raspiraw lives?
-# TODO: correctly manage camera v1 vs v2?
 def _file_to_dng(raspiraw_location, raw_image_path):
     raw_image_root, raw_image_extension = os.path.splitext(raw_image_path)
 

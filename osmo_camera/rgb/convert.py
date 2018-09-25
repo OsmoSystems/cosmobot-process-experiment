@@ -8,7 +8,6 @@ def to_bgr(rgb_image):
         A `BGR image`
     '''
 
-    # TODO: figure out why this magically works??
     # https://www.scivision.co/numpy-image-bgr-to-rgb/
     bgr_image = rgb_image[..., :: -1]
 

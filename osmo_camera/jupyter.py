@@ -20,7 +20,6 @@ def select_experiment():
     return selection
 
 
-# TODO: should this allow passing through any matplotlib figure kwargs?
 def show_image(rgb_image, figsize=None, title=''):
     ''' Show an image in an ipython notebook.
 
@@ -48,7 +47,6 @@ def show_color(cv_color):
 def plot_histogram(image, minimal=True):
     ''' Plot a histogram of the image
     '''
-    # TODO: debug this?
     # assumes image is in "green, blue, red" (openCV default) channel format
     blue, green, red = get_channels(image)
 

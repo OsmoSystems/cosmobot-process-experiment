@@ -5,7 +5,7 @@ from subprocess import call
 import boto
 
 
-def sync_images_from_s3(experiment_dir, local_sync_dir=None):
+def sync_experiment_dir(experiment_dir, local_sync_dir=None):
     ''' Syncs raw images from s3 to a local tmp directory (can optionally be provided)
 
     Args:

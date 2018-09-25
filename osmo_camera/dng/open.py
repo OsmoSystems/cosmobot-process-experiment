@@ -30,4 +30,4 @@ def as_rgb(dng_filename):
             no_auto_bright=True,
         )
 
-    return image / 2 ** 16  # TODO: remove magic number denormalizing
+    return image / 2 ** 16  # TODO (SOFT-514): remove magic number denormalizing, update everywhere to use 10-bit?
