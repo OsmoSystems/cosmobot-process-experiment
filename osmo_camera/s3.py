@@ -35,7 +35,8 @@ def list_experiments():
     ''' Lists all experiment folders in the "camera-sensor-experiments" bucket
     '''
     try:
-        s3 = boto.connect_s3()
+        # TODO: Stop checking in access key!
+        s3 = boto.connect_s3('AKIAIFJ2IMOKIWPKGZRA', 'vqTb5DpoSouOtgmTJo+Zm8+mtW9KeddRxbFeliny')
     except boto.exception.NoAuthHandlerFound:
         print('You must have aws credentials already saved, e.g. via `aws configure`. \n')
         return []
