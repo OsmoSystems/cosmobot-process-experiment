@@ -7,7 +7,7 @@ setup(
     author='Osmo Systems',
     author_email='dev@osmobot.com',
     description='Prototype code for an osmobot camera sensor',
-    url='https://www.github.com/osmosystems/camera-sensor',
+    url='https://www.github.com/osmosystems/camera-sensor-prototype',
     packages=find_packages(),
     install_requires=[
         'boto',
