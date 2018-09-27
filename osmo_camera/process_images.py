@@ -41,7 +41,7 @@ def _process_ROI(ROI):
 
 
 def process_image(raw_image_path, raspiraw_location, ROI_definitions):
-    ''' Process all the ROI_definitions in a single image into summary statistics
+    ''' Process all the ROIs in a single image into summary statistics
 
     1. Convert JPEG+RAW -> .DNG
     2. For each ROI:
@@ -50,7 +50,8 @@ def process_image(raw_image_path, raspiraw_location, ROI_definitions):
 
     Args:
         raw_image_path: The full file path of the JPEG+RAW image from a RaspberryPi camera.
-        ROI_definitions: Regions of Interest (ROI_definitions) to crop and summarize
+        ROI_definitions: Definitions of Regions of Interest (ROIs) to summarize. A map of {ROI_name: ROI_definition}
+        Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI: (start_col, start_row, cols, rows)
 
     Returns:
         An array of summary statistics dictionaries - one for each ROI
@@ -81,7 +82,8 @@ def process_images(raw_images_dir, raspiraw_location, ROI_definitions):
 
     Args:
         raw_images_dir: The directory of images to process
-        ROI_definitions: Definitions of Regions of Interest (ROIs) to crop and summarize
+        ROI_definitions: Definitions of Regions of Interest (ROIs) to summarize. A map of {ROI_name: ROI_definition}
+        Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI: (start_col, start_row, cols, rows)
 
     Returns:
         An pandas DataFrame in which each row contains summary statistics for a single ROI in a single image

@@ -51,7 +51,8 @@ def process_experiment(experiment_dir, raspiraw_location, ROI_definitions=[], lo
         experiment_dir: The name of the experiment directory in s3
         local_sync_dir: The name of the local directory where images will be synced and processed
         raspiraw_location: The name of the local directory where raspiraw is installed
-        ROI_definitions: pre-selected ROI definition(s), optional
+        ROI_definitions: Optional. Pre-selected ROI_definitions: a map of {ROI_name: ROI_definition}
+        Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI: (start_col, start_row, cols, rows)
 
     Returns:
         image_summary_data: A pandas DataFrame of summary statistics
