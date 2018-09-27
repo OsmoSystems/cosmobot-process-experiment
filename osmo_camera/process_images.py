@@ -81,7 +81,7 @@ def process_images(raw_images_dir, raspiraw_location, ROI_definitions):
 
     Args:
         raw_images_dir: The directory of images to process
-        ROI_definitions: Regions of Interest (ROI_definitions) to crop and summarize
+        ROI_definitions: Definitions of Regions of Interest (ROIs) to crop and summarize
 
     Returns:
         An pandas DataFrame in which each row contains summary statistics for a single ROI in a single image
