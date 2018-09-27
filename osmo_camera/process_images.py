@@ -19,8 +19,8 @@ ROI_STATISTIC_CALCULATORS = {
     'max': partial(np.amax, axis=IMAGE_AXES),
     'stdev': partial(np.std, axis=IMAGE_AXES),
     **{
-        f'quantile_{quantile}': partial(np.quantile, q=quantile/100, axis=IMAGE_AXES)
-        for quantile in [99, 95, 90, 75, 50, 25]
+        f'percentile_{percentile}': partial(np.percentile, q=percentile, axis=IMAGE_AXES)
+        for percentile in [99, 95, 90, 75, 50, 25]
     }
 }
 
