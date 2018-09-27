@@ -1,7 +1,6 @@
 '''DOCSTRING:'''
-
-from multiprocessing import Process
-from subprocess import call
+import multiprocessing
+import subprocess
 
 # global
 SYNC_PROCESSES = dict()
@@ -24,7 +23,7 @@ def sync_with_s3(directory='./output'):
     # This argument pattern issues a uni-directional sync to S3 bucket
     # https://docs.aws.amazon.com/cli/latest/reference/s3/sync.html
     comm = 'aws s3 sync {} s3://camera-sensor-experiments'.format(directory)
-    call([comm], shell=True)
+    subprocess.call([comm], shell=True)
 
 
 def sync_for_directory_is_alive(directory_key):
@@ -56,8 +55,7 @@ def end_syncing_processes():
         SYNC_PROCESSES[directory_key] = None
 
 
-# TODO: Process limiting?  Fast-follow ticket using a queue?'''
-# TODO: Test in real life: Will process management algorithm cause inconsitencies with syncing'''
+# TODO: Test in real life: Will process management algorithm cause inconsitencies with syncing on pi zero?'''
 
 def sync_directory_in_separate_process(directory, final_sync=False):
     '''Instantiates a separate process for syncing a directory.  Stores
@@ -72,7 +70,7 @@ def sync_directory_in_separate_process(directory, final_sync=False):
     if sync_for_directory_is_alive(directory):
         return
 
-    sync_process = Process(target=sync_with_s3, args=(directory,))
+    sync_process = multiprocessing.Process(target=sync_with_s3, args=(directory,))
     sync_process.start()
     SYNC_PROCESSES[directory] = sync_process
 
