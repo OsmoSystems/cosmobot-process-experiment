@@ -12,23 +12,13 @@ jobs:
 
     steps:
       - checkout
-      
-      - run:
-          name: install package and dependencies
-          command: |
-            python3 -m venv test_venv
-            . test_venv/bin/activate
-            pip install .
-            pip install -r test_requirements.txt
 
       - run:
-          name: tests
+          name: install tox
           command: |
-            . test_venv/bin/activate
-            pytest
+            pip install tox
 
       - run:
-          name: flake8
+          name: tox -r to install and run tests and flake
           command: |
-            . test_venv/bin/activate
-            flake8
+            tox -r
