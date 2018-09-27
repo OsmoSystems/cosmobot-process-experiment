@@ -10,8 +10,7 @@
 ]
 ```
 
-* `BGR image` - A 3D numpy.ndarray: a 2D array of "pixels", where each "pixel" is a 1D array of [blue, green, red] channels with a value between 0 and 1. This is OpenCV's default
-* `ROI` - A rectangular Region of Interest (ROI) in a given image.
+* `ROI` - An `RGB image` that has been cropped to a specific Region of Interest (ROI).
 * `ROI definition` - A 4-tuple in the format provided by cv2.selectROI: (start_col, start_row, cols, rows), used to define a Region of Interest (ROI).
 
 

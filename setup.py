@@ -12,6 +12,7 @@ setup(
     install_requires=[
         'boto',
         'numpy',
+        'matplotlib',
         'exifread',
         'opencv-python',
         'pandas',
