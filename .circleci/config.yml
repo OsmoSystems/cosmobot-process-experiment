@@ -16,7 +16,8 @@ jobs:
       - run:
           name: install tox
           command: |
-            pip install tox
+            # Only have permissions to pip install to the user folder
+            python3 -m pip install --user tox
 
       - run:
           name: tox -r to install and run tests and flake
