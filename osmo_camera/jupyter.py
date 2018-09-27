@@ -64,7 +64,7 @@ def plot_histogram(image, minimal=True):
             x=bin_edges,
             y=histogram,
             name=color,
-            mode='line',
+            mode='lines',
             line={
                 'color': color,
                 'width': 1,

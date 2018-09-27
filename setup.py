@@ -15,7 +15,7 @@ setup(
         'exifread',
         'opencv-python',
         'pandas',
-        'plotly >= 2, < 3',
+        'plotly >= 3, < 4',
         'rawpy',
     ],
     include_package_data=True
