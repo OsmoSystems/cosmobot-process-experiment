@@ -8,7 +8,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/python:3.6
+      - image: python:3.6
 
     steps:
       - checkout
@@ -16,8 +16,7 @@ jobs:
       - run:
           name: install tox
           command: |
-            # Only have permissions to pip install to the user folder
-            python3 -m pip install --user tox
+            pip install tox
 
       - run:
           name: tox -r to install and run tests and flake
