@@ -19,7 +19,7 @@ def sync_with_s3(directory='./output'):
     # Using CLI vs boto: https://github.com/boto/boto3/issues/358
     # It looks like sync is not a supported function of the python boto library
     # Work around is to use cli sync for now (requires aws cli to be installed)
-    print("Performing sync of output (experiments) folder")
+    print(f'Performing sync of experiments folder: {directory}')
 
     # This argument pattern issues a uni-directional sync to S3 bucket
     # https://docs.aws.amazon.com/cli/latest/reference/s3/sync.html
