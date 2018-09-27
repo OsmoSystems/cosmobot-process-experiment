@@ -52,7 +52,7 @@ def experiment_configuration(args):
     arg_parser.add_argument("--duration",
                             required=False,
                             type=int,
-                            default=ONE_YEAR_IN_SECONDS
+                            default=ONE_YEAR_IN_SECONDS,
                             help="duration in seconds")
     arg_parser.add_argument("--capture_params",
                             required=False,
@@ -83,7 +83,7 @@ def experiment_configuration(args):
         name=args['name'],
         capture_params=args['capture_params'],
         output_folder=base_output_path + start_date.strftime(
-            '%Y%m%d%H%M%S_{}'.format(configuration['name']))
+            '%Y%m%d%H%M%S_{}'.format(args['name']))
     ))
 
     # extract the variants passed through the command line (if any)
@@ -107,7 +107,7 @@ def experiment_configuration(args):
     configuration['name'] = args['name']
     configuration['start_date'] = start_date
     configuration['duration'] = args['duration']
-    configuration['end_date'] = start_date + timedelta(seconds=duration)
+    configuration['end_date'] = start_date + timedelta(seconds=args['duration'])
 
     return configuration
 
