@@ -1,28 +1,25 @@
-camerasensor
-
-
 # Terminology
-`RAW image file` - A JPEG+RAW image file as directly captured by a PiCam v2, saved as a .JPEG
-`.DNG image file` - An RAW image file converted to the Adobe Digital Negative (.DNG) format
+* `RAW image file` - A JPEG+RAW image file as directly captured by a PiCam v2, saved as a .JPEG
+* `.DNG image file` - An RAW image file converted to the Adobe Digital Negative (.DNG) format
+* `RGB image` - A 3D numpy.ndarray: a 2D array of "pixels" (row-major), where each "pixel" is a 1D array of [red, green, blue] channels with a value between 0 and 1. This is our default format for interacting with images. An example 4-pixel (2x2) image would have this shape:
 
-`RGB image` - A 3D numpy.ndarray: a 2D array of "pixels" (row-major), where each "pixel" is a 1D array of [red, green, blue] channels with a value between 0 and 1. This is our default format for interacting with images. An example 4-pixel (2x2) image would have this shape:
-
+```
 [
  [ [r1, g1, b1], [r2, g2, b2] ],
  [ [r3, g3, b3], [r4, g4, b4] ]
 ]
+```
 
-`BGR image` - A 3D numpy.ndarray: a 2D array of "pixels", where each "pixel" is a 1D array of [blue, green, red] channels with a value between 0 and 1. This is OpenCV's default
-
-`ROI` - A rectangular Region of Interest (ROI) in a given image.
-`ROI definition` - A 4-tuple in the format provided by cv2.selectROI: (start_col, start_row, cols, rows), used to define a Region of Interest (ROI).
+* `BGR image` - A 3D numpy.ndarray: a 2D array of "pixels", where each "pixel" is a 1D array of [blue, green, red] channels with a value between 0 and 1. This is OpenCV's default
+* `ROI` - A rectangular Region of Interest (ROI) in a given image.
+* `ROI definition` - A 4-tuple in the format provided by cv2.selectROI: (start_col, start_row, cols, rows), used to define a Region of Interest (ROI).
 
 
 # Usage
-(These directions are pretty minimal - check with software team if you have questions or run into problems)
+The function `process_experiment` is meant to be run from a local Jupyter Notebook.
 
 ## Pre-reqs
-Some set up is required before you can run `process_experiment` locally
+Some set up is required before you can run `process_experiment` locally. These directions are very minimal - check with software team if you have questions or run into problems.
 
 ### awscli
 Install:
@@ -48,4 +45,4 @@ git clone https://github.com/OsmoSystems/raspiraw.git
 ```
 
 ## Running
-See this example jupyter notebook: [TBD]
+See this example jupyter notebook: "2018-09-25 process_experiment example snippet.ipynb" in https://drive.google.com/drive/folders/1bEVTuDQf_Ej_Ct-iggXkkg1NOTVrGHXc
