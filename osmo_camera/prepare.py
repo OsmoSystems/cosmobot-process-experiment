@@ -3,6 +3,7 @@ import argparse
 import os
 import re
 import math
+from socket import gethostname
 from shutil import disk_usage
 from datetime import datetime, timedelta
 from subprocess import check_output, CalledProcessError
@@ -32,7 +33,8 @@ def experiment_configuration(args):
     # initailize configuration dictionary with command issued and git_hash (if available)
     configuration = dict(
         command=' '.join(args),
-        git_hash=git_hash()
+        git_hash=git_hash(),
+        hostname=gethostname(),
     )
 
     arg_parser = argparse.ArgumentParser()
@@ -50,6 +52,7 @@ def experiment_configuration(args):
     arg_parser.add_argument("--duration",
                             required=False,
                             type=int,
+                            default=ONE_YEAR_IN_SECONDS
                             help="duration in seconds")
     arg_parser.add_argument("--capture_params",
                             required=False,
@@ -69,16 +72,14 @@ def experiment_configuration(args):
     args = vars(arg_parser.parse_args())
 
     # required args
-    configuration['interval'] = args['interval']
-    configuration['name'] = args['name']
 
     # start_date of experiment is now
     start_date = datetime.now()
-    configuration['start_date'] = start_date
+
 
     # There is always at least one variant for an experiment if name and interval are provided
-    configuration['variants'] = []
-    configuration['variants'].append(dict(
+    variants = []
+    variants.append(dict(
         name=args['name'],
         capture_params=args['capture_params'],
         output_folder=base_output_path + start_date.strftime(
@@ -99,12 +100,13 @@ def experiment_configuration(args):
                 output_folder=base_output_path + start_date.strftime(
                     '%Y%m%d%H%M%S_{}'.format(variant_name))
             )
-            configuration['variants'].append(variant_dict)
+            variants.append(variant_dict)
 
-    # if no duration provided duration is set to arbitrary long period of 1 year
-    duration = args['duration'] if args['duration'] is not None else ONE_YEAR_IN_SECONDS
-
-    configuration['duration'] = duration
+    configuration['variants'] = variants
+    configuration['interval'] = args['interval']
+    configuration['name'] = args['name']
+    configuration['start_date'] = start_date
+    configuration['duration'] = args['duration']
     configuration['end_date'] = start_date + timedelta(seconds=duration)
 
     return configuration
