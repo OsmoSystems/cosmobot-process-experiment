@@ -71,7 +71,7 @@ import rawpy
 
 
 def color_channels_from_raw_dng(filename, fix_flipped_colors=False):
-    ''' Get red, green amd blue color channels
+    ''' Get red, green amd blue color channels from raw dng
 
     Arguments:
         filename: name of the file (usually a .dng) to process
@@ -105,11 +105,13 @@ def color_channels_from_raw_dng(filename, fix_flipped_colors=False):
     red_indices = np.argwhere(raw_clr == 0)
     green_indices = np.argwhere(raw_clr == 1)
     blue_indices = np.argwhere(raw_clr == 2)
+    green_2_indices = np.argwhere(raw_clr == 3)
 
     # filter array with indices representing a specific color sensor
     # and reshape linear color array to 2 dimensional array that represents a value in a color channel at a pixel
     filtered_image_red_channel_yx = raw_img[red_indices].reshape(half_image_height, half_image_width)
     filtered_image_green_channel_yx = raw_img[green_indices].reshape(half_image_height, half_image_width)
+    # filtered_image_green_channel_yx = (raw_img[green_indices].reshape(half_image_height, half_image_width) + raw_img[green_2_indices].reshape(half_image_height, half_image_width))/2
     filtered_image_blue_channel_yx = raw_img[blue_indices].reshape(half_image_height, half_image_width)
 
     return dict(
@@ -125,9 +127,17 @@ def compose_rgb_channels_to_Y_X_RGB(red, green, blue):
 
 
 def compose_rgb_channels_to_opencv_format(red, green, blue):
-    return np.dstack((blue, green, red)) / 2 ** 16
+    return np.dstack((red, green, blue)) / 2 ** 16
+    # return np.dstack((blue, green, red)) / 2 ** 16
 
 
+def open_image(filename):
+    return compose_rgb_channels_to_opencv_format(
+        **color_channels_from_raw_dng(
+            filename,
+            fix_flipped_colors=False
+        )
+    )
 # tests :)
 # color_channels = color_channels_from_raw_dng('./input/raw_hf_flag.dng')
 # composed_rgb = compose_rgb_channels_to_Y_X_RGB(**color_channels)

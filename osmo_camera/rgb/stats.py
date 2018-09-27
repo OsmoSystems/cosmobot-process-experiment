@@ -19,3 +19,13 @@ def get_channel_maximums(image):
     ''' Maximum value for each color component in an image.
     '''
     return np.amax(image, axis=(0, 1))
+
+
+def get_channel_stdevs(image):
+    mean, stdev = cv2.meanStdDev(image)
+    # For some reason, stdev comes out as a 2d array; flatten it
+    return np.reshape(stdev, 3)
+
+
+def get_channel_medians(image):
+    return np.median(image, axis=(0, 1))
