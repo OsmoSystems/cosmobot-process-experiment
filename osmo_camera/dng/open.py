@@ -18,8 +18,9 @@ def as_rgb(dng_filename):
 
         image = raw.postprocess(
             # These settings prevent any special post-processing from happening - pass through bayer colors directly
+            # EXCEPT for the combination of the two green channels, so that we end with an RGB image instead of RGBG
             half_size=True,  # Use one pixel per RGBG 2x2 instead of interpolating
-            demosaic_algorithm=rawpy.DemosaicAlgorithm.LINEAR,  # Demosaic algorithm doesn't apply when half_size=True
+            # demosaic_algorithm=rawpy.DemosaicAlgorithm.LINEAR,  # Demosaic algorithm doesn't apply when half_size=True
             four_color_rgb=False,  # Combine the two green channels (somehow.. we don't quite know how)
             output_bps=16,  # Use 16-bit resolution
             gamma=(1, 1),  # Don't apply gamma-correction
@@ -30,4 +31,6 @@ def as_rgb(dng_filename):
             no_auto_bright=True,
         )
 
-    return image / 2 ** 16  # TODO (SOFT-514): remove magic number denormalizing, update everywhere to use 10-bit?
+    # Normalized the image to be in the range 0-1
+    # Assumes incoming image is 16-bit
+    return image / 2 ** 16

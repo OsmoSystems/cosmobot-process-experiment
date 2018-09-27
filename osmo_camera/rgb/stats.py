@@ -24,7 +24,7 @@ def get_channel_maximums(image):
 def get_channel_stdevs(image):
     mean, stdev = cv2.meanStdDev(image)
     # For some reason, stdev comes out as a 2d array; flatten it
-    return np.reshape(stdev, 3)
+    return np.reshape(stdev, -1)
 
 
 def get_channel_medians(image):

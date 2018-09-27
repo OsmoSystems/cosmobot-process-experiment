@@ -44,8 +44,8 @@ def choose_regions(rgb_image):
 def prompt_for_ROI_selection(rgb_image):
     # Make image brighter to enable selecting ROIs even on very dark images
     # TODO: "auto exposure" adjustment instead of magical number
-    brighter_rbg_image = rgb_image * 3
-    ROIs = choose_regions(brighter_rbg_image)
+    brighter_rgb_image = rgb_image * 3
+    ROIs = choose_regions(brighter_rgb_image)
 
     print('\nName your ROIs in the same order you selected them. Names must be unique.')
     # TODO: could show a summary image that just numbers the selected ROIs on the image. Would be sweet!

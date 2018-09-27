@@ -1,10 +1,8 @@
-# TODO: name this file something different? Maybe break these functions out?
 import numpy as np
 
 
-# TODO: make sure this works
 def get_channels(image):
-    ''' Convert an image into multiple grayscale images, one for each channel
+    ''' Convert an image into linear arrays for each channel
 
     Args:
         image: numpy.ndarray of an openCV-style image
