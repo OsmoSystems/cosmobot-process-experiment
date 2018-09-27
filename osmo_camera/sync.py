@@ -60,14 +60,14 @@ def end_syncing_processes():
 # TODO: Test in real life: Will process management algorithm cause inconsitencies with syncing'''
 
 def sync_directory_in_separate_process(directory, final_sync=False):
-    '''Creates process for syncing a directory
+    '''Instantiates a separate process for syncing a directory.  Stores
+       a reference to the process to check later for subsequent syncs.
      Args:
         directory: directory to sync
-        join_process: Should the newly invoked process be completed before
-        returning from the function (async/sync)
+        final_sync (optional): Should the newly invoked process be completed before
+        returning from the function (async/sync).
      Returns:
-        None.  To different code paths
-        Fail silently if directory is currently syncing
+        None.
     '''
     if sync_for_directory_is_alive(directory):
         return
