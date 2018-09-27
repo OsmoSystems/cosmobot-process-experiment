@@ -12,7 +12,7 @@ from osmo_camera import raw, dng, jupyter
 
 # Clean-up ideas
 #  - Review functions in `jupyter.py`
-#  - Rename `image_basics.py`
+#  - Rename `image_basics.py`?
 #  - Clean up `stats.py`
 
 # Nice-to-have:
