@@ -2,7 +2,6 @@
 
 import sys
 import yaml
-from socket import gethostname
 from datetime import datetime, timedelta
 from camera import capture
 from prepare import create_output_folder, is_hostname_valid, experiment_configuration
@@ -97,11 +96,11 @@ def perform_experiment(configuration):
 
 
 if __name__ == '__main__':
-    HOSTNAME = gethostname()
+    CONFIGURATION = experiment_configuration(sys.argv)
+    HOSTNAME = CONFIGURATION['hostname']
+
     if is_hostname_valid(HOSTNAME):
         QUIT_MESSAGE = "\"" + HOSTNAME + "\" is not a valid hostname."
         QUIT_MESSAGE += " Contact your local dev for instructions on setting a valid hostname."
         quit(QUIT_MESSAGE)
-
-    CONFIGURATION = experiment_configuration(sys.argv)
     perform_experiment(CONFIGURATION)
