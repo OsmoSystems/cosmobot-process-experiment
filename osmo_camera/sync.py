@@ -3,7 +3,7 @@ import multiprocessing
 import subprocess
 
 # global
-SYNC_PROCESSES = dict()
+_SYNC_PROCESSES = dict()
 
 
 def sync_with_s3(directory='./output'):
@@ -22,24 +22,21 @@ def sync_with_s3(directory='./output'):
 
     # This argument pattern issues a uni-directional sync to S3 bucket
     # https://docs.aws.amazon.com/cli/latest/reference/s3/sync.html
-    comm = 'aws s3 sync {} s3://camera-sensor-experiments'.format(directory)
-    subprocess.call([comm], shell=True)
+    command = 'aws s3 sync {} s3://camera-sensor-experiments'.format(directory)
+    subprocess.call([command], shell=True)
 
 
-def sync_for_directory_is_alive(directory_key):
+def _sync_for_directory_is_alive(directory_key):
     '''Checks if a sync process is currently being run for the directory passed in
      Args:
         directory_key: key to check within the SYNC_PROCESSES dictionary
      Returns:
         Boolean: Used to check if a directory is currently syncing
     '''
-    if directory_key in SYNC_PROCESSES and SYNC_PROCESSES[directory_key].is_alive():
-        return True
-
-    return False
+    return directory_key in SYNC_PROCESSES and SYNC_PROCESSES[directory_key].is_alive()
 
 
-def end_syncing_processes():
+def _end_syncing_processes():
     '''Stop all processes currently syncing.  Intended to be used
        if experimental image capture has finished and a final
        sync should be initiated.
@@ -49,10 +46,10 @@ def end_syncing_processes():
         None
     '''
 
-    for directory_key in SYNC_PROCESSES:
-        process = SYNC_PROCESSES[directory_key]
+    for directory_key in _SYNC_PROCESSES:
+        process = _SYNC_PROCESSES[directory_key]
         process.stop()
-        SYNC_PROCESSES[directory_key] = None
+        _SYNC_PROCESSES[directory_key] = None
 
 
 # TODO: Test in real life: Will process management algorithm cause inconsitencies with syncing on pi zero?'''
@@ -67,13 +64,13 @@ def sync_directory_in_separate_process(directory, final_sync=False):
      Returns:
         None.
     '''
-    if sync_for_directory_is_alive(directory):
+    if _sync_for_directory_is_alive(directory):
         return
 
     sync_process = multiprocessing.Process(target=sync_with_s3, args=(directory,))
     sync_process.start()
-    SYNC_PROCESSES[directory] = sync_process
+    _SYNC_PROCESSES[directory] = sync_process
 
     if final_sync:
-        end_syncing_processes()
+        _end_syncing_processes()
         sync_process.join()
