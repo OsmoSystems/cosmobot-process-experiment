@@ -1,64 +1,42 @@
-import cv2
+import ipywidgets
+from IPython.display import display
+
 from matplotlib import pyplot as plt
 import numpy as np
 from plotly.offline import iplot
 import plotly.graph_objs as go
 
-from .image_basics import get_channels
+from osmo_camera.rgb.image_basics import get_channels
+from osmo_camera.s3 import list_experiments
 
 
-def choose_regions(image):
-    ''' Funky interaction to select regions within an image.
-    READ THIS:
-    When you call this, the user must:
-    1. go to the window that pops up
-    2. click + drag to select a region
-    3. PRESS ENTER ONCE. Pressing enter multiple times will save the same region again
-    4. return to step 2 until you've selected all the regions you want
-    5. after pressing enter the last time, close the window by pressing Esc a couple of times.
-
-    Arguments:
-        image: numpy.ndarray of an openCV-style image
-    Returns:
-        numpy 2d array, essentially an iterable containing iterables of (start_col, start_row, cols, rows)
-        corresponding to the regions that you selected.
+def select_experiment():
+    ''' Display a dropdown of experiment names, pulled from s3
     '''
-    window_name = 'ROIs selection'
-    cv2.namedWindow(window_name, cv2.WINDOW_GUI_EXPANDED)  # WINDOW_GUI_EXPANDED seems to allow you to resize the window
 
-    # Resize the window to a manageable default.
-    window_size = 600  # in pixels
-    cv2.resizeWindow(window_name, window_size, window_size)
+    selection = ipywidgets.Dropdown(options=list_experiments(), value=None, layout={'width': 'initial'})
+    print('Select experiment to process:')
+    display(selection)
+    return selection
 
-    regions = cv2.selectROIs(window_name, image)
-    cv2.waitKey()
 
-    cv2.destroyWindow(window_name)
-    return regions
+def show_image(rgb_image, figsize=None, title=''):
+    ''' Show an image in an ipython notebook.
+
+    Args:
+        rgb_image: numpy.ndarray of an RGB image
+        figsize: 2-tuple of desired figure size in inches; will be passed to `plt.figure()`
+    '''
+    plt.figure(figsize=figsize)
+    plt.imshow(rgb_image)
+    plt.title(title)
+    plt.show()
 
 
 def _make_solid_color_image(cv_color):
     image = np.zeros((10, 10, len(cv_color)), np.uint8)
     image[:] = cv_color
     return image
-
-
-def show_image(image, figsize=None):
-    ''' Show an image in an ipython notebook.
-
-    Args:
-        image: numpy.ndarray of an openCV-style image
-        figsize: 2-tuple of desired figure size in inches; will be passed to `plt.figure()`
-    '''
-    plt.figure(figsize=figsize)
-    try:
-        # If this is a normal OpenCV-style image, it will need to be converted.
-        converted_colors_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        plt.imshow(converted_colors_image)
-    except Exception:
-        # If it is a RAW, OpenCV will choke on the conversion and raise a generic "Error". Just display what you have.
-        plt.imshow(image)
-    plt.show()
 
 
 def show_color(cv_color):
@@ -86,7 +64,7 @@ def plot_histogram(image, minimal=True):
             x=bin_edges,
             y=histogram,
             name=color,
-            mode='line',
+            mode='lines',
             line={
                 'color': color,
                 'width': 1,

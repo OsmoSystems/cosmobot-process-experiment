@@ -71,7 +71,7 @@ import rawpy
 
 
 def color_channels_from_raw_dng(filename, fix_flipped_colors=False):
-    ''' Get red, green amd blue color channels
+    ''' Get red, green amd blue color channels from raw dng
 
     Arguments:
         filename: name of the file (usually a .dng) to process
@@ -125,9 +125,17 @@ def compose_rgb_channels_to_Y_X_RGB(red, green, blue):
 
 
 def compose_rgb_channels_to_opencv_format(red, green, blue):
-    return np.dstack((blue, green, red)) / 2 ** 16
+    return np.dstack((red, green, blue)) / 2 ** 16
+    # return np.dstack((blue, green, red)) / 2 ** 16
 
 
+def open_image(filename):
+    return compose_rgb_channels_to_opencv_format(
+        **color_channels_from_raw_dng(
+            filename,
+            fix_flipped_colors=False
+        )
+    )
 # tests :)
 # color_channels = color_channels_from_raw_dng('./input/raw_hf_flag.dng')
 # composed_rgb = compose_rgb_channels_to_Y_X_RGB(**color_channels)
