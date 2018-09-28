@@ -30,7 +30,8 @@ def perform_experiment(configuration):
     variants = configuration["variants"]
     duration = configuration["duration"]
 
-    # print out information message that
+    # print out warning that no duration has been set and inform how many
+    # estimated images can be stored
     if duration == ONE_YEAR_IN_SECONDS:
         how_many_images_can_be_captured = how_many_images_with_free_space()
         print("No experimental duration provided.")
