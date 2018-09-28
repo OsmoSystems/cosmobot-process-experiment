@@ -38,30 +38,15 @@ def experiment_configuration(args):
     arg_parser = argparse.ArgumentParser()
 
     # required arguments
-    arg_parser.add_argument("--interval",
-                            required=True,
-                            type=int,
-                            help="interval for image capture in seconds")
-    arg_parser.add_argument("--name",
-                            required=True,
-                            type=str,
-                            help="name for experiment")
+    arg_parser.add_argument("--interval", required=True, type=int, help="interval for image capture in seconds")
+    arg_parser.add_argument("--name", required=True, type=str, help="name for experiment")
     # optional arguments
-    arg_parser.add_argument("--duration",
-                            required=False,
-                            type=int,
-                            default=ONE_YEAR_IN_SECONDS,
+    arg_parser.add_argument("--duration", required=False, type=int, default=ONE_YEAR_IN_SECONDS,
                             help="duration in seconds")
-    arg_parser.add_argument("--capture_params",
-                            required=False,
-                            type=str,
+    arg_parser.add_argument("--capture_params", required=False, type=str,
                             help="additional parameters passed to raspistill when capturing " +
                             "images. example: --capture_params ' -ss 500000 -iso 100'")
-    arg_parser.add_argument("--variant",
-                            required=False,
-                            type=str,
-                            action='append',
-                            nargs=2,
+    arg_parser.add_argument("--variant", required=False, type=str, action='append', nargs=2,
                             metavar=('name', 'capture_params'),
                             help="variants of image capture to use during experiment." +
                             "example: --variant capture_type1 ' -ss 500000 -iso 100' " +
