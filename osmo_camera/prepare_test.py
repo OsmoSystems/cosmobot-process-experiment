@@ -1,5 +1,5 @@
 '''Test preparation for experiment'''
-from prepare import is_hostname_valid
+from . import prepare
 # from prepare import experiment_configuration, create_output_folder,
 # from prepare import estimate_image_count, images_with_free_space, free_space_for_image_count
 # from prepare import free_space_for_one_image, free_space_for_experiment, git_hash
@@ -13,12 +13,12 @@ from prepare import is_hostname_valid
 #     '''TODO:'''
 
 
-def is_hostname_valid_test():
-    assert is_hostname_valid('pi-cam-2222') is True
+def test_is_hostname_valid():
+    assert prepare.is_hostname_valid('pi-cam-2222') is True
 
 
-def is_hostname_invalid_test():
-    assert is_hostname_valid('pi-cam-2222') is False
+def test_is_hostname_invalid():
+    assert prepare.is_hostname_valid('I am a naughty hostname') is False
 
 
 # def estimate_image_count_test():
