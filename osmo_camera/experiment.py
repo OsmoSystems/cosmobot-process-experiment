@@ -4,8 +4,8 @@ import sys
 import yaml
 from datetime import datetime, timedelta
 from camera import capture
-from prepare import create_output_folder, is_hostname_valid, experiment_configuration
-from prepare import how_many_images_with_free_space, free_space_for_one_image, ONE_YEAR_IN_SECONDS
+from prepare import create_output_folder, is_hostname_valid, experiment_configuration, ONE_YEAR_IN_SECONDS
+from storage import how_many_images_with_free_space, free_space_for_one_image
 from sync import sync_directory_in_separate_process
 
 

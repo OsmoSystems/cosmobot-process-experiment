@@ -2,9 +2,7 @@
 import argparse
 import os
 import re
-import math
 from socket import gethostname
-from shutil import disk_usage
 from datetime import datetime, timedelta
 from subprocess import check_output, CalledProcessError
 
@@ -33,7 +31,7 @@ def experiment_configuration(args):
     # initailize configuration dictionary with command issued and git_hash (if available)
     configuration = dict(
         command=' '.join(args),
-        git_hash=git_hash(),
+        git_hash=_git_hash(),
         hostname=gethostname(),
     )
 
@@ -129,87 +127,23 @@ def is_hostname_valid(hostname):
      Returns:
         Boolean: is hostname valid
     '''
-    if not re.search("[0-9]{4}$", hostname) and not re.search("pi_cam", hostname):
-        return False
+    if re.search("[0-9]{4}$", hostname) and re.search("pi-cam", hostname):
+        return True
 
-    return True
+    return False
 
-
-# Experimental evidence shows the raw image size on the Sony IMX Camera module
-# to max out at 1600000 bytes in size
-IMAGE_SIZE_IN_BYTES = 1600000
-
-CAPTURE_TIME = 5
-
-
-def estimate_image_count(duration, interval):
-    '''Estimate how many images will be captured with interval and duration
-     Args:
-        duration: seconds the experiment will run for
-        interval: interval in seconds between image capture
-     Returns:
-        float: How many images can be stored
-    '''
-    return int(math.floor(duration / CAPTURE_TIME))
-
-
-def how_many_images_with_free_space():
-    '''Estimate how many images can be stored on the storage device
-     Args:
-        None
-     Returns:
-        Boolean: How many images can be stored
-    '''
-    _, _, free = disk_usage('/')
-    return free / IMAGE_SIZE_IN_BYTES
-
-
-def free_space_for_image_count(image_count):
-    '''Check if there is enough space with the storage device
-     Args:
-        image_count: how many images will be stored
-     Returns:
-        Boolean: True/False - is there space to store the experiment
-    '''
-    _, _, free = disk_usage('/')
-    return free > IMAGE_SIZE_IN_BYTES * image_count
-
-
-def free_space_for_one_image():
-    '''Is there enough space for one image
-     Args:
-        None
-     Returns:
-        Boolean: True/False - is there space to store one image
-    '''
-    return free_space_for_image_count(1)
-
-
-def free_space_for_experiment(duration, interval):
-    '''Is there enough space for the entire experiment
-     Args:
-        duration: seconds the experiment will run for
-        interval: interval in seconds between image capture
-     Returns:
-        Boolean: True/False - is there space to store experiment
-    '''
-    # TODO: assumes capture takes no time
-    image_count = duration / interval * IMAGE_SIZE_IN_BYTES
-    return free_space_for_image_count(image_count)
-
-
-def git_hash():
+def _git_hash():
     '''Retrieve hit hash if it exists
      Args:
         None
      Returns:
         Boolean: git hash or if not git repo error message
     '''
-    comm = 'git rev-parse HEAD'
+    command = 'git rev-parse HEAD'
 
     try:
-        comm_output = check_output(comm, shell=True).decode("utf-8").rstrip()
+        command_output = check_output(command, shell=True).decode("utf-8").rstrip()
     except CalledProcessError:
-        comm_output = "'git rev-parse HEAD' retrieval failed.  No repo?"
+        command_output = "'git rev-parse HEAD' retrieval failed.  No repo?"
 
-    return comm_output
+    return command_output
