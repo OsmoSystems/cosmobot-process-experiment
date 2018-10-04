@@ -2,7 +2,7 @@ import os
 
 from osmo_camera.s3 import sync_experiment_dir
 from osmo_camera.process_images import process_images
-from osmo_camera.select_ROI import prompt_for_ROI_selection, draw_ROIs_on_image
+from osmo_camera.select_ROI import prompt_for_ROI_selection
 from osmo_camera import raw, dng, jupyter
 
 
