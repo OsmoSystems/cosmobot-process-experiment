@@ -1,12 +1,10 @@
-'''Perform camera capture experiment'''
-
 import sys
-import yaml
 from datetime import datetime, timedelta
-from camera import capture
-from prepare import create_output_folder, is_hostname_valid, experiment_configuration, ONE_YEAR_IN_SECONDS
+import yaml
+from camera import capture, emulate_capture_with_copy
+from prepare import is_hostname_valid, experiment_configuration
 from storage import how_many_images_with_free_space, free_space_for_one_image
-from sync import sync_directory_in_separate_process
+from sync_manager import sync_directory_in_separate_process, end_syncing_processes
 
 
 def perform_experiment(configuration):
@@ -26,24 +24,16 @@ def perform_experiment(configuration):
     # unpack experiment configuration variables
     interval = configuration["interval"]
     start_date = configuration["start_date"]
-    end_date = configuration["end_date"]
     variants = configuration["variants"]
     duration = configuration["duration"]
+    end_date = start_date if duration is None else start_date + timedelta(seconds=duration)
 
     # print out warning that no duration has been set and inform how many
     # estimated images can be stored
-    if duration == ONE_YEAR_IN_SECONDS:
+    if duration is None:
         how_many_images_can_be_captured = how_many_images_with_free_space()
         print("No experimental duration provided.")
-        print("Estimated number of images that can be captured with free space: {}"
-              .format(how_many_images_can_be_captured))
-
-    # create output folders for each variant
-    for _, variant in enumerate(configuration["variants"]):
-        create_output_folder(variant["output_folder"])
-        # set metadata to the experiment configuration dictionary in order
-        # for each variant to have output of the entire configuration
-        variant["metadata"] = configuration
+        print(f"Estimated number of images that can be captured with free space: {how_many_images_can_be_captured}")
 
     # Initial value of start_date results in immediate capture on first iteration in while loop
     next_capture_time = start_date
@@ -51,25 +41,30 @@ def perform_experiment(configuration):
     # image sequence during camera capture
     sequence = 1
 
-    while datetime.now() < end_date:
+    while duration is None or datetime.now() < end_date:
         if datetime.now() > next_capture_time:
+            # next_capture_time is agnostic to the time needed for capture and writing of image
+            next_capture_time = next_capture_time + timedelta(seconds=interval)
 
             # iterate through each capture variant and capture an image with it's settings
             for _, variant in enumerate(variants):
 
-                # TODO: needed?
                 if not free_space_for_one_image():
-                    quit("There is insufficeint space to save the image.  Quitting.")
+                    quit("There is insufficient space to save the image.  Quitting.")
 
                 # unpack variant values
                 output_folder = variant['output_folder']
                 capture_params = variant['capture_params']
-                image_filename = start_date.strftime('/%Y%m%d%H%M%S_{}.jpeg'.format(sequence))
+                image_filename = start_date.strftime(f'/%Y%m%d%H%M%S_{sequence}.jpeg')
                 image_filepath = output_folder + image_filename
                 metadata_path = output_folder + '/experiment_metadata.yml'
 
                 begin_date_for_capture = datetime.now()
-                capture_info = capture(image_filepath, additional_capture_params=capture_params)
+
+                # TODO: remove emulation (here for demonstration purposes)
+                # capture_info = capture(image_filepath, additional_capture_params=capture_params)
+                capture_info = emulate_capture_with_copy(image_filepath)
+
                 ms_for_capture = (datetime.now() - begin_date_for_capture).microseconds
 
                 metadata = dict(
@@ -89,7 +84,8 @@ def perform_experiment(configuration):
                 sync_directory_in_separate_process(output_folder)
 
             sequence = sequence + 1
-            next_capture_time = next_capture_time + timedelta(seconds=interval)
+
+    end_syncing_processes()
 
     # finally, for each variant/folder issue a final sync command
     for _, variant in enumerate(variants):
@@ -104,4 +100,5 @@ if __name__ == '__main__':
         QUIT_MESSAGE = "\"" + HOSTNAME + "\" is not a valid hostname."
         QUIT_MESSAGE += " Contact your local dev for instructions on setting a valid hostname."
         quit(QUIT_MESSAGE)
+
     perform_experiment(CONFIGURATION)

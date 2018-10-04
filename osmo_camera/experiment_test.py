@@ -1,19 +1,25 @@
-'''Perform camera capture experiment'''
+import datetime
+# import tmpdir
 
-# from experiment import perform_experiment
 
+VALID_CONFIGURATION = {
+    'command': 'experiment.py --interval 10 --name exp1 --variant variant1  -ss 100 -iso 100',
+    'git_hash': 'fac9e3099920cadb0d856950baa6bacaf801e52a',
+    'hostname': 'pi-cam-2222',
+    'interval': 2,
+    'name': 'exp1',
+    'start_date': datetime.datetime(2018, 10, 4, 6, 12, 49, 336313),
+    'duration': 10,
+    'experiment_output_folder': '../output/20181004061249_exp1',
+    'variants': [{
+        'name': 'variant1',
+        'capture_params': ' -ss 100 -iso 100',
+        'output_folder': '../output/20181004061249_exp1/variant1',
+        'metadata': {}
+    }]
+}
 
-def cleanup_output(directory):
+def test_perform_experiment():
     '''TODO:'''
-
-
-def perform_experiment_test_with_no_variants(configuration):
-    '''TODO:'''
-
-
-def fails_with_no_interval():
-    '''TODO:'''
-
-
-def fails_fail_with_no_name():
-    '''TODO:'''
+    assert True
+    # create temp
