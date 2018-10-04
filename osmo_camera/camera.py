@@ -1,30 +1,34 @@
-'''Camera capture'''
 from subprocess import call, check_output
-import platform
-
-# If distribution is debian than we assume that the python script is running on the pi
-# and that a camera module is present.  If the distribution is not debian
-# then we assume local development is occurring and to simulate a camera capture
-# by copying an image file similar to how a camera capture occurs
-# TODO: deprecated, better method?  platform.system() returns Linux on the pi
-# whereas platform.dist()[0] returns debian
-DIST = platform.dist()[0]
-DEBIAN_DIST = 'debian'
-LOCAL_CP_COMMAND = 'cp ./image_for_development.jpeg {}'
 
 
 def capture(filename, additional_capture_params=''):
-    '''Capture raw image JPEG+EXIF using command line'''
-    comm = 'raspistill --raw -o {} {}'.format(filename, additional_capture_params)
+    ''' Capture raw image JPEG+EXIF using command line
 
-    # if not on raspberry pi perform local copy command to simulate camera capture
-    if DIST != DEBIAN_DIST:
-        comm = LOCAL_CP_COMMAND.format(filename)
+    Args:
+        filename: filename to save an image to
+        additional_capture_params: Additional parameters to pass to raspistill command
 
-    print(f'Capturing image using raspistill: {comm}')
+    Returns:
+        Resulting command line output of the raspistill command
+    '''
+    command = f'raspistill --raw -o {filename} {additional_capture_params}'
+    print(f'Capturing image using raspistill: {command}')
+    call([command], shell=True)
+    command_output = check_output(command, shell=True).decode("utf-8")
+    return command_output
 
-    call([comm], shell=True)
 
-    comm_output = check_output(comm, shell=True).decode("utf-8")
+def emulate_capture_with_copy(filename):
+    ''' Emulate capture by copying image file
 
-    return comm_output
+    Args:
+        filename: filename to copy a test image to
+
+    Returns:
+        Resulting command line output of the copy command
+    '''
+    command = f'cp ./image_for_development.jpeg {filename}'
+    print(f'Emulate capture using cp: {command}')
+    call([command], shell=True)
+    command_output = check_output(command, shell=True).decode("utf-8")
+    return command_output
