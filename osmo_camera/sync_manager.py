@@ -12,7 +12,8 @@ def _sync_for_directory_is_alive(directory_key):
      Returns:
         Boolean: Used to check if a directory is currently syncing
     '''
-    return directory_key in _SYNC_PROCESSES and _SYNC_PROCESSES[directory_key].is_alive()
+    return (directory_key in _SYNC_PROCESSES and _SYNC_PROCESSES[directory_key] is not None and
+            _SYNC_PROCESSES[directory_key].is_alive())
 
 
 def end_syncing_processes():
@@ -27,7 +28,7 @@ def end_syncing_processes():
 
     for directory_key in _SYNC_PROCESSES:
         process = _SYNC_PROCESSES[directory_key]
-        process.stop()
+        process.terminate()
         _SYNC_PROCESSES[directory_key] = None
 
 
