@@ -5,7 +5,7 @@ from subprocess import call
 import boto
 
 
-def sync_experiment_dir(experiment_dir, local_sync_dir=None):
+def sync_from_s3(s3_directory, local_sync_dir=None):
     ''' Syncs raw images from s3 to a local tmp directory (can optionally be provided)
 
     Args:
@@ -21,14 +21,35 @@ def sync_experiment_dir(experiment_dir, local_sync_dir=None):
         # https://stackoverflow.com/questions/847850/cross-platform-way-of-getting-temp-directory-in-python
         local_sync_dir = '/tmp' if platform.system() == 'Darwin' else tempfile.gettempdir()
 
-    sync_folder_location = os.path.join(local_sync_dir, experiment_dir)
+    sync_folder_location = os.path.join(local_sync_dir, s3_directory)
 
     # Would be better to use boto, but neither boto nor boto3 support sync
     # https://github.com/boto/boto3/issues/358
-    command = f'aws s3 sync s3://camera-sensor-experiments/{experiment_dir} {sync_folder_location}'
+    command = f'aws s3 sync s3://camera-sensor-experiments/{s3_directory} {sync_folder_location}'
     call([command], shell=True)
 
     return sync_folder_location
+
+
+def sync_to_s3(local_sync_dir):
+    ''' Syncs raw images from a local directory to the s3://camera-sensor-experiments bucket
+
+    Args:
+        local_sync_dir: The full path of the directory to sync locally
+
+    Returns:
+       None
+    '''
+
+    # Using CLI vs boto: https://github.com/boto/boto3/issues/358
+    # It looks like sync is not a supported function of the python boto library
+    # Work around is to use cli sync for now (requires aws cli to be installed)
+    print(f'Performing sync of experiments folder: {local_sync_dir}')
+
+    # This argument pattern issues a uni-directional sync to S3 bucket
+    # https://docs.aws.amazon.com/cli/latest/reference/s3/sync.html
+    command = f'aws s3 sync {local_sync_dir} s3://camera-sensor-experiments'
+    call([command], shell=True)
 
 
 def list_experiments():
