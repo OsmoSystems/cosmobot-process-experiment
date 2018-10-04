@@ -2,7 +2,7 @@ import os
 
 from osmo_camera.s3 import sync_experiment_dir
 from osmo_camera.process_images import process_images
-from osmo_camera.select_ROI import prompt_for_ROI_selection
+from osmo_camera.select_ROI import prompt_for_ROI_selection, draw_ROIs_on_image
 from osmo_camera import raw, dng, jupyter
 
 
@@ -68,11 +68,18 @@ def process_experiment(experiment_dir, raspiraw_location, ROI_definitions=[], lo
 
     # Open and display the first image for reference
     first_rgb_image = _open_first_image(raw_images_dir)
-    jupyter.show_image(first_rgb_image, title='Reference image (first)', figsize=[7, 7])
+    jupyter.show_image(first_rgb_image, title='Reference image', figsize=[7, 7])
 
     print('3. Prompt for ROI selections (if not provided)...')
     if not ROI_definitions:
         ROI_definitions = prompt_for_ROI_selection(first_rgb_image)
+
+    jupyter.show_image(
+        first_rgb_image,
+        title='Reference image with labelled ROIs',
+        figsize=[7, 7],
+        ROI_definitions=ROI_definitions
+    )
 
     print('4. Process images into summary statistics...')
     image_summary_data = process_images(raw_images_dir, raspiraw_location, ROI_definitions)
