@@ -93,7 +93,7 @@ def perform_experiment(configuration):
 
 
 if __name__ == '__main__':
-    CONFIGURATION = experiment_configuration(sys.argv)
+    CONFIGURATION = experiment_configuration(in_args=sys.argv)
     HOSTNAME = CONFIGURATION['hostname']
 
     if is_hostname_valid(HOSTNAME):

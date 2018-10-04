@@ -17,7 +17,10 @@ def experiment_configuration(in_args, base_output_path='../output/'):
           name (required): The Name of the experiment.  Used for naming folders for output.
           duration (optional): How long in seconds should the experiment run for.
           variants (optional): array of variants that define different capture settings to
-          be run during each capture iteration
+          be run during each capture iteration.  a variant requires two sub arguments
+            name (variant[0]): name to identify variant with e.g. 'short_exposure' or 'long_exposure'
+            capture_params (variant[1]): parameters to pass to raspistill command e.g.
+                                         ' -ss 100 -iso 100'
           command (retrieved): full command issued from the command line
           git_hash (retrieved): git hash or message that says no git repo present
     '''
@@ -43,9 +46,6 @@ def experiment_configuration(in_args, base_output_path='../output/'):
     # optional arguments
     arg_parser.add_argument("--duration", required=False, type=int, default=None,
                             help="duration in seconds")
-    arg_parser.add_argument("--capture_params", required=False, type=str,
-                            help="additional parameters passed to raspistill when capturing " +
-                            "images. example: --capture_params ' -ss 500000 -iso 100'")
 
     args = arg_parser.parse_args(in_args)
 
