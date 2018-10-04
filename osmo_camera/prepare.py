@@ -1,4 +1,5 @@
 import argparse
+import sys
 import os
 import re
 from socket import gethostname
@@ -6,7 +7,7 @@ from datetime import datetime
 from subprocess import check_output, CalledProcessError
 
 
-def experiment_configuration(in_args, base_output_path='../output/'):
+def experiment_configuration(base_output_path='../output/'):
     '''Extract and verify arguments passed in from the command line and build a
     dictionary of values that define an experiments configuration.
      Args:
@@ -27,7 +28,7 @@ def experiment_configuration(in_args, base_output_path='../output/'):
 
     # initailize configuration dictionary with command issued and git_hash (if available)
     configuration = dict(
-        command=' '.join(in_args),
+        command=' '.join(sys.argv),
         git_hash=_git_hash(),
         hostname=gethostname(),
     )
@@ -47,7 +48,7 @@ def experiment_configuration(in_args, base_output_path='../output/'):
     arg_parser.add_argument("--duration", required=False, type=int, default=None,
                             help="duration in seconds")
 
-    args = arg_parser.parse_args(in_args)
+    args = vars(arg_parser.parse_args())
 
     # start_date of experiment is now
     start_date = datetime.now()
