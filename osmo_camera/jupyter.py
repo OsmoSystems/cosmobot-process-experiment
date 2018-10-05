@@ -3,7 +3,6 @@ from IPython.display import display
 
 from matplotlib import pyplot as plt
 import numpy as np
-from plotly.offline import iplot
 import plotly.graph_objs as go
 
 from osmo_camera.rgb.image_basics import get_channels
@@ -55,11 +54,10 @@ def show_color(cv_color):
 def plot_histogram(image, minimal=True):
     ''' Plot a histogram of the image
     '''
-    # assumes image is in "green, blue, red" (openCV default) channel format
-    blue, green, red = get_channels(image)
-
-    max_value = np.iinfo(green.dtype).max
-    bins = max_value
+    # Assume this is one of our standard RGB images with values between 0 and 1
+    red, green, blue = get_channels(image)
+    max_value = 1
+    bins = 200
 
     histograms_and_bin_edges_by_color = {
         color_name: np.histogram(channel, bins, range=(0, max_value), density=True)
@@ -93,6 +91,4 @@ def plot_histogram(image, minimal=True):
     }
     layout = go.Layout(**layout_kwargs)
 
-    figure = go.Figure(data=traces, layout=layout)
-
-    iplot(figure, show_link=False)
+    return go.FigureWidget(data=traces, layout=layout)
