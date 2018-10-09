@@ -25,7 +25,7 @@ from osmo_camera import raw, dng, jupyter
 
 def _open_first_image(raw_images_dir):
     # Assumes images have already been converted to .DNGs
-    dng_image_paths = sorted(get_files_with_extension(raw_images_dir, '.dng'))
+    dng_image_paths = get_files_with_extension(raw_images_dir, '.dng')
 
     first_dng_image_path = dng_image_paths[0]
     first_rgb_image = dng.open.as_rgb(first_dng_image_path)

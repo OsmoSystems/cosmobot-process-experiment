@@ -86,7 +86,7 @@ def process_images(dng_images_dir, ROI_definitions):
         An pandas DataFrame in which each row contains summary statistics for a single ROI in a single image
     '''
 
-    dng_image_paths = sorted(get_files_with_extension(dng_images_dir, '.dng'))
+    dng_image_paths = get_files_with_extension(dng_images_dir, '.dng')
 
     summary_statistics = pd.DataFrame(
         # Flatten all ROI summaries for all images into a single 1D list

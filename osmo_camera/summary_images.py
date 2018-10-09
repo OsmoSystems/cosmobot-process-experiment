@@ -17,7 +17,7 @@ def generate_summary_images(raw_images_dir, ROI_definitions):
     Returns:
         The name of the directory where the summary images are saved
     '''
-    dng_image_paths = sorted(get_files_with_extension(raw_images_dir, '.dng'))
+    dng_image_paths = get_files_with_extension(raw_images_dir, '.dng')
 
     # Create a new folder where these images will be saved
     summary_images_dir = os.path.join(raw_images_dir, 'summary images')
