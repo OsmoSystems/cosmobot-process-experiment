@@ -1,4 +1,4 @@
-from subprocess import call, check_output
+from subprocess import check_output
 
 
 def capture(filename, additional_capture_params=''):

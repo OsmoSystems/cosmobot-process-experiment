@@ -1,4 +1,3 @@
-import sys
 from datetime import datetime, timedelta
 import yaml
 from camera import capture
@@ -32,7 +31,6 @@ def perform_experiment(configuration):
     start_date = configuration["start_date"]
     variants = configuration["variants"]
     duration = configuration["duration"]
-    last_four_of_mac = configuration["last_four_of_mac"]
     end_date = start_date if duration is None else start_date + timedelta(seconds=duration)
 
     # print out warning that no duration has been set and inform how many

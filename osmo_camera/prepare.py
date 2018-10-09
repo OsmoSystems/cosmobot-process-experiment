@@ -7,6 +7,7 @@ from datetime import datetime
 from subprocess import check_output, CalledProcessError
 from uuid import getnode as get_mac
 
+
 def experiment_configuration(base_output_path='../output/'):
     '''Extract and verify arguments passed in from the command line and build a
     dictionary of values that define an experiments configuration.
