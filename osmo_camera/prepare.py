@@ -5,7 +5,7 @@ import re
 from socket import gethostname
 from datetime import datetime
 from subprocess import check_output, CalledProcessError
-
+from uuid import getnode as get_mac
 
 def experiment_configuration(base_output_path='../output/'):
     '''Extract and verify arguments passed in from the command line and build a
@@ -27,10 +27,15 @@ def experiment_configuration(base_output_path='../output/'):
     '''
 
     # initailize configuration dictionary with command issued and git_hash (if available)
+    mac_address = get_mac()
+    mac_last_4 = mac_address[-4:]
+
     configuration = dict(
         command=' '.join(sys.argv),
         git_hash=_git_hash(),
         hostname=gethostname(),
+        mac=mac_address,
+        mac_last_4=mac_last_4
     )
 
     arg_parser = argparse.ArgumentParser()
@@ -60,7 +65,8 @@ def experiment_configuration(base_output_path='../output/'):
     configuration['start_date'] = start_date
     configuration['duration'] = args['duration']
 
-    experiment_output_folder = base_output_path + start_date.strftime(f'%Y%m%d%H%M%S_{args["name"]}')
+    experiment_output_folder = base_output_path + start_date.strftime(f'%Y%m%d_%H%M%S_MAC{mac_last_4}_{args["name"]}')
+
     configuration['experiment_output_folder'] = experiment_output_folder
     _create_output_folder(experiment_output_folder)
 

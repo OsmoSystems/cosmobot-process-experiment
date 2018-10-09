@@ -32,6 +32,7 @@ def perform_experiment(configuration):
     start_date = configuration["start_date"]
     variants = configuration["variants"]
     duration = configuration["duration"]
+    last_four_of_mac = configuration["last_four_of_mac"]
     end_date = start_date if duration is None else start_date + timedelta(seconds=duration)
 
     # print out warning that no duration has been set and inform how many
@@ -61,7 +62,8 @@ def perform_experiment(configuration):
                 # unpack variant values
                 output_folder = variant['output_folder']
                 capture_params = variant['capture_params']
-                image_filename = start_date.strftime(f'/%Y%m%d%H%M%S_{sequence}.jpeg')
+
+                image_filename = start_date.strftime(f'/%Y%m%d_%H%M%S_{sequence}.jpeg')
                 image_filepath = output_folder + image_filename
                 metadata_path = output_folder + '/experiment_metadata.yml'
 
