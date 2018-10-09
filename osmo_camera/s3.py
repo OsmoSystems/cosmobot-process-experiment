@@ -1,7 +1,7 @@
 import platform
 import os
 import tempfile
-from subprocess import call
+from subprocess import call, check_output
 import boto
 
 
@@ -49,7 +49,8 @@ def sync_to_s3(local_sync_dir):
     # This argument pattern issues a uni-directional sync to S3 bucket
     # https://docs.aws.amazon.com/cli/latest/reference/s3/sync.html
     command = f'aws s3 sync {local_sync_dir} s3://camera-sensor-experiments'
-    call([command], shell=True)
+    command_output = check_output(command, shell=True).decode("utf-8")
+    return command_output
 
 
 def list_experiments():
