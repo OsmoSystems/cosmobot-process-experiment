@@ -2,8 +2,7 @@ from copy import deepcopy
 
 import cv2
 
-from osmo_camera.get_files import get_files_with_extension
-from osmo_camera import rgb, dng
+from osmo_camera import rgb
 
 
 def choose_regions(rgb_image):
