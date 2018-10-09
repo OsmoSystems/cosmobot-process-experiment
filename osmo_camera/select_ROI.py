@@ -2,7 +2,8 @@ from copy import deepcopy
 
 import cv2
 
-from osmo_camera import rgb
+from osmo_camera.get_files import get_files_with_extension
+from osmo_camera import rgb, dng
 
 
 def choose_regions(rgb_image):
@@ -88,3 +89,12 @@ def draw_ROIs_on_image(rgb_image, ROI_definitions={}):
         )
 
     return rgb_image_with_ROI_definitions
+
+
+def get_ROIs_for_image(rgb_image, ROI_definitions):
+    ROIs = {
+        ROI_name: rgb.image_basics.crop_image(rgb_image, ROI_definition)
+        for ROI_name, ROI_definition in ROI_definitions.items()
+    }
+
+    return ROIs
