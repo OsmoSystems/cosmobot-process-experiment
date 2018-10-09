@@ -62,12 +62,12 @@ def save_ROI_crops(ROI_crops_dir, dng_image_path, rgb_ROIs_by_name):
 
 
 def process_image(dng_image_path, ROI_definitions, ROI_crops_dir=None):
-    ''' Process all the ROIs in a single image into summary statistics
+    ''' Process all the ROIs in a single .DNG image into summary statistics
 
-    1. Convert JPEG+RAW -> .DNG
-    2. For each ROI:
-        a. Crop
-        b. Calculate summary stats
+    For each ROI:
+        1. Crop
+        2. Calculate summary stats
+        3. Optionally, if `ROI_crops_dir` is provided, save ROI crop as a .PNG in that directory
 
     Args:
         dng_image_path: The full file path of a DNG image.
