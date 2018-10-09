@@ -40,6 +40,6 @@ def generate_summary_images(raw_images_dir, ROI_definitions):
         filename_root, extension = os.path.splitext(os.path.basename(image_path))
         summary_image_path = os.path.join(summary_images_dir, filename_root + '.png')
 
-        rgb.save.as_png(rgb_image_with_ROIs, summary_image_path)
+        rgb.save.as_file(rgb_image_with_ROIs, summary_image_path)
 
     return summary_images_dir
