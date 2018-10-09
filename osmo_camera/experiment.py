@@ -63,7 +63,7 @@ def perform_experiment(configuration):
                 output_folder = variant['output_folder']
                 capture_params = variant['capture_params']
 
-                image_filename = start_date.strftime(f'/%Y%m%d_%H%M%S_{sequence}.jpeg')
+                image_filename = start_date.strftime(f'/%Y%m%d-%H%M%S-{sequence}.jpeg')
                 image_filepath = output_folder + image_filename
                 metadata_path = output_folder + '/experiment_metadata.yml'
 
