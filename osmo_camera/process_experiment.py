@@ -34,7 +34,7 @@ def _open_first_image(raw_images_dir):
 
 
 # TODO (SOFT-511): optionally generate and save an .html file with all of the cropped images
-def process_experiment(experiment_dir, raspiraw_location, ROI_definitions=[], local_sync_dir=None):
+def process_experiment(experiment_dir, raspiraw_location, ROI_definitions=[], local_sync_dir=None, save_summary_images=False, save_ROIs=False):  # noqa: E501 (line length)
     ''' Process all images from an experiment:
         1. Sync raw images from s3
         2. Convert raw images to .DNG
@@ -76,12 +76,14 @@ def process_experiment(experiment_dir, raspiraw_location, ROI_definitions=[], lo
         ROI_definitions=ROI_definitions
     )
 
-    print('4. Saving summary images...')
-    summary_images_dir = generate_summary_images(raw_images_dir, ROI_definitions)
-    print(f'Summary images saved in: {summary_images_dir}\n')
+    saving_or_not = 'Saving' if save_summary_images else 'Not saving'
+    print(f'4. {saving_or_not} summary images...')
+    if save_summary_images:
+        summary_images_dir = generate_summary_images(raw_images_dir, ROI_definitions)
+        print(f'Summary images saved in: {summary_images_dir}\n')
 
     print('5. Process images into summary statistics...')
-    image_summary_data = process_images(raw_images_dir, ROI_definitions)
+    image_summary_data = process_images(raw_images_dir, ROI_definitions, save_ROIs)
 
     csv_name = f'{experiment_dir} - summary statistics.csv'
     image_summary_data.to_csv(csv_name)
