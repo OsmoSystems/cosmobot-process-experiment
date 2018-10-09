@@ -15,8 +15,7 @@ def perform_experiment(configuration):
        experimental metadata is collected during the experiment and saved.
        Finally, imagery and experimental metadata is synced to s3 on an ongoing basis.
      Args:
-        configuration: dictionary containing values that define how an experiment
-        should be performed.
+        configuration: dictionary containing values that define how an experiment should be performed.
      Returns:
         None
 
