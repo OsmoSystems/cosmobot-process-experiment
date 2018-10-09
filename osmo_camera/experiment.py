@@ -101,7 +101,7 @@ if __name__ == '__main__':
     HOSTNAME = CONFIGURATION['hostname']
 
     if is_hostname_valid(HOSTNAME):
-        QUIT_MESSAGE = "\"" + HOSTNAME + "\" is not a valid hostname."
+        QUIT_MESSAGE = f'"{HOSTNAME}" is not a valid hostname.'
         QUIT_MESSAGE += " Contact your local dev for instructions on setting a valid hostname."
         quit(QUIT_MESSAGE)
 
