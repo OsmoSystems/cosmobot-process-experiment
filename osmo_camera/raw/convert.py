@@ -30,18 +30,6 @@ def _folder_to_dng(raspiraw_location, raw_images_dir):
         _file_to_dng(raspiraw_location, raw_image_path)
 
 
-def _folder_to_dng_recursive(raspiraw_location, raw_images_dir):
-    # Convert .jpegs in folder recursively
-    # NOTE: Currently recursive conversion is not our intended method of extracting
-    # raw data to a DNG file.  (This was a one off request by Jacob for support)
-    # TODO: Determine which to use - https://app.asana.com/0/823265982730077/858190003215284
-    for root, _, files in os.walk(raw_images_dir):
-        for file in files:
-            if os.path.splitext(file)[1].lower() in ('.jpg', '.jpeg'):
-                full_path = os.path.join(root, file)
-                _file_to_dng(raspiraw_location, full_path)
-
-
 def to_dng(raspiraw_location, raw_image_path=None, raw_images_dir=None):
     if (not raw_image_path and not raw_images_dir) or (raw_image_path and raw_images_dir):
         raise Exception('Only one of "raw_image_path" or "raw_images_dir" can be defined.')
