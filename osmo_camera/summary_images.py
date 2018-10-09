@@ -7,7 +7,7 @@ from osmo_camera.select_ROI import draw_ROIs_on_image
 
 
 def generate_summary_images(raw_images_dir, ROI_definitions):
-    ''' Picks some representative images and draws ROIs on them for reference
+    ''' Pick some representative images and draw ROIs on them for reference
 
     Args:
         raw_images_dir: The directory of images to process
