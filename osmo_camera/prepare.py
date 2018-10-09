@@ -68,7 +68,10 @@ def experiment_configuration():
     configuration['start_date'] = start_date
     configuration['duration'] = args['duration']
 
-    experiment_output_folder = os.path.join(base_output_path, start_date.strftime(f'%Y%m%d-%H%M%S-MAC{mac_last_4}-{args["name"]}'))
+    experiment_output_folder = os.path.join(
+        base_output_path,
+        start_date.strftime(f'%Y%m%d-%H%M%S-MAC{mac_last_4}-{args["name"]}')
+    )
 
     configuration['experiment_output_folder'] = experiment_output_folder
     _create_output_folder(experiment_output_folder)

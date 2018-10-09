@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta
 import yaml
-from camera import capture, simulate_capture_with_copy
+from camera import capture
 from prepare import is_hostname_valid, experiment_configuration
 from storage import how_many_images_with_free_space, free_space_for_one_image
 from sync_manager import sync_directory_in_separate_process, end_syncing_processes
