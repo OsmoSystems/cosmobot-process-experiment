@@ -32,12 +32,12 @@ def end_syncing_processes():
         _SYNC_PROCESSES[directory_key] = None
 
 
-def sync_directory_in_separate_process(directory, final_sync=False):
+def sync_directory_in_separate_process(directory, wait_for_finish=False):
     '''Instantiates a separate process for syncing a directory.  Stores
        a reference to the process to check later for subsequent syncs.
      Args:
         directory: directory to sync
-        final_sync (optional): Should the newly invoked process be completed before
+        wait_for_finish (optional): Should the newly invoked process be completed before
         returning from the function (async/sync).
      Returns:
         None.
@@ -49,5 +49,5 @@ def sync_directory_in_separate_process(directory, final_sync=False):
     sync_process.start()
     _SYNC_PROCESSES[directory] = sync_process
 
-    if final_sync:
+    if wait_for_finish:
         sync_process.join()

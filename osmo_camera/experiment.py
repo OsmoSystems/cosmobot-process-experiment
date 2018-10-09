@@ -93,7 +93,7 @@ def perform_experiment(configuration):
 
     # finally, for each variant/folder issue a final sync command
     for _, variant in enumerate(variants):
-        sync_directory_in_separate_process(variant["output_folder"], final_sync=True)
+        sync_directory_in_separate_process(variant["output_folder"], wait_for_finish=True)
 
 
 if __name__ == '__main__':
