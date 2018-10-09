@@ -84,7 +84,7 @@ def process_experiment(experiment_dir, raspiraw_location, ROI_definitions=[], lo
     image_summary_data = process_images(raw_images_dir, ROI_definitions)
 
     csv_name = f'{experiment_dir} - summary statistics.csv'
-    image_summary_data.to_csv(csv_name)
+    image_summary_data.to_csv(csv_name, index=False)
     print(f'Summary statistics saved as: {csv_name}\n')
 
     return image_summary_data, ROI_definitions
