@@ -3,11 +3,11 @@ from IPython.display import display
 
 from matplotlib import pyplot as plt
 import numpy as np
-from plotly.offline import iplot
 import plotly.graph_objs as go
 
 from osmo_camera.rgb.image_basics import get_channels
 from osmo_camera.s3 import list_experiments
+from osmo_camera.select_ROI import draw_ROIs_on_image
 
 
 def select_experiment():
@@ -20,15 +20,22 @@ def select_experiment():
     return selection
 
 
-def show_image(rgb_image, figsize=None, title=''):
+def show_image(rgb_image, figsize=None, title='', ROI_definitions=None):
     ''' Show an image in an ipython notebook.
 
     Args:
         rgb_image: numpy.ndarray of an RGB image
         figsize: 2-tuple of desired figure size in inches; will be passed to `plt.figure()`
+        ROI_definitions: Optional. If provided, will draw the ROIs on the displayed image
     '''
     plt.figure(figsize=figsize)
-    plt.imshow(rgb_image)
+
+    if ROI_definitions:
+        rgb_image_with_ROIs = draw_ROIs_on_image(rgb_image, ROI_definitions)
+        plt.imshow(rgb_image_with_ROIs)
+    else:
+        plt.imshow(rgb_image)
+
     plt.title(title)
     plt.show()
 
@@ -47,11 +54,10 @@ def show_color(cv_color):
 def plot_histogram(image, minimal=True):
     ''' Plot a histogram of the image
     '''
-    # assumes image is in "green, blue, red" (openCV default) channel format
-    blue, green, red = get_channels(image)
-
-    max_value = np.iinfo(green.dtype).max
-    bins = max_value
+    # Assume this is one of our standard RGB images with values between 0 and 1
+    red, green, blue = get_channels(image)
+    max_value = 1
+    bins = 200
 
     histograms_and_bin_edges_by_color = {
         color_name: np.histogram(channel, bins, range=(0, max_value), density=True)
@@ -85,6 +91,4 @@ def plot_histogram(image, minimal=True):
     }
     layout = go.Layout(**layout_kwargs)
 
-    figure = go.Figure(data=traces, layout=layout)
-
-    iplot(figure, show_link=False)
+    return go.FigureWidget(data=traces, layout=layout)

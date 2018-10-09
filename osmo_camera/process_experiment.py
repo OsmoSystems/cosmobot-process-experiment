@@ -1,8 +1,8 @@
-import os
-
 from osmo_camera.s3 import sync_from_s3
 from osmo_camera.process_images import process_images
 from osmo_camera.select_ROI import prompt_for_ROI_selection
+from osmo_camera.summary_images import generate_summary_images
+from osmo_camera.get_files import get_files_with_extension
 from osmo_camera import raw, dng, jupyter
 
 
@@ -23,14 +23,9 @@ from osmo_camera import raw, dng, jupyter
 #  - Make it easier to label "high" and "low"?
 
 
-# TODO (SOFT-510): probably make this function more generic and use in generating summary images
 def _open_first_image(raw_images_dir):
     # Assumes images have already been converted to .DNGs
-    dng_image_paths = [
-        os.path.join(raw_images_dir, filename)
-        for filename in os.listdir(raw_images_dir)
-        if filename.endswith('.dng')
-    ]
+    dng_image_paths = get_files_with_extension(raw_images_dir, '.dng')
 
     first_dng_image_path = dng_image_paths[0]
     first_rgb_image = dng.open.as_rgb(first_dng_image_path)
@@ -38,7 +33,6 @@ def _open_first_image(raw_images_dir):
     return first_rgb_image
 
 
-# TODO (SOFT-510): generate and save "summary images"
 # TODO (SOFT-511): optionally generate and save an .html file with all of the cropped images
 def process_experiment(experiment_dir, raspiraw_location, ROI_definitions=[], local_sync_dir=None):
     ''' Process all images from an experiment:
@@ -68,17 +62,29 @@ def process_experiment(experiment_dir, raspiraw_location, ROI_definitions=[], lo
 
     # Open and display the first image for reference
     first_rgb_image = _open_first_image(raw_images_dir)
-    jupyter.show_image(first_rgb_image, title='Reference image (first)', figsize=[7, 7])
+
+    jupyter.show_image(first_rgb_image, title='Reference image', figsize=[7, 7])
 
     print('3. Prompt for ROI selections (if not provided)...')
     if not ROI_definitions:
         ROI_definitions = prompt_for_ROI_selection(first_rgb_image)
 
-    print('4. Process images into summary statistics...')
-    image_summary_data = process_images(raw_images_dir, raspiraw_location, ROI_definitions)
+    jupyter.show_image(
+        first_rgb_image,
+        title='Reference image with labelled ROIs',
+        figsize=[7, 7],
+        ROI_definitions=ROI_definitions
+    )
+
+    print('4. Saving summary images...')
+    summary_images_dir = generate_summary_images(raw_images_dir, ROI_definitions)
+    print(f'Summary images saved in: {summary_images_dir}\n')
+
+    print('5. Process images into summary statistics...')
+    image_summary_data = process_images(raw_images_dir, ROI_definitions)
 
     csv_name = f'{experiment_dir} - summary statistics.csv'
     image_summary_data.to_csv(csv_name)
-    print(f'Summary statistics saved as:\n{csv_name}\n')
+    print(f'Summary statistics saved as: {csv_name}\n')
 
     return image_summary_data, ROI_definitions

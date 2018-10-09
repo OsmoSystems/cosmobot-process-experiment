@@ -16,6 +16,7 @@ setup(
         'exifread',
         'opencv-python',
         'pandas',
+        'Pillow',
         'plotly >= 3, < 4',
         'rawpy',
     ],
