@@ -88,3 +88,12 @@ def draw_ROIs_on_image(rgb_image, ROI_definitions={}):
         )
 
     return rgb_image_with_ROI_definitions
+
+
+def get_ROIs_for_image(rgb_image, ROI_definitions):
+    ROIs = {
+        ROI_name: rgb.image_basics.crop_image(rgb_image, ROI_definition)
+        for ROI_name, ROI_definition in ROI_definitions.items()
+    }
+
+    return ROIs

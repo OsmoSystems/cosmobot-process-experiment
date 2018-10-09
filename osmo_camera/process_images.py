@@ -5,7 +5,9 @@ import os
 import pandas as pd
 import numpy as np
 
-from osmo_camera import dng, raw, rgb
+from osmo_camera.get_files import get_files_with_extension
+from osmo_camera.select_ROI import get_ROIs_for_image
+from osmo_camera import dng
 
 
 # Running numpy calculations against this axis aggregates over the image for each channel, as color channels are axis=2
@@ -40,7 +42,7 @@ def _process_ROI(ROI):
     return flattened_channel_stats
 
 
-def process_image(raw_image_path, raspiraw_location, ROI_definitions):
+def process_image(dng_image_path, ROI_definitions):
     ''' Process all the ROIs in a single image into summary statistics
 
     1. Convert JPEG+RAW -> .DNG
@@ -49,26 +51,21 @@ def process_image(raw_image_path, raspiraw_location, ROI_definitions):
         b. Calculate summary stats
 
     Args:
-        raw_image_path: The full file path of the JPEG+RAW image from a RaspberryPi camera.
+        dng_image_path: The full file path of a DNG image.
         ROI_definitions: Definitions of Regions of Interest (ROIs) to summarize. A map of {ROI_name: ROI_definition}
         Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI: (start_col, start_row, cols, rows)
 
     Returns:
         An array of summary statistics dictionaries - one for each ROI
     '''
-
-    dng_image_path = raw.convert.to_dng(raspiraw_location, raw_image_path=raw_image_path)
     rgb_image = dng.open.as_rgb(dng_image_path)
 
-    ROIs = {
-        ROI_name: rgb.image_basics.crop_image(rgb_image, ROI_definition)
-        for ROI_name, ROI_definition in ROI_definitions.items()
-    }
+    ROIs = get_ROIs_for_image(rgb_image, ROI_definitions)
 
     return [
         {
-            'timestamp': dng.metadata.capture_date(raw_image_path),
-            'image': os.path.basename(raw_image_path),
+            'timestamp': dng.metadata.capture_date(dng_image_path),
+            'image': os.path.basename(dng_image_path),
             'ROI': ROI_name,
             'ROI definition': ROI_definitions[ROI_name],
             **_process_ROI(ROI)
@@ -77,11 +74,11 @@ def process_image(raw_image_path, raspiraw_location, ROI_definitions):
     ]
 
 
-def process_images(raw_images_dir, raspiraw_location, ROI_definitions):
+def process_images(dng_images_dir, ROI_definitions):
     ''' Process all images in a given directory
 
     Args:
-        raw_images_dir: The directory of images to process
+        dng_images_dir: The directory of images to process. Assumes images have already been converted to .DNGs
         ROI_definitions: Definitions of Regions of Interest (ROIs) to summarize. A map of {ROI_name: ROI_definition}
         Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI: (start_col, start_row, cols, rows)
 
@@ -89,21 +86,13 @@ def process_images(raw_images_dir, raspiraw_location, ROI_definitions):
         An pandas DataFrame in which each row contains summary statistics for a single ROI in a single image
     '''
 
-    raw_image_paths = [
-        os.path.join(raw_images_dir, filename)
-        for filename in os.listdir(raw_images_dir)
-        if filename.endswith('.jpeg')
-    ]
-
-    # Generate "summary" images: a few representative full images with outlines of ROI_definitions selected
-    # Just generates and save them in the current folder
-    # generate_summary_images()
+    dng_image_paths = get_files_with_extension(dng_images_dir, '.dng')
 
     summary_statistics = pd.DataFrame(
         # Flatten all ROI summaries for all images into a single 1D list
         list(chain.from_iterable([
-            process_image(raw_image_path, raspiraw_location, ROI_definitions)
-            for raw_image_path in raw_image_paths
+            process_image(dng_image_path, ROI_definitions)
+            for dng_image_path in dng_image_paths
         ]))
     ).sort_values('timestamp').reset_index(drop=True)
 
