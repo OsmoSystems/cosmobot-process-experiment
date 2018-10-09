@@ -79,7 +79,7 @@ def experiment_configuration():
         variant_dict = {
             "name": variant_name,
             "capture_params": variant[1],
-            "output_folder": experiment_output_folder + f'/{variant_name}',
+            "output_folder": os.path.join(experiment_output_folder, variant_name),
             "metadata": configuration
         }
         _create_output_folder(variant_dict["output_folder"])
