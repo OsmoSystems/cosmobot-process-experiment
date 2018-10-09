@@ -1,6 +1,7 @@
+import os
 from datetime import datetime, timedelta
 import yaml
-from camera import capture
+from camera import capture, simulate_capture_with_copy
 from prepare import is_hostname_valid, experiment_configuration
 from storage import how_many_images_with_free_space, free_space_for_one_image
 from sync_manager import sync_directory_in_separate_process, end_syncing_processes
@@ -47,47 +48,49 @@ def perform_experiment(configuration):
     sequence = 1
 
     while duration is None or datetime.now() < end_date:
-        if datetime.now() > next_capture_time:
-            # next_capture_time is agnostic to the time needed for capture and writing of image
-            next_capture_time = next_capture_time + timedelta(seconds=interval)
+        if datetime.now() < next_capture_time:
+            continue
 
-            # iterate through each capture variant and capture an image with it's settings
-            for _, variant in enumerate(variants):
+        # next_capture_time is agnostic to the time needed for capture and writing of image
+        next_capture_time = next_capture_time + timedelta(seconds=interval)
 
-                if not free_space_for_one_image():
-                    quit("There is insufficient space to save the image.  Quitting.")
+        # iterate through each capture variant and capture an image with it's settings
+        for _, variant in enumerate(variants):
 
-                # unpack variant values
-                output_folder = variant['output_folder']
-                capture_params = variant['capture_params']
+            if not free_space_for_one_image():
+                quit("There is insufficient space to save the image.  Quitting.")
 
-                image_filename = start_date.strftime(f'/%Y%m%d-%H%M%S-{sequence}.jpeg')
-                image_filepath = output_folder + image_filename
-                metadata_path = output_folder + '/experiment_metadata.yml'
+            # unpack variant values
+            output_folder = variant['output_folder']
+            capture_params = variant['capture_params']
 
-                begin_date_for_capture = datetime.now()
+            image_filename = start_date.strftime(f'%Y%m%d-%H%M%S-{sequence}.jpeg')
+            image_filepath = os.path.join(output_folder, image_filename)
+            metadata_path = os.path.join(output_folder, 'experiment_metadata.yml')
 
-                capture_info = capture(image_filepath, additional_capture_params=capture_params)
+            begin_date_for_capture = datetime.now()
 
-                ms_for_capture = (datetime.now() - begin_date_for_capture).microseconds
+            capture_info = capture(image_filepath, additional_capture_params=capture_params)
 
-                metadata = dict(
-                    ms_for_capture=ms_for_capture,
-                    capture_info=capture_info
-                )
+            ms_for_capture = (datetime.now() - begin_date_for_capture).microseconds
 
-                # for each image store a separate set of metadata with time for capture
-                # and the capture info provided by raspistill
-                variant["metadata"][image_filename] = metadata
+            metadata = {
+                ms_for_capture: ms_for_capture,
+                capture_info: capture_info
+            }
 
-                # write latest metadata for variant to yaml file
-                with open(metadata_path, 'w') as outfile:
-                    yaml.dump(variant["metadata"], outfile, default_flow_style=False)
+            # for each image store a separate set of metadata with time for capture
+            # and the capture info provided by raspistill
+            variant["metadata"][image_filename] = metadata
 
-                # this may do nothing depending on if sync is currently occuring
-                sync_directory_in_separate_process(output_folder)
+            # write latest metadata for variant to yaml file
+            with open(metadata_path, 'w') as outfile:
+                yaml.dump(variant["metadata"], outfile, default_flow_style=False)
 
-            sequence = sequence + 1
+            # this may do nothing depending on if sync is currently occuring
+            sync_directory_in_separate_process(output_folder)
+
+        sequence = sequence + 1
 
     end_syncing_processes()
 

@@ -8,7 +8,7 @@ from subprocess import check_output, CalledProcessError
 from uuid import getnode as get_mac
 
 
-def experiment_configuration(base_output_path='../output/'):
+def experiment_configuration():
     '''Extract and verify arguments passed in from the command line and build a
     dictionary of values that define an experiments configuration.
      Args:
@@ -27,17 +27,19 @@ def experiment_configuration(base_output_path='../output/'):
           git_hash (retrieved): git hash or message that says no git repo present
     '''
 
+    base_output_path = os.path.abspath('../output/')
+
     # initailize configuration dictionary with command issued and git_hash (if available)
     mac_address = get_mac()
-    mac_last_4 = mac_address[-4:]
+    mac_last_4 = str(mac_address)[-4:]
 
-    configuration = dict(
-        command=' '.join(sys.argv),
-        git_hash=_git_hash(),
-        hostname=gethostname(),
-        mac=mac_address,
-        mac_last_4=mac_last_4
-    )
+    configuration = {
+        "command": ' '.join(sys.argv),
+        "git_hash": _git_hash(),
+        "hostname": gethostname(),
+        "mac": mac_address,
+        "mac_last_4": mac_last_4
+    }
 
     arg_parser = argparse.ArgumentParser()
 
@@ -66,7 +68,7 @@ def experiment_configuration(base_output_path='../output/'):
     configuration['start_date'] = start_date
     configuration['duration'] = args['duration']
 
-    experiment_output_folder = base_output_path + start_date.strftime(f'%Y%m%d-%H%M%S-MAC{mac_last_4}-{args["name"]}')
+    experiment_output_folder = os.path.join(base_output_path, start_date.strftime(f'%Y%m%d-%H%M%S-MAC{mac_last_4}-{args["name"]}'))
 
     configuration['experiment_output_folder'] = experiment_output_folder
     _create_output_folder(experiment_output_folder)
@@ -74,12 +76,12 @@ def experiment_configuration(base_output_path='../output/'):
     # add variants to the list of variants
     for _, variant in enumerate(args['variant']):
         variant_name = variant[0]
-        variant_dict = dict(
-            name=variant_name,
-            capture_params=variant[1],
-            output_folder=experiment_output_folder + f'/{variant_name}',
-            metadata=configuration
-        )
+        variant_dict = {
+            "name": variant_name,
+            "capture_params": variant[1],
+            "output_folder": experiment_output_folder + f'/{variant_name}',
+            "metadata": configuration
+        }
         _create_output_folder(variant_dict["output_folder"])
         variants.append(variant_dict)
 
@@ -88,14 +90,13 @@ def experiment_configuration(base_output_path='../output/'):
     return configuration
 
 
-def _create_output_folder(folder_name, base_path='../output/'):
+def _create_output_folder(folder_path):
     '''Create a folder if it does not exist'''
-    folder_to_create = base_path + folder_name
-    if not os.path.exists(folder_to_create):
-        print(f'creating folder: {folder_to_create}')
-        os.makedirs(folder_to_create)
+    if not os.path.exists(folder_path):
+        print(f'creating folder: {folder_path}')
+        os.makedirs(folder_path)
     else:
-        print(f'folder {folder_to_create} already exists')
+        print(f'folder {folder_path} already exists')
 
 
 def is_hostname_valid(hostname):
