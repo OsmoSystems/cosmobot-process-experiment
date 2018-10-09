@@ -74,7 +74,7 @@ def process_image(dng_image_path, ROI_definitions):
     ]
 
 
-def process_images(dng_images_dir, raspiraw_location, ROI_definitions):
+def process_images(dng_images_dir, ROI_definitions):
     ''' Process all images in a given directory
 
     Args:
