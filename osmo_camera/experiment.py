@@ -1,7 +1,7 @@
 import sys
 from datetime import datetime, timedelta
 import yaml
-from camera import capture, emulate_capture_with_copy
+from camera import capture
 from prepare import is_hostname_valid, experiment_configuration
 from storage import how_many_images_with_free_space, free_space_for_one_image
 from sync_manager import sync_directory_in_separate_process, end_syncing_processes
@@ -19,6 +19,12 @@ def perform_experiment(configuration):
         should be performed.
      Returns:
         None
+
+     Notes on local development:
+       There is a helper function to simulate a capture of a file by copying it into
+       the location a capture would place a file.  You can use it by changing the from
+       from camera import capture => from camera import capture, simulate_capture_with_copy
+       and using simulate_capture_with_copy instead of capture.
     '''
 
     # unpack experiment configuration variables
@@ -61,9 +67,7 @@ def perform_experiment(configuration):
 
                 begin_date_for_capture = datetime.now()
 
-                # TODO: remove emulation (here for demonstration purposes)
-                # capture_info = capture(image_filepath, additional_capture_params=capture_params)
-                capture_info = emulate_capture_with_copy(image_filepath)
+                capture_info = capture(image_filepath, additional_capture_params=capture_params)
 
                 ms_for_capture = (datetime.now() - begin_date_for_capture).microseconds
 
