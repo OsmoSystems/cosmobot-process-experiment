@@ -12,7 +12,7 @@ def experiment_configuration():
     '''Extract and verify arguments passed in from the command line and build a
     dictionary of values that define an experiments configuration.
      Args:
-        args: arguments passed in through the command line
+        None
      Returns:
         an experimental configuration dictionary with the following keys
           interval (required): The interval in seconds between the capture of images.
