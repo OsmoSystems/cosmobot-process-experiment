@@ -33,8 +33,14 @@ def _open_first_image(raw_images_dir):
     return first_rgb_image
 
 
-# TODO (SOFT-511): optionally generate and save an .html file with all of the cropped images
-def process_experiment(experiment_dir, raspiraw_location, ROI_definitions=[], local_sync_dir=None, save_summary_images=False, save_ROIs=False):  # noqa: E501 (line length)
+def process_experiment(
+    experiment_dir,
+    raspiraw_location,
+    ROI_definitions=[],
+    local_sync_dir=None,
+    save_summary_images=False,
+    save_ROIs=False
+):
     ''' Process all images from an experiment:
         1. Sync raw images from s3
         2. Convert raw images to .DNG
@@ -43,10 +49,12 @@ def process_experiment(experiment_dir, raspiraw_location, ROI_definitions=[], lo
 
     Args:
         experiment_dir: The name of the experiment directory in s3
-        local_sync_dir: The name of the local directory where images will be synced and processed
         raspiraw_location: The name of the local directory where raspiraw is installed
+        local_sync_dir: Optional. The name of the local directory where images will be synced and processed
         ROI_definitions: Optional. Pre-selected ROI_definitions: a map of {ROI_name: ROI_definition}
         Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI: (start_col, start_row, cols, rows)
+        save_summary_images: Optional. If True, ROIs will be saved as .PNGs in a new subfolder of local_sync_dir
+        save_ROIs: Optional. If True, ROIs will be saved as .PNGs in a new subfolder of local_sync_dir
 
     Returns:
         image_summary_data: A pandas DataFrame of summary statistics
@@ -76,7 +84,7 @@ def process_experiment(experiment_dir, raspiraw_location, ROI_definitions=[], lo
         ROI_definitions=ROI_definitions
     )
 
-    saving_or_not = 'Saving' if save_summary_images else 'Not saving'
+    saving_or_not = 'Save' if save_summary_images else 'Don\'t save'
     print(f'4. {saving_or_not} summary images...')
     if save_summary_images:
         summary_images_dir = generate_summary_images(raw_images_dir, ROI_definitions)

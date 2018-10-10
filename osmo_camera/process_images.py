@@ -103,7 +103,7 @@ def process_images(dng_images_dir, ROI_definitions, save_ROIs=False):
         dng_images_dir: The directory of images to process. Assumes images have already been converted to .DNGs
         ROI_definitions: Definitions of Regions of Interest (ROIs) to summarize. A map of {ROI_name: ROI_definition}
         Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI: (start_col, start_row, cols, rows)
-        save_ROIs: An optional flag. If True, ROIs will be saved as .PNGs in a new folder
+        save_ROIs: Optional. If True, ROIs will be saved as .PNGs in a new subfolder of dng_images_dir
 
     Returns:
         An pandas DataFrame in which each row contains summary statistics for a single ROI in a single image
