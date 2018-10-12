@@ -1,11 +1,17 @@
+from mock import sentinel
 import pytest
 
 from . import get_files as module
 
 
 @pytest.fixture
-def mock_exists(mocker):
+def mock_path_exists(mocker):
     return mocker.patch('os.path.exists')
+
+
+@pytest.fixture
+def mock_path_join(mocker):
+    return mocker.patch('os.path.join')
 
 
 @pytest.fixture
@@ -19,47 +25,43 @@ def mock_listdir(mocker):
 
 
 class TestCreateOuputDirectory:
-    def test_returns_output_directory_path(self, mock_exists, mock_mkdir):
-        output_directory_path = module.create_output_directory('/foo/bar', 'baz')
+    def test_returns_output_directory_path(self, mock_path_exists, mock_path_join, mock_mkdir):
+        mock_path_join.return_value = sentinel.expected_output_directory_path
 
-        assert output_directory_path == '/foo/bar/baz'
+        actual_output_directory_path = module.create_output_directory('/foo/bar', 'baz')
 
-    def test_creates_output_directory_if_doesnt_exist(self, mock_exists, mock_mkdir):
-        mock_exists.return_value = False
+        assert actual_output_directory_path == sentinel.expected_output_directory_path
+
+    def test_creates_output_directory_if_doesnt_exist(self, mock_path_exists, mock_path_join, mock_mkdir):
+        mock_path_exists.return_value = False
+        mock_path_join.return_value = sentinel.expected_output_directory_path
 
         module.create_output_directory('/foo/bar', 'baz')
 
-        mock_mkdir.assert_called_with('/foo/bar/baz')
+        mock_mkdir.assert_called_with(sentinel.expected_output_directory_path)
 
-    def test_doesnt_create_output_directory_if_exists(self, mock_exists, mock_mkdir):
-        mock_exists.return_value = True
+    def test_doesnt_create_output_directory_if_exists(self, mock_path_exists, mock_path_join, mock_mkdir):
+        mock_path_exists.return_value = True
 
         module.create_output_directory('/foo/bar', 'baz')
 
         mock_mkdir.assert_not_called()
 
 
-class TestGetFilesWithExtension:
-    def test_returns_full_paths(self, mock_listdir):
-        mock_listdir.return_value = ['1.jpeg', '2.jpeg']
+def _mock_path_join(path, filename):
+    return f'os-path-for-{path}/{filename}'
 
-        actual = module.get_files_with_extension('/foo/bar', '.jpeg')
-        expected = ['/foo/bar/1.jpeg', '/foo/bar/2.jpeg']
 
-        assert actual == expected
+@pytest.mark.parametrize("name, directory_contents", [
+    ('returns filepaths', ['1.jpeg', '2.jpeg']),
+    ('sorts filepaths', ['2.jpeg', '1.jpeg']),
+    ('filters to extension', ['1.jpeg', '2.jpeg', '1.dng', '2.png']),
+])
+def test_get_files_with_extension(mock_listdir, mock_path_join, name, directory_contents):
+    mock_listdir.return_value = directory_contents
+    mock_path_join.side_effect = _mock_path_join
 
-    def test_filters_to_extension(self, mock_listdir):
-        mock_listdir.return_value = ['1.jpeg', '2.jpeg', '1.dng', '2.dng']
+    actual = module.get_files_with_extension('/foo/bar', '.jpeg')
+    expected = ['os-path-for-/foo/bar/1.jpeg', 'os-path-for-/foo/bar/2.jpeg']
 
-        actual = module.get_files_with_extension('/foo/bar', '.jpeg')
-        expected = ['/foo/bar/1.jpeg', '/foo/bar/2.jpeg']
-
-        assert actual == expected
-
-    def test_returns_sorted_list(self, mock_listdir):
-        mock_listdir.return_value = ['1.jpeg', '3.jpeg', '2.jpeg']
-
-        actual = module.get_files_with_extension('/foo/bar', '.jpeg')
-        expected = ['/foo/bar/1.jpeg', '/foo/bar/2.jpeg', '/foo/bar/3.jpeg']
-
-        assert actual == expected
+    assert actual == expected
