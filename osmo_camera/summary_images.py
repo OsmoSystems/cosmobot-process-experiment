@@ -2,7 +2,7 @@ import math
 import os
 
 from osmo_camera import rgb, dng
-from osmo_camera.get_files import get_files_with_extension, create_output_directory
+from osmo_camera.directories import get_files_with_extension, create_output_directory
 from osmo_camera.select_ROI import draw_ROIs_on_image
 
 

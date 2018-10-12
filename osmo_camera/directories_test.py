@@ -1,7 +1,7 @@
 from mock import sentinel
 import pytest
 
-from . import get_files as module
+from . import directories as module
 
 
 @pytest.fixture
