@@ -6,23 +6,6 @@ from osmo_camera.get_files import get_files_with_extension
 from osmo_camera import raw, dng, jupyter
 
 
-# TODO:
-# Add tests for everything
-# Add docstrings to everything
-
-# Clean-up ideas
-#  - Review functions in `jupyter.py`
-#  - Rename `image_basics.py`?
-#  - Clean up `stats.py`
-
-# Nice-to-have:
-#  - "auto-exposure" brightening for ROI selection
-#  ------
-#  - Don't rely on knowing the location of raspiraw installation?
-#  - Better ROI labelling?
-#  - Make it easier to label "high" and "low"?
-
-
 def _open_first_image(raw_images_dir):
     # Assumes images have already been converted to .DNGs
     dng_image_paths = get_files_with_extension(raw_images_dir, '.dng')

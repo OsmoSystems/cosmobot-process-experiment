@@ -7,6 +7,8 @@ from datetime import datetime
 from subprocess import check_output, CalledProcessError
 from uuid import getnode as get_mac
 
+from osmo_camera.get_files import create_output_directory
+
 
 def experiment_configuration():
     '''Extract and verify arguments passed in from the command line and build a
@@ -68,38 +70,27 @@ def experiment_configuration():
     configuration['start_date'] = start_date
     configuration['duration'] = args['duration']
 
-    experiment_output_folder = os.path.join(
-        base_output_path,
-        start_date.strftime(f'%Y%m%d-%H%M%S-MAC{mac_last_4}-{args["name"]}')
-    )
-
-    configuration['experiment_output_folder'] = experiment_output_folder
-    _create_output_folder(experiment_output_folder)
+    experiment_directory_name = start_date.strftime(f'%Y%m%d-%H%M%S-MAC{mac_last_4}-{args["name"]}')
+    experiment_directory_path = create_output_directory(base_output_path, experiment_directory_name)
+    configuration['experiment_directory_path'] = experiment_directory_path
 
     # add variants to the list of variants
     for _, variant in enumerate(args['variant']):
         variant_name = variant[0]
+        output_folder_path = create_output_directory(experiment_directory_path, variant_name)
+
         variant_dict = {
             "name": variant_name,
             "capture_params": variant[1],
-            "output_folder": os.path.join(experiment_output_folder, variant_name),
+            "output_folder": output_folder_path,
             "metadata": configuration
         }
-        _create_output_folder(variant_dict["output_folder"])
+
         variants.append(variant_dict)
 
     configuration['variants'] = variants
 
     return configuration
-
-
-def _create_output_folder(folder_path):
-    '''Create a folder if it does not exist'''
-    if not os.path.exists(folder_path):
-        print(f'creating folder: {folder_path}')
-        os.makedirs(folder_path)
-    else:
-        print(f'folder {folder_path} already exists')
 
 
 def is_hostname_valid(hostname):

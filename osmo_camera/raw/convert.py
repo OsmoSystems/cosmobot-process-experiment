@@ -18,7 +18,7 @@ def _file_to_dng(raspiraw_location, raw_image_path):
     return output_dng_image_path
 
 
-def _folder_to_dng(raspiraw_location, raw_images_dir):
+def _directory_to_dng(raspiraw_location, raw_images_dir):
     # Only convert .jpegs (which are JPEG+RAW files)
     raw_image_paths = [
         os.path.join(raw_images_dir, filename)
@@ -35,6 +35,6 @@ def to_dng(raspiraw_location, raw_image_path=None, raw_images_dir=None):
         raise Exception('Only one of "raw_image_path" or "raw_images_dir" can be defined.')
 
     if raw_images_dir:
-        return _folder_to_dng(raspiraw_location, raw_images_dir)
+        return _directory_to_dng(raspiraw_location, raw_images_dir)
 
     return _file_to_dng(raspiraw_location, raw_image_path)

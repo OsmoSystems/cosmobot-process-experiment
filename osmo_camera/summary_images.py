@@ -2,7 +2,7 @@ import math
 import os
 
 from osmo_camera import rgb, dng
-from osmo_camera.get_files import get_files_with_extension
+from osmo_camera.get_files import get_files_with_extension, create_output_directory
 from osmo_camera.select_ROI import draw_ROIs_on_image
 
 
@@ -19,10 +19,8 @@ def generate_summary_images(raw_images_dir, ROI_definitions):
     '''
     dng_image_paths = get_files_with_extension(raw_images_dir, '.dng')
 
-    # Create a new folder where these images will be saved
-    summary_images_dir = os.path.join(raw_images_dir, 'summary images')
-    if not os.path.exists(summary_images_dir):
-        os.mkdir(summary_images_dir)
+    # Create a new directory where these images will be saved
+    summary_images_dir = create_output_directory(raw_images_dir, 'summary images')
 
     # Pick a representative sample of images
     sample_image_paths = [
