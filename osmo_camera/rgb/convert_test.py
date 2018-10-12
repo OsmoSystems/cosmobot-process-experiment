@@ -3,7 +3,7 @@ import numpy as np
 import osmo_camera.rgb.convert as module
 
 
-def test_convert():
+def test_convert_to_bgr():
     image = np.array([
         [['r1', 'g1', 'b1'], ['r2', 'g2', 'b2']],
         [['r3', 'g3', 'b3'], ['r4', 'g4', 'b4']]

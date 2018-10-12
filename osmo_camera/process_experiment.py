@@ -36,8 +36,8 @@ def process_experiment(
         local_sync_dir: Optional. The name of the local directory where images will be synced and processed
         ROI_definitions: Optional. Pre-selected ROI_definitions: a map of {ROI_name: ROI_definition}
         Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI: (start_col, start_row, cols, rows)
-        save_summary_images: Optional. If True, ROIs will be saved as .PNGs in a new subfolder of local_sync_dir
-        save_ROIs: Optional. If True, ROIs will be saved as .PNGs in a new subfolder of local_sync_dir
+        save_summary_images: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of local_sync_dir
+        save_ROIs: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of local_sync_dir
 
     Returns:
         image_summary_data: A pandas DataFrame of summary statistics
@@ -45,7 +45,7 @@ def process_experiment(
 
         Saves the image_summary_data as a .csv in the directory where this function was called.
     '''
-    print('1. Sync images from s3 to local tmp folder...')
+    print('1. Sync images from s3 to local tmp directory...')
     raw_images_dir = sync_from_s3(experiment_dir, local_sync_dir)
 
     print('2. Convert all images from raw to dng...')

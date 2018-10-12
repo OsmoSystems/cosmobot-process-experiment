@@ -18,7 +18,7 @@ def experiment_configuration():
      Returns:
         an experimental configuration dictionary with the following keys
           interval (required): The interval in seconds between the capture of images.
-          name (required): The Name of the experiment.  Used for naming folders for output.
+          name (required): The Name of the experiment.  Used for naming directories for output.
           duration (optional): How long in seconds should the experiment run for.
           variants (optional): array of variants that define different capture settings to
           be run during each capture iteration.  a variant requires two sub arguments
@@ -77,12 +77,12 @@ def experiment_configuration():
     # add variants to the list of variants
     for _, variant in enumerate(args['variant']):
         variant_name = variant[0]
-        output_folder_path = create_output_directory(experiment_directory_path, variant_name)
+        output_directory_path = create_output_directory(experiment_directory_path, variant_name)
 
         variant_dict = {
             "name": variant_name,
             "capture_params": variant[1],
-            "output_folder": output_folder_path,
+            "output_directory": output_directory_path,
             "metadata": configuration
         }
 
