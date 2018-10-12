@@ -17,7 +17,7 @@ def sync_from_s3(s3_directory, local_sync_dir=None):
     '''
     if not local_sync_dir:
         # On MacOS (Darwin), tempfile.gettempdir() returns a weird auto-generated directory
-        # e.g. '/var/folder/nj/269977hs0_96bttwj2gs_jhhp48z54/T'
+        # e.g. '/var/folders/nj/269977hs0_96bttwj2gs_jhhp48z54/T'
         # https://stackoverflow.com/questions/847850/cross-platform-way-of-getting-temp-directory-in-python
         local_sync_dir = '/tmp' if platform.system() == 'Darwin' else tempfile.gettempdir()
 
