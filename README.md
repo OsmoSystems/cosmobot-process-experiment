@@ -44,4 +44,4 @@ git clone https://github.com/OsmoSystems/raspiraw.git
 ```
 
 ## Running
-See this example jupyter notebook: "2018-09-25 process_experiment example snippet.ipynb" in https://drive.google.com/drive/folders/1bEVTuDQf_Ej_Ct-iggXkkg1NOTVrGHXc
+See this example jupyter notebook: "process_experiment - for Cosmobot experiments.ipynb" in the Jupyter Snippets folder: https://drive.google.com/drive/folders/1A-Rlb-VYTwQ6Tl3sm12eR-cnmCHbj6UP
