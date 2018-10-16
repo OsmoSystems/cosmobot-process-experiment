@@ -64,9 +64,10 @@ def plot_histogram(image, title='', bins=1024):
     '''
     # Assume this is one of our standard RGB images with values between 0 and 1
     red, green, blue = get_channels(image)
+    range_per_channel = (0, 1)
 
     histograms_and_bin_edges_by_color = {
-        color_name: np.histogram(channel, bins, range=(0, 1), density=True)
+        color_name: np.histogram(channel, bins, range=range_per_channel, density=True)
         for color_name, channel
         in {'red': red, 'green': green, 'blue': blue}.items()
     }
