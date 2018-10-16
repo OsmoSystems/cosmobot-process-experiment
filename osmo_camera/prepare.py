@@ -2,12 +2,13 @@ import argparse
 import sys
 import os
 import re
+import yaml
 from socket import gethostname
 from datetime import datetime
 from subprocess import check_output, CalledProcessError
 from uuid import getnode as get_mac
 
-from osmo_camera.directories import create_output_directory
+from directories import create_output_directory
 
 
 def experiment_configuration():
@@ -82,13 +83,19 @@ def experiment_configuration():
         variant_dict = {
             "name": variant_name,
             "capture_params": variant[1],
-            "output_directory": output_directory_path,
-            "metadata": configuration
+            "output_directory": output_directory_path
         }
 
         variants.append(variant_dict)
 
     configuration['variants'] = variants
+
+    # write experimental configuration metadata to file within each created variant directory
+    for _, variant in enumerate(configuration['variants']):
+        variant_output_directory = variant['output_directory']
+        metadata_path = os.path.join(variant_output_directory, 'experiment_metadata.yml')
+        with open(metadata_path, 'w') as outfile:
+            yaml.dump(configuration, outfile, default_flow_style=False)
 
     return configuration
 

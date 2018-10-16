@@ -65,26 +65,8 @@ def perform_experiment(configuration):
 
             image_filename = start_date.strftime(f'%Y%m%d-%H%M%S-{sequence}.jpeg')
             image_filepath = os.path.join(output_directory, image_filename)
-            metadata_path = os.path.join(output_directory, 'experiment_metadata.yml')
 
-            begin_date_for_capture = datetime.now()
-
-            capture_info = capture(image_filepath, additional_capture_params=capture_params)
-
-            ms_for_capture = (datetime.now() - begin_date_for_capture).microseconds
-
-            metadata = {
-                ms_for_capture: ms_for_capture,
-                capture_info: capture_info
-            }
-
-            # for each image store a separate set of metadata with time for capture
-            # and the capture info provided by raspistill
-            variant["metadata"][image_filename] = metadata
-
-            # write latest metadata for variant to yaml file
-            with open(metadata_path, 'w') as outfile:
-                yaml.dump(variant["metadata"], outfile, default_flow_style=False)
+            capture(image_filepath, additional_capture_params=capture_params)
 
             # this may do nothing depending on if sync is currently occuring
             sync_directory_in_separate_process(output_directory)
