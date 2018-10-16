@@ -5,7 +5,6 @@ from matplotlib import pyplot as plt
 import numpy as np
 import plotly.graph_objs as go
 
-from osmo_camera.rgb.image_basics import get_channels
 from osmo_camera.s3 import list_experiments
 from osmo_camera.select_ROI import draw_ROIs_on_image
 
@@ -51,6 +50,21 @@ def show_color(cv_color):
     show_image(_make_solid_color_image(cv_color), figsize=(image_size, image_size))
 
 
+def _get_flattened_channels(image):
+    ''' Convert an image into linear arrays for each channel
+
+    Args:
+        image: numpy.ndarray of an openCV-style image
+    Returns:
+        np.array of arrays, where each sub-array is a channel from the original image
+        NOTE: channels will come out in whatever order they are stored in the image
+    '''
+    rows, cols, num_channels = image.shape
+    channels = np.reshape(image, (rows * cols, num_channels)).T
+    return channels
+
+
+def plot_histogram(image, minimal=True):
 def plot_histogram(image, title='', bins=1024):
     ''' Plot a histogram of the image
 
@@ -63,8 +77,8 @@ def plot_histogram(image, title='', bins=1024):
         plotly FigureWidget. Call display() on this to view it.
     '''
     # Assume this is one of our standard RGB images with values between 0 and 1
-    red, green, blue = get_channels(image)
     range_per_channel = (0, 1)
+    red, green, blue = _get_flattened_channels(image)
 
     histograms_and_bin_edges_by_color = {
         color_name: np.histogram(channel, bins, range=range_per_channel, density=True)

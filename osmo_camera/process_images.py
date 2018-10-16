@@ -5,7 +5,7 @@ import os
 import pandas as pd
 import numpy as np
 
-from osmo_camera.get_files import get_files_with_extension
+from osmo_camera.directories import get_files_with_extension, create_output_directory
 from osmo_camera.select_ROI import get_ROIs_for_image
 from osmo_camera import dng, rgb
 
@@ -73,6 +73,7 @@ def process_image(dng_image_path, ROI_definitions, ROI_crops_dir=None):
         dng_image_path: The full file path of a DNG image.
         ROI_definitions: Definitions of Regions of Interest (ROIs) to summarize. A map of {ROI_name: ROI_definition}
         Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI: (start_col, start_row, cols, rows)
+        ROI_crops_dir: Optional. If provided, ROI crops will be saved to this directory as .PNGs
 
     Returns:
         An array of summary statistics dictionaries - one for each ROI
@@ -103,7 +104,7 @@ def process_images(dng_images_dir, ROI_definitions, save_ROIs=False):
         dng_images_dir: The directory of images to process. Assumes images have already been converted to .DNGs
         ROI_definitions: Definitions of Regions of Interest (ROIs) to summarize. A map of {ROI_name: ROI_definition}
         Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI: (start_col, start_row, cols, rows)
-        save_ROIs: Optional. If True, ROIs will be saved as .PNGs in a new subfolder of dng_images_dir
+        save_ROIs: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of dng_images_dir
 
     Returns:
         An pandas DataFrame in which each row contains summary statistics for a single ROI in a single image
@@ -113,9 +114,7 @@ def process_images(dng_images_dir, ROI_definitions, save_ROIs=False):
     # If ROI crops should be saved, create a directory for them
     ROI_crops_dir = None
     if save_ROIs:
-        ROI_crops_dir = os.path.join(dng_images_dir, 'ROI crops')
-        if not os.path.exists(ROI_crops_dir):
-            os.mkdir(ROI_crops_dir)
+        ROI_crops_dir = create_output_directory(dng_images_dir, 'ROI crops')
         print('ROI crops saved in:', ROI_crops_dir)
 
     processed_images = [
