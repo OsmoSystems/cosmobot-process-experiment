@@ -1,11 +1,14 @@
 from datetime import datetime
 from unittest.mock import Mock, sentinel
 
+import pytest
+
 from . import metadata as module
 
 
 class TestReadExifTags:
     def test_parses_tag_codes_as_names(self, mocker):
+        # Keys are actual EXIF tag codes
         mock_exif_codes_to_values = {
             36867: '2018:09:28 20:29:59',
             33434: (599985, 1000000),
@@ -32,11 +35,9 @@ class TestParseDatTimeOriginal:
 
         assert actual == expected
 
-    def test_skips_missing_tag(self):
-        actual = module._parse_date_time_original({})
-        expected = None
-
-        assert actual == expected
+    def test_raises_on_missing_tag(self):
+        with pytest.raises(KeyError):
+            module._parse_date_time_original({})
 
 
 class TestParseExposureTime:
@@ -46,11 +47,9 @@ class TestParseExposureTime:
 
         assert actual == expected
 
-    def test_skips_missing_tag(self):
-        actual = module._parse_exposure_time({})
-        expected = None
-
-        assert actual == expected
+    def test_raises_on_missing_tag(self):
+        with pytest.raises(KeyError):
+            module._parse_exposure_time({})
 
 
 class TestParseISO:
@@ -60,17 +59,21 @@ class TestParseISO:
 
         assert actual == expected
 
-    def test_skips_missing_tag(self):
-        actual = module._parse_iso({})
-        expected = None
+    def test_raises_on_missing_tag(self):
+        with pytest.raises(KeyError):
+            module._parse_iso({})
 
-        assert actual == expected
+
+@pytest.fixture
+def mock_exif_parse(mocker):
+    mocker.patch.object(module, '_parse_date_time_original')
+    mocker.patch.object(module, '_parse_iso')
+    mocker.patch.object(module, '_parse_exposure_time')
 
 
 class TestGetExifTags:
-    def test_reads_sidecar_jpeg_exif(self, mocker):
+    def test_reads_sidecar_jpeg_exif(self, mocker, mock_exif_parse):
         mock_read_exif_tags = mocker.patch.object(module, '_read_exif_tags')
-        mock_read_exif_tags.return_value = {}
 
         module.get_exif_tags('mock_image_path.dng')
 

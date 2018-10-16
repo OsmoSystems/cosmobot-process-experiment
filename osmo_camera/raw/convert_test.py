@@ -6,7 +6,7 @@ from . import convert as module
 
 class TestFileToDng:
     def test_constructs_and_calls_raspiraw_command(self, mocker):
-        mock_call = mocker.patch('subprocess.call')
+        mock_call = mocker.patch('subprocess.check_call')
         mock_isfile = mocker.patch('os.path.isfile')
         mock_isfile.return_value = False
 
@@ -16,7 +16,7 @@ class TestFileToDng:
         mock_call.assert_called_with([expected_command], shell=True)
 
     def test_does_not_convert_if_already_exists(self, mocker):
-        mock_call = mocker.patch('subprocess.call')
+        mock_call = mocker.patch('subprocess.check_call')
         mock_isfile = mocker.patch('os.path.isfile')
         mock_isfile.return_value = True
 

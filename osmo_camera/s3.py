@@ -1,7 +1,7 @@
 import platform
 import os
 import tempfile
-from subprocess import call, check_output
+from subprocess import check_call, check_output
 import boto
 
 
@@ -26,7 +26,7 @@ def sync_from_s3(s3_directory, local_sync_dir=None):
     # Would be better to use boto, but neither boto nor boto3 support sync
     # https://github.com/boto/boto3/issues/358
     command = f'aws s3 sync s3://camera-sensor-experiments/{s3_directory} {sync_directory_location}'
-    call([command], shell=True)
+    check_call([command], shell=True)
 
     return sync_directory_location
 

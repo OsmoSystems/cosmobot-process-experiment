@@ -12,13 +12,13 @@ ExifTags = namedtuple('ExifTags', 'capture_datetime iso exposure_time')
 
 def _read_exif_tags(image_path):
     '''
-    Uses (an undocument private function from) PIL to read EXIF tags from an image file.
+    Uses (an "experimental" private function from) PIL to read EXIF tags from an image file.
     Returns a dictionary of tag names to values
     '''
     PIL_image = PIL.Image.open(image_path)
     EXIF_CODES_TO_NAMES = PIL.ExifTags.TAGS
 
-    # _getexit() returns a dictionary of {tag code: tag value}. Use PIL.ExifTags.TAGS dictionary of {tag code: tag name}
+    # _getexif() returns a dictionary of {tag code: tag value}. Use PIL.ExifTags.TAGS dictionary of {tag code: tag name}
     # to construct a more digestible dictionary of {tag name: tag value}
     tags = {
         EXIF_CODES_TO_NAMES[tag_code]: tag_value
@@ -30,9 +30,7 @@ def _read_exif_tags(image_path):
 
 
 def _parse_date_time_original(tags):
-    date_time_string = tags.get('DateTimeOriginal')
-    if not date_time_string:
-        return None
+    date_time_string = tags['DateTimeOriginal']
 
     # For DateTimeOriginal, PIL _getexif returns an ISO8601-ish string
     return datetime.strptime(date_time_string, '%Y:%m:%d %H:%M:%S')
@@ -40,14 +38,11 @@ def _parse_date_time_original(tags):
 
 def _parse_iso(tags):
     # For ISOSpeedRatings PIL _getexif returns an int
-    return tags.get('ISOSpeedRatings')
+    return tags['ISOSpeedRatings']
 
 
 def _parse_exposure_time(tags):
-    exposure = tags.get('ExposureTime')
-
-    if not exposure:
-        return None
+    exposure = tags['ExposureTime']
 
     # For ExposureTime, PIL _getexif returns a tuple of (numerator, denominator)
     numerator, denominator = exposure
