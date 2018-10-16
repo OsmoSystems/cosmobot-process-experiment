@@ -67,9 +67,6 @@ def get_exif_tags(dng_image_path):
 
     tags = _read_exif_tags(raw_image_path)
 
-    print('raw_image_path:', raw_image_path)
-    print('tags:', tags)
-
     return ExifTags(
         capture_datetime=_parse_date_time_original(tags),
         iso=_parse_iso(tags),
