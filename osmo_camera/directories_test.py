@@ -1,4 +1,4 @@
-from mock import sentinel
+from unittest.mock import sentinel
 import pytest
 
 from . import directories as module

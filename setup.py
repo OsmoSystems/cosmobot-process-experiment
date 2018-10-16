@@ -13,7 +13,6 @@ setup(
         'boto',
         'numpy',
         'matplotlib',
-        'exifread',
         'opencv-python',
         'pandas',
         'Pillow',

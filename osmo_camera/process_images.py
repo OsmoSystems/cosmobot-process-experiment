@@ -14,12 +14,17 @@ from osmo_camera import dng, rgb
 IMAGE_AXES = (0, 1)
 
 
+def _coefficient_of_variation(image):
+    return np.std(image, axis=IMAGE_AXES) / np.mean(image, axis=IMAGE_AXES)
+
+
 ROI_STATISTIC_CALCULATORS = {
     'mean': partial(np.mean, axis=IMAGE_AXES),
     'median': partial(np.median, axis=IMAGE_AXES),
     'min': partial(np.amin, axis=IMAGE_AXES),
     'max': partial(np.amax, axis=IMAGE_AXES),
     'stdev': partial(np.std, axis=IMAGE_AXES),
+    'cv': _coefficient_of_variation,
     **{
         f'percentile_{percentile}': partial(np.percentile, q=percentile, axis=IMAGE_AXES)
         for percentile in [99, 95, 90, 75, 50, 25]
@@ -85,9 +90,13 @@ def process_image(dng_image_path, ROI_definitions, ROI_crops_dir=None):
     if ROI_crops_dir is not None:
         save_ROI_crops(ROI_crops_dir, dng_image_path, ROIs)
 
+    exif_tags = dng.metadata.get_exif_tags(dng_image_path)
+
     return [
         {
-            'timestamp': dng.metadata.capture_date(dng_image_path),
+            'timestamp': exif_tags.capture_datetime,
+            'iso': exif_tags.iso,
+            'exposure_seconds': exif_tags.exposure_time,
             'image': os.path.basename(dng_image_path),
             'ROI': ROI_name,
             'ROI definition': ROI_definitions[ROI_name],
