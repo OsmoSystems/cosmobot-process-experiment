@@ -1,5 +1,4 @@
 flake8
-mock
 pytest
 pytest-mock
 pytest-watch

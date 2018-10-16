@@ -1,5 +1,5 @@
 import os
-from subprocess import call
+import subprocess
 
 
 def _file_to_dng(raspiraw_location, raw_image_path):
@@ -13,7 +13,7 @@ def _file_to_dng(raspiraw_location, raw_image_path):
 
     raspi_raw_command = os.path.join(raspiraw_location, 'raspiraw/raspi_dng_sony')
     command = f'{raspi_raw_command} "{raw_image_path}" "{output_dng_image_path}"'
-    call([command], shell=True)
+    subprocess.call([command], shell=True)
 
     return output_dng_image_path
 

@@ -11,6 +11,9 @@ def test_process_ROI():
     actual = module._process_ROI(mock_ROI)
 
     expected = {
+        'r_cv': 1.118033988749895 / 2.5,
+        'g_cv': 11.180339887498949 / 25.0,
+        'b_cv': 111.80339887498948 / 250.0,
         'r_mean': 2.5,
         'g_mean': 25.0,
         'b_mean': 250.0,
