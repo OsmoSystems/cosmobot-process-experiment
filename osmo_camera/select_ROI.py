@@ -45,12 +45,10 @@ def choose_regions(rgb_image):
 
 def prompt_for_ROI_selection(rgb_image):
     # Make image brighter to enable selecting ROIs even on very dark images
-    # TODO: "auto exposure" adjustment instead of magical number
     brighter_rgb_image = rgb_image * 3
     ROIs = choose_regions(brighter_rgb_image)
 
     print('\nName your ROIs in the same order you selected them. Names must be unique.')
-    # TODO: could show a summary image that just numbers the selected ROIs on the image. Would be sweet!
     ROI_definitions = {
         input(f'Unique name for ROI #{index + 1}: '): list(ROI)  # Convert np array to list to make print readable
         for index, ROI in enumerate(ROIs)
@@ -92,7 +90,7 @@ def draw_ROIs_on_image(rgb_image, ROI_definitions={}):
 
 def get_ROIs_for_image(rgb_image, ROI_definitions):
     ROIs = {
-        ROI_name: rgb.image_basics.crop_image(rgb_image, ROI_definition)
+        ROI_name: rgb.crop.crop_image(rgb_image, ROI_definition)
         for ROI_name, ROI_definition in ROI_definitions.items()
     }
 

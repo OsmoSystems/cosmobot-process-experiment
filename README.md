@@ -29,7 +29,7 @@ Note: I had to use `pip` and not `pip3` to successfully install awscli
 Set up credentials:
 1. Generate an AWS access key
 2. Run `aws configure` and put in the access key ID and secret key
-3. Confirm your credentials are working by running `aws s3 ls` - you should get a list of folders
+3. Confirm your credentials are working by running `aws s3 ls` - you should get a list of directories
 
 ### raspiraw
 1. Clone our forked repo:

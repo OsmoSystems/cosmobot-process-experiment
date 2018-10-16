@@ -11,7 +11,7 @@ def perform_experiment(configuration):
     '''Perform experiment using settings passed in through the configuration.
        experimental configuration defines the capture frequency and duration of the experiment
        as well as controlling the camera settings to be used to capture images.
-       Experimental output folders are created prior to initiating image capture and
+       Experimental output directories are created prior to initiating image capture and
        experimental metadata is collected during the experiment and saved.
        Finally, imagery and experimental metadata is synced to s3 on an ongoing basis.
      Args:
@@ -60,12 +60,12 @@ def perform_experiment(configuration):
                 quit("There is insufficient space to save the image.  Quitting.")
 
             # unpack variant values
-            output_folder = variant['output_folder']
+            output_directory = variant['output_directory']
             capture_params = variant['capture_params']
 
             image_filename = start_date.strftime(f'%Y%m%d-%H%M%S-{sequence}.jpeg')
-            image_filepath = os.path.join(output_folder, image_filename)
-            metadata_path = os.path.join(output_folder, 'experiment_metadata.yml')
+            image_filepath = os.path.join(output_directory, image_filename)
+            metadata_path = os.path.join(output_directory, 'experiment_metadata.yml')
 
             begin_date_for_capture = datetime.now()
 
@@ -87,15 +87,15 @@ def perform_experiment(configuration):
                 yaml.dump(variant["metadata"], outfile, default_flow_style=False)
 
             # this may do nothing depending on if sync is currently occuring
-            sync_directory_in_separate_process(output_folder)
+            sync_directory_in_separate_process(output_directory)
 
         sequence = sequence + 1
 
     end_syncing_processes()
 
-    # finally, for each variant/folder issue a final sync command
+    # finally, for each variant/directory issue a final sync command
     for _, variant in enumerate(variants):
-        sync_directory_in_separate_process(variant["output_folder"], wait_for_finish=True)
+        sync_directory_in_separate_process(variant["output_directory"], wait_for_finish=True)
 
 
 if __name__ == '__main__':

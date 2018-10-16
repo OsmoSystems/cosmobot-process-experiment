@@ -1,20 +1,3 @@
-import numpy as np
-
-
-def get_channels(image):
-    ''' Convert an image into linear arrays for each channel
-
-    Args:
-        image: numpy.ndarray of an openCV-style image
-    Returns:
-        np.array of arrays, where each sub-array is a channel from the original image
-        NOTE: channels will come out in whatever order they are stored in the image
-    '''
-    rows, cols, num_channels = image.shape
-    channels = np.reshape(image, (rows * cols, num_channels)).T
-    return channels
-
-
 def crop_image(image, ROI_definition):
     ''' Crop out a Region of Interest (ROI), returning a new image of just that ROI
 
