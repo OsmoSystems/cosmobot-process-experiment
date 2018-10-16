@@ -60,7 +60,7 @@ def get_exif_tags(dng_image_path):
         dng_image_path: The full file path of the .DNG file to get metadata for
 
     Returns:
-        Relevant EXIF tags, as a dictionary
+        Relevant EXIF tags, as an ExifTags namedtuple
     '''
     dng_image_path_root, dng_image_extension = os.path.splitext(dng_image_path)
     raw_image_path = f'{dng_image_path_root}.jpeg'
