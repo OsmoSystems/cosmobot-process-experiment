@@ -1,8 +1,10 @@
+from datetime import datetime
+
 from osmo_camera.s3 import sync_from_s3
 from osmo_camera.process_images import process_images
 from osmo_camera.select_ROI import prompt_for_ROI_selection
 from osmo_camera.summary_images import generate_summary_images
-from osmo_camera.directories import get_files_with_extension
+from osmo_camera.directories import get_files_with_extension, iso_datetime_for_filename
 from osmo_camera import raw, dng, jupyter
 
 
@@ -14,6 +16,14 @@ def _open_first_image(raw_images_dir):
     first_rgb_image = dng.open.as_rgb(first_dng_image_path)
 
     return first_rgb_image
+
+
+def _save_summary_statistics_csv(experiment_dir, image_summary_data):
+    csv_name = f'{experiment_dir} - summary statistics (generated {iso_datetime_for_filename(datetime.now())}).csv'
+    image_summary_data.to_csv(csv_name, index=False)
+    print(f'Summary statistics saved as: {csv_name}\n')
+
+    return csv_name
 
 
 def process_experiment(
@@ -70,14 +80,10 @@ def process_experiment(
     saving_or_not = 'Save' if save_summary_images else 'Don\'t save'
     print(f'4. {saving_or_not} summary images...')
     if save_summary_images:
-        summary_images_dir = generate_summary_images(raw_images_dir, ROI_definitions)
-        print(f'Summary images saved in: {summary_images_dir}\n')
+        generate_summary_images(raw_images_dir, ROI_definitions)
 
     print('5. Process images into summary statistics...')
     image_summary_data = process_images(raw_images_dir, ROI_definitions, save_ROIs)
-
-    csv_name = f'{experiment_dir} - summary statistics.csv'
-    image_summary_data.to_csv(csv_name, index=False)
-    print(f'Summary statistics saved as: {csv_name}\n')
+    _save_summary_statistics_csv(experiment_dir, image_summary_data)
 
     return image_summary_data, ROI_definitions
