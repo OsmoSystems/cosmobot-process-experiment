@@ -64,7 +64,6 @@ def _get_flattened_channels(image):
     return channels
 
 
-def plot_histogram(image, minimal=True):
 def plot_histogram(image, title='', bins=1024):
     ''' Plot a histogram of the image
 
