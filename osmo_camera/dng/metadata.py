@@ -18,6 +18,8 @@ def _read_exif_tags(image_path):
     PIL_image = PIL.Image.open(image_path)
     EXIF_CODES_TO_NAMES = PIL.ExifTags.TAGS
 
+    # _getexit() returns a dictionary of {tag code: tag value}. Use PIL.ExifTags.TAGS dictionary of {tag code: tag name}
+    # to construct a more digestible dictionary of {tag name: tag value}
     tags = {
         EXIF_CODES_TO_NAMES[tag_code]: tag_value
         for tag_code, tag_value in PIL_image._getexif().items()
