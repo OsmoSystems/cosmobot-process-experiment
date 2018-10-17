@@ -4,46 +4,24 @@ import os
 import re
 import yaml
 from socket import gethostname
-from datetime import datetime
+from datetime import datetime, timedelta
 from subprocess import check_output, CalledProcessError
 from uuid import getnode as get_mac
+from collections import namedtuple
+from directories import create_directory
 
-from directories import create_output_directory
+BASE_OUTPUT_PATH = os.path.abspath('../output/')
+ExperimentConfiguration = namedtuple('ExperimentConfiguration', 'name interval duration variants start_date end_date experiment_directory_path command git_hash hostname mac mac_last_4')  # noqa: C0301, E501
+ExperimentVariant = namedtuple('ExperimentVariant', 'name capture_params output_directory')
 
 
-def experiment_configuration():
-    '''Extract and verify arguments passed in from the command line and build a
-    dictionary of values that define an experiments configuration.
+def _parse_args():
+    '''Extract and verify arguments passed in from the command line
      Args:
         None
      Returns:
-        an experimental configuration dictionary with the following keys
-          interval (required): The interval in seconds between the capture of images.
-          name (required): The Name of the experiment.  Used for naming directories for output.
-          duration (optional): How long in seconds should the experiment run for.
-          variants (optional): array of variants that define different capture settings to
-          be run during each capture iteration.  a variant requires two sub arguments
-            name (variant[0]): name to identify variant with e.g. 'short_exposure' or 'long_exposure'
-            capture_params (variant[1]): parameters to pass to raspistill command e.g.
-                                         ' -ss 100 -iso 100'
-          command (retrieved): full command issued from the command line
-          git_hash (retrieved): git hash or message that says no git repo present
+        dictionary of arguments parsed from the command line
     '''
-
-    base_output_path = os.path.abspath('../output/')
-
-    # initailize configuration dictionary with command issued and git_hash (if available)
-    mac_address = get_mac()
-    mac_last_4 = str(mac_address)[-4:]
-
-    configuration = {
-        "command": ' '.join(sys.argv),
-        "git_hash": _git_hash(),
-        "hostname": gethostname(),
-        "mac": mac_address,
-        "mac_last_4": mac_last_4
-    }
-
     arg_parser = argparse.ArgumentParser()
 
     # required arguments
@@ -59,45 +37,72 @@ def experiment_configuration():
     arg_parser.add_argument("--duration", required=False, type=int, default=None,
                             help="duration in seconds")
 
-    args = vars(arg_parser.parse_args())
+    return vars(arg_parser.parse_args())
 
-    # start_date of experiment is now
+
+def get_experiment_configuration():
+    '''Return a constructed named experimental configuration in a namedtuple.
+     Args:
+        None, but retrieves arguments from the command line using _parse_args
+     Returns:
+        an experiment configuration namedtuple
+          interval (required): The interval in seconds between the capture of images.
+          name (required): The Name of the experiment.  Used for naming directories for output.
+          duration (optional): How long in seconds should the experiment run for.
+          variants (optional): array of variants that define different capture settings to
+          be run during each capture iteration.  a variant requires two sub arguments
+            name (variant[0]): name to identify variant with e.g. 'short_exposure' or 'long_exposure'
+            capture_params (variant[1]): parameters to pass to raspistill command e.g.
+                                         ' -ss 100 -iso 100'
+          command (retrieved): full command issued from the command line
+          git_hash (retrieved): git hash or message that says no git repo present
+    '''
+    args = _parse_args()
+    mac_address = get_mac()
+    mac_last_4 = str(mac_address)[-4:]
+    interval = args['interval']
+    name = args['name']
     start_date = datetime.now()
-
-    variants = []
-
-    configuration['interval'] = args['interval']
-    configuration['name'] = args['name']
-    configuration['start_date'] = start_date
-    configuration['duration'] = args['duration']
-
+    duration = args['duration']
+    end_date = start_date if duration is None else start_date + timedelta(seconds=duration)
     experiment_directory_name = start_date.strftime(f'%Y%m%d-%H%M%S-MAC{mac_last_4}-{args["name"]}')
-    experiment_directory_path = create_output_directory(base_output_path, experiment_directory_name)
-    configuration['experiment_directory_path'] = experiment_directory_path
+    experiment_directory_path = os.path.join(BASE_OUTPUT_PATH, experiment_directory_name)
+
+    experiment_configuration = ExperimentConfiguration(
+        name,
+        interval,
+        duration,
+        [],
+        start_date,
+        end_date,
+        experiment_directory_path,
+        ' '.join(sys.argv),
+        _git_hash(),
+        gethostname(),
+        mac_address,
+        mac_last_4
+    )
 
     # add variants to the list of variants
-    for _, variant in enumerate(args['variant']):
+    for variant in args['variant']:
         variant_name = variant[0]
-        output_directory_path = create_output_directory(experiment_directory_path, variant_name)
+        capture_params = variant[1]
+        output_directory = os.path.join(experiment_configuration.experiment_directory_path, variant_name)
+        experiment_configuration.variants.append(ExperimentVariant(variant_name, capture_params, output_directory))
 
-        variant_dict = {
-            "name": variant_name,
-            "capture_params": variant[1],
-            "output_directory": output_directory_path
-        }
+    return experiment_configuration
 
-        variants.append(variant_dict)
 
-    configuration['variants'] = variants
+def create_file_structure_for_experiment(configuration):
+    create_directory(configuration.experiment_directory_path)
 
-    # write experimental configuration metadata to file within each created variant directory
-    for _, variant in enumerate(configuration['variants']):
-        variant_output_directory = variant['output_directory']
+    # create variant directories and write experiment configuration metadata to file
+    for variant in configuration.variants:
+        create_directory(variant.output_directory)
+        variant_output_directory = variant.output_directory
         metadata_path = os.path.join(variant_output_directory, 'experiment_metadata.yml')
         with open(metadata_path, 'w') as outfile:
-            yaml.dump(configuration, outfile, default_flow_style=False)
-
-    return configuration
+            yaml.dump(configuration._asdict(), outfile, default_flow_style=False)
 
 
 def is_hostname_valid(hostname):
