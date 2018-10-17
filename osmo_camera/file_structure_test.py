@@ -72,6 +72,6 @@ def test_get_files_with_extension(mock_listdir, mock_path_join, name, directory_
 class TestIsoDatetimeForFilename:
     def test_returns_iso_ish_string(self):
         actual = module.iso_datetime_for_filename(datetime(2018, 1, 1, 12, 1, 1))
-        expected = '20180101-120101'
+        expected = '2018-01-01--12-01-01'
 
         assert actual == expected
