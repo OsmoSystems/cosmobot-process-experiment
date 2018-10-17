@@ -27,6 +27,6 @@ def simulate_capture_with_copy(filename):
         Resulting command line output of the copy command
     '''
     command = f'cp ./image_for_development.jpeg {filename}'
-    print(f'Emulate capture using cp: {command}')
+    print(f'Simulate capture using cp: {command}')
     command_output = check_output(command, shell=True).decode("utf-8")
     return command_output
