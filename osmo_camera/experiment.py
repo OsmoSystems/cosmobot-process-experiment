@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import yaml
 
 from camera import capture
-from directories import iso_datetime_for_filename
+from file_structure import iso_datetime_for_filename
 from prepare import is_hostname_valid, experiment_configuration
 from storage import how_many_images_with_free_space, free_space_for_one_image
 from sync_manager import sync_directory_in_separate_process, end_syncing_processes

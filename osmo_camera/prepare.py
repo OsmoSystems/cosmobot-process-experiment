@@ -7,7 +7,7 @@ from datetime import datetime
 from subprocess import check_output, CalledProcessError
 from uuid import getnode as get_mac
 
-from osmo_camera.directories import create_output_directory, iso_datetime_for_filename
+from osmo_camera.file_structure import create_output_directory, iso_datetime_for_filename
 
 
 def experiment_configuration():

@@ -4,7 +4,7 @@ from osmo_camera.s3 import sync_from_s3
 from osmo_camera.process_images import process_images
 from osmo_camera.select_ROI import prompt_for_ROI_selection
 from osmo_camera.summary_images import generate_summary_images
-from osmo_camera.directories import get_files_with_extension, iso_datetime_for_filename
+from osmo_camera.file_structure import get_files_with_extension, iso_datetime_for_filename
 from osmo_camera import raw, dng, jupyter
 
 

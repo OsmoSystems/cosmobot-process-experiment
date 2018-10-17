@@ -5,7 +5,7 @@ import os
 import pandas as pd
 import numpy as np
 
-from osmo_camera.directories import get_files_with_extension, create_output_directory
+from osmo_camera.file_structure import get_files_with_extension, create_output_directory
 from osmo_camera.select_ROI import get_ROIs_for_image
 from osmo_camera import dng, rgb
 

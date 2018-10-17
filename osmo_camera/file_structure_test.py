@@ -3,7 +3,7 @@ from unittest.mock import sentinel
 
 import pytest
 
-from . import directories as module
+from . import file_structure as module
 
 
 @pytest.fixture
