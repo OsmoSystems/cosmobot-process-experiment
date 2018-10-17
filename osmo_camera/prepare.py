@@ -7,7 +7,7 @@ from datetime import datetime
 from subprocess import check_output, CalledProcessError
 from uuid import getnode as get_mac
 
-from osmo_camera.directories import create_output_directory
+from osmo_camera.file_structure import create_output_directory, iso_datetime_for_filename
 
 
 def experiment_configuration():
@@ -70,7 +70,9 @@ def experiment_configuration():
     configuration['start_date'] = start_date
     configuration['duration'] = args['duration']
 
-    experiment_directory_name = start_date.strftime(f'%Y%m%d-%H%M%S-MAC{mac_last_4}-{args["name"]}')
+    iso_ish_datetime = iso_datetime_for_filename(start_date)
+
+    experiment_directory_name = f'{iso_ish_datetime}-MAC{mac_last_4}-{args["name"]}'
     experiment_directory_path = create_output_directory(base_output_path, experiment_directory_name)
     configuration['experiment_directory_path'] = experiment_directory_path
 

@@ -1,7 +1,10 @@
 import os
 from datetime import datetime, timedelta
+
 import yaml
+
 from camera import capture
+from file_structure import iso_datetime_for_filename
 from prepare import is_hostname_valid, experiment_configuration
 from storage import how_many_images_with_free_space, free_space_for_one_image
 from sync_manager import sync_directory_in_separate_process, end_syncing_processes
@@ -63,7 +66,8 @@ def perform_experiment(configuration):
             output_directory = variant['output_directory']
             capture_params = variant['capture_params']
 
-            image_filename = start_date.strftime(f'%Y%m%d-%H%M%S-{sequence}.jpeg')
+            iso_ish_datetime = iso_datetime_for_filename(start_date)
+            image_filename = f'{iso_ish_datetime}-{sequence}.jpeg'
             image_filepath = os.path.join(output_directory, image_filename)
             metadata_path = os.path.join(output_directory, 'experiment_metadata.yml')
 
