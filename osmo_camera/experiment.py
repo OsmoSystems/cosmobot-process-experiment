@@ -63,10 +63,13 @@ def perform_experiment(configuration):
 
         sequence = sequence + 1
 
-    end_syncing_processes()
+    final_sync_for_experiment(configuration.variants)
 
-    # finally, for each variant/directory issue a final sync command
-    for variant in configuration.variants:
+
+def final_sync_for_experiment(variants):
+    # final sync when experiment runner finishes or a keyboard interrupt is detected
+    end_syncing_processes()
+    for _, variant in enumerate(variants):
         sync_directory_in_separate_process(variant.output_directory, wait_for_finish=True)
 
 
@@ -77,6 +80,14 @@ if __name__ == '__main__':
     if hostname_is_valid(configuration.hostname):
         QUIT_MESSAGE = f'"{configuration.hostname}" is not a valid hostname.'
         QUIT_MESSAGE += " Contact your local dev for instructions on setting a valid hostname."
-        quit(QUIT_MESSAGE)
 
-    perform_experiment(configuration)
+    try:
+        perform_experiment(configuration)
+    except KeyboardInterrupt:
+        print('Keyboard interrupt detected, attempting final sync')
+        try:
+            # stop processes
+            final_sync_for_experiment(configuration.variants)
+            quit("Final sync after keyboard interrupt completed.")
+        except SystemExit:
+            quit("Final keyboard interrupt.  Sync to S3 may not have completed.")
