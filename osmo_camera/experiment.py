@@ -73,7 +73,7 @@ def final_sync_for_experiment(variants):
     # it compares a local list with the remote list and will keep those lists in memory. If additional files are
     # written after a syncing process begins they will not sync.
     end_syncing_processes()
-    for _, variant in enumerate(variants):
+    for variant in variants:
         sync_directory_in_separate_process(variant.output_directory, wait_for_finish=True)
 
 
