@@ -11,8 +11,33 @@ from collections import namedtuple
 from osmo_camera.file_structure import create_directory, iso_datetime_for_filename
 
 BASE_OUTPUT_PATH = os.path.abspath('../output/')
-ExperimentConfiguration = namedtuple('ExperimentConfiguration', 'name interval duration variants start_date end_date experiment_directory_path command git_hash hostname mac mac_last_4')  # noqa: C0301, E501
-ExperimentVariant = namedtuple('ExperimentVariant', 'name capture_params output_directory')
+
+ExperimentConfiguration = namedtuple(
+    'ExperimentConfiguration',
+    [
+        'name',  # <-- this line and below keys for args passed from command line to define the experiment config
+        'interval',
+        'duration',
+        'variants',
+        'start_date',  # <-- this line and below are keys used for running the experiment
+        'end_date',
+        'experiment_directory_path',
+        'command',  # <-- this line and below are keys for metadata to store
+        'git_hash',
+        'hostname',
+        'mac',
+        'mac_last_4'
+    ]
+)
+
+ExperimentVariant = namedtuple(
+    'ExperimentVariant',
+    [
+        'name',
+        'capture_params',
+        'output_directory'
+    ]
+)
 
 
 def _parse_args():
