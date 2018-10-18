@@ -76,7 +76,7 @@ def draw_ROIs_on_image(rgb_image, ROI_definitions={}):
         )
         cv2.putText(
             rgb_image_with_ROI_definitions,
-            ROI_name,
+            str(ROI_name),
             top_left_corner,
             fontFace=cv2.FONT_HERSHEY_SIMPLEX,
             fontScale=2,
