@@ -71,7 +71,8 @@ def final_sync_for_experiment(variants):
     # From testing I noticed that if a file(s) is written during after a sync process begins it was
     # not being added to a list to sync. My hunch is that this is due to when a syncing process initially begins,
     # it compares a local list with the remote list and will keep those lists in memory. If additional files are
-    # written after a syncing process begins they will not sync.
+    # written after a syncing process begins they will not sync.  so, to finish things up we shut down all of the
+    # existing sync processes and start new ones
     end_syncing_processes()
     for variant in variants:
         sync_directory_in_separate_process(variant.output_directory, wait_for_finish=True)
