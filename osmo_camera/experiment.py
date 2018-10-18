@@ -71,12 +71,12 @@ def perform_experiment(configuration):
 
 
 if __name__ == '__main__':
-    CONFIGURATION = get_experiment_configuration()
-    create_file_structure_for_experiment(CONFIGURATION)
+    configuration = get_experiment_configuration()
+    create_file_structure_for_experiment(configuration)
 
-    if is_hostname_valid(CONFIGURATION.hostname):
-        QUIT_MESSAGE = f'"{CONFIGURATION.hostname}" is not a valid hostname.'
+    if is_hostname_valid(configuration.hostname):
+        QUIT_MESSAGE = f'"{configuration.hostname}" is not a valid hostname.'
         QUIT_MESSAGE += " Contact your local dev for instructions on setting a valid hostname."
         quit(QUIT_MESSAGE)
 
-    perform_experiment(CONFIGURATION)
+    perform_experiment(configuration)
