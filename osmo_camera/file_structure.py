@@ -35,3 +35,10 @@ def create_directory(new_directory_path):
         os.mkdir(new_directory_path)
 
     return new_directory_path
+
+
+def iso_datetime_for_filename(datetime):
+    ''' Returns datetime as a ISO-ish format string that can be used in filenames (which can't inclue ":")
+        datetime(2018, 1, 1, 12, 1, 1) --> '2018-01-01--12-01-01'
+    '''
+    return datetime.strftime('%Y-%m-%d--%H-%M-%S')

@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from subprocess import check_output, CalledProcessError
 from uuid import getnode as get_mac
 from collections import namedtuple
-from directories import create_directory
+from osmo_camera.file_structure import create_directory, iso_datetime_for_filename
 
 BASE_OUTPUT_PATH = os.path.abspath('../output/')
 ExperimentConfiguration = namedtuple('ExperimentConfiguration', 'name interval duration variants start_date end_date experiment_directory_path command git_hash hostname mac mac_last_4')  # noqa: C0301, E501
@@ -65,7 +65,10 @@ def get_experiment_configuration():
     start_date = datetime.now()
     duration = args['duration']
     end_date = start_date if duration is None else start_date + timedelta(seconds=duration)
-    experiment_directory_name = start_date.strftime(f'%Y%m%d-%H%M%S-MAC{mac_last_4}-{args["name"]}')
+
+    iso_ish_datetime = iso_datetime_for_filename(start_date)
+
+    experiment_directory_name = f'{iso_ish_datetime}-MAC{mac_last_4}-{args["name"]}'
     experiment_directory_path = os.path.join(BASE_OUTPUT_PATH, experiment_directory_name)
 
     experiment_configuration = ExperimentConfiguration(

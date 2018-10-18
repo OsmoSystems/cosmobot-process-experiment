@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, timedelta
 from camera import capture
+from file_structure import iso_datetime_for_filename
 from prepare import is_hostname_valid, get_experiment_configuration, create_file_structure_for_experiment
 from storage import how_many_images_with_free_space, free_space_for_one_image
 from sync_manager import sync_directory_in_separate_process, end_syncing_processes
@@ -52,7 +53,8 @@ def perform_experiment(configuration):
             if not free_space_for_one_image():
                 quit("There is insufficient space to save the image.  Quitting.")
 
-            image_filename = configuration.start_date.strftime(f'%Y%m%d-%H%M%S-{sequence}.jpeg')
+            iso_ish_datetime = iso_datetime_for_filename(configuration.start_date)
+            image_filename = f'{iso_ish_datetime}-{sequence}.jpeg'
             image_filepath = os.path.join(variant.output_directory, image_filename)
 
             capture(image_filepath, additional_capture_params=variant.capture_params)

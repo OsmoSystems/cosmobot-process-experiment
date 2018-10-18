@@ -1,7 +1,9 @@
-from mock import sentinel
+from datetime import datetime
+from unittest.mock import sentinel
+
 import pytest
 
-from . import directories as module
+from . import file_structure as module
 
 
 @pytest.fixture
@@ -65,3 +67,11 @@ def test_get_files_with_extension(mock_listdir, mock_path_join, name, directory_
     expected = ['os-path-for-/foo/bar/1.jpeg', 'os-path-for-/foo/bar/2.jpeg']
 
     assert actual == expected
+
+
+class TestIsoDatetimeForFilename:
+    def test_returns_iso_ish_string(self):
+        actual = module.iso_datetime_for_filename(datetime(2018, 1, 2, 13, 14, 15))
+        expected = '2018-01-02--13-14-15'
+
+        assert actual == expected

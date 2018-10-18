@@ -11,9 +11,9 @@ setup(
     packages=find_packages(),
     install_requires=[
         'boto',
+        'ipywidgets',
         'numpy',
         'matplotlib',
-        'exifread',
         'opencv-python',
         'pandas',
         'Pillow',
