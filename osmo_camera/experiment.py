@@ -68,6 +68,10 @@ def perform_experiment(configuration):
 
 def final_sync_for_experiment(variants):
     # final sync when experiment runner finishes or a keyboard interrupt is detected
+    # From testing I noticed that if a file(s) is written during after a sync process begins it was
+    # not being added to a list to sync. My hunch is that this is due to when a syncing process initially begins,
+    # it compares a local list with the remote list and will keep those lists in memory. If additional files are
+    # written after a syncing process begins they will not sync.
     end_syncing_processes()
     for _, variant in enumerate(variants):
         sync_directory_in_separate_process(variant.output_directory, wait_for_finish=True)
@@ -79,15 +83,11 @@ if __name__ == '__main__':
 
     if hostname_is_valid(configuration.hostname):
         QUIT_MESSAGE = f'"{configuration.hostname}" is not a valid hostname.'
-        QUIT_MESSAGE += " Contact your local dev for instructions on setting a valid hostname."
+        QUIT_MESSAGE += ' Contact your local dev for instructions on setting a valid hostname.'
 
     try:
         perform_experiment(configuration)
     except KeyboardInterrupt:
         print('Keyboard interrupt detected, attempting final sync')
-        try:
-            # stop processes
-            final_sync_for_experiment(configuration.variants)
-            quit("Final sync after keyboard interrupt completed.")
-        except SystemExit:
-            quit("Final keyboard interrupt.  Sync to S3 may not have completed.")
+        final_sync_for_experiment(configuration.variants)
+        quit('Final sync after keyboard interrupt completed.')
