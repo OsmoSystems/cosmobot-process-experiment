@@ -83,39 +83,40 @@ def get_experiment_configuration():
           git_hash (retrieved): git hash or message that says no git repo present
     '''
     args = _parse_args()
-    mac_address = get_mac()
-    mac_last_4 = str(mac_address)[-4:]
-    interval = args['interval']
-    name = args['name']
     start_date = datetime.now()
-    duration = args['duration']
-    end_date = start_date if duration is None else start_date + timedelta(seconds=duration)
+    end_date = start_date if args['duration'] is None else start_date + timedelta(seconds=args['duration'])
 
     iso_ish_datetime = iso_datetime_for_filename(start_date)
 
-    experiment_directory_name = f'{iso_ish_datetime}-MAC{mac_last_4}-{args["name"]}'
+    experiment_directory_name = f'{iso_ish_datetime}-MAC{str(get_mac())[-4:]}-{args["name"]}'
     experiment_directory_path = os.path.join(BASE_OUTPUT_PATH, experiment_directory_name)
 
     experiment_configuration = ExperimentConfiguration(
-        name,
-        interval,
-        duration,
-        [],
-        start_date,
-        end_date,
-        experiment_directory_path,
-        ' '.join(sys.argv),
-        _git_hash(),
-        gethostname(),
-        mac_address,
-        mac_last_4
+        name=args['name'],
+        interval=args['interval'],
+        duration=args['duration'],
+        variants=[],
+        start_date=start_date,
+        end_date=end_date,
+        experiment_directory_path=experiment_directory_path,
+        command=' '.join(sys.argv),
+        git_hash=_git_hash(),
+        hostname=gethostname(),
+        mac=get_mac(),
+        mac_last_4=str(get_mac())[-4:]
     )
 
     # add variants to the list of variants
     for variant in args['variant']:
         variant_name, capture_params = variant
         output_directory = os.path.join(experiment_configuration.experiment_directory_path, variant_name)
-        experiment_configuration.variants.append(ExperimentVariant(variant_name, capture_params, output_directory))
+        experiment_configuration.variants.append(
+            ExperimentVariant(
+                name=variant_name,
+                capture_params=capture_params,
+                output_directory=output_directory
+            )
+        )
 
     return experiment_configuration
 
