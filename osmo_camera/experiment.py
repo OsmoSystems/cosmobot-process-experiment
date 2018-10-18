@@ -1,10 +1,11 @@
 import os
 from datetime import datetime, timedelta
-from camera import capture
-from file_structure import iso_datetime_for_filename
-from prepare import hostname_is_valid, get_experiment_configuration, create_file_structure_for_experiment
-from storage import how_many_images_with_free_space, free_space_for_one_image
-from sync_manager import sync_directory_in_separate_process, end_syncing_processes
+
+from .camera import simulate_capture_with_copy
+from .file_structure import iso_datetime_for_filename
+from .prepare import hostname_is_valid, get_experiment_configuration, create_file_structure_for_experiment
+from .storage import how_many_images_with_free_space, free_space_for_one_image
+from .sync_manager import sync_directory_in_separate_process, end_syncing_processes
 
 
 def perform_experiment(configuration):
@@ -56,7 +57,7 @@ def perform_experiment(configuration):
             image_filename = f'{iso_ish_datetime}-{sequence}.jpeg'
             image_filepath = os.path.join(variant.output_directory, image_filename)
 
-            capture(image_filepath, additional_capture_params=variant.capture_params)
+            simulate_capture_with_copy(image_filepath, additional_capture_params=variant.capture_params)
 
             # this may do nothing depending on if sync is currently occuring
             sync_directory_in_separate_process(variant.output_directory)
@@ -70,13 +71,17 @@ def perform_experiment(configuration):
         sync_directory_in_separate_process(variant.output_directory, wait_for_finish=True)
 
 
-if __name__ == '__main__':
+def run_experiment():
     configuration = get_experiment_configuration()
-    create_file_structure_for_experiment(configuration)
 
     if not hostname_is_valid(configuration.hostname):
-        QUIT_MESSAGE = f'"{configuration.hostname}" is not a valid hostname.'
-        QUIT_MESSAGE += " Contact your local dev for instructions on setting a valid hostname."
-        quit(QUIT_MESSAGE)
+        quit_message = f'"{configuration.hostname}" is not a valid hostname.'
+        quit_message += " Contact your local dev for instructions on setting a valid hostname."
+        quit(quit_message)
 
+    create_file_structure_for_experiment(configuration)
     perform_experiment(configuration)
+
+
+if __name__ == '__main__':
+    run_experiment()

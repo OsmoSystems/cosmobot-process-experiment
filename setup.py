@@ -9,6 +9,9 @@ setup(
     description='Prototype code for an osmobot camera sensor',
     url='https://www.github.com/osmosystems/camera-sensor-prototype',
     packages=find_packages(),
+    entry_points={
+        'console_scripts': ['run_experiment = osmo_camera.experiment:run_experiment']
+    },
     install_requires=[
         'boto',
         'ipywidgets',

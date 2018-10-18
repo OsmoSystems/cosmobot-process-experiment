@@ -1,7 +1,5 @@
 import os
 
-# TODO: better name for this module now that it includes great_output_directory
-
 
 def get_files_with_extension(directory, extension):
     ''' Get all file paths in the given directory with the given extension, sorted alphanumerically
