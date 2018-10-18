@@ -63,10 +63,18 @@ def perform_experiment(configuration):
 
         sequence = sequence + 1
 
-    end_syncing_processes()
+    final_sync_for_experiment(configuration.variants)
 
-    # finally, for each variant/directory issue a final sync command
-    for variant in configuration.variants:
+
+def final_sync_for_experiment(variants):
+    # final sync when experiment runner finishes or a keyboard interrupt is detected
+    # From testing I noticed that if a file(s) is written during after a sync process begins it was
+    # not being added to a list to sync. My hunch is that this is due to when a syncing process initially begins,
+    # it compares a local list with the remote list and will keep those lists in memory. If additional files are
+    # written after a syncing process begins they will not sync.  so, to finish things up we shut down all of the
+    # existing sync processes and start new ones
+    end_syncing_processes()
+    for variant in variants:
         sync_directory_in_separate_process(variant.output_directory, wait_for_finish=True)
 
 
@@ -76,7 +84,11 @@ if __name__ == '__main__':
 
     if not hostname_is_valid(configuration.hostname):
         QUIT_MESSAGE = f'"{configuration.hostname}" is not a valid hostname.'
-        QUIT_MESSAGE += " Contact your local dev for instructions on setting a valid hostname."
-        quit(QUIT_MESSAGE)
+        QUIT_MESSAGE += ' Contact your local dev for instructions on setting a valid hostname.'
 
-    perform_experiment(configuration)
+    try:
+        perform_experiment(configuration)
+    except KeyboardInterrupt:
+        print('Keyboard interrupt detected, attempting final sync')
+        final_sync_for_experiment(configuration.variants)
+        quit('Final sync after keyboard interrupt completed.')
