@@ -15,8 +15,7 @@ def perform_experiment(configuration):
        experimental metadata is collected during the experiment and saved.
        Finally, imagery and experimental metadata is synced to s3 on an ongoing basis.
      Args:
-        configuration: namedtuple containing values that define how an experiment should be performed.
-        See prepare.py for namedtuple keys
+        configuration: ExperimentConfiguration instance. Determines how the experiment should be performed.
      Returns:
         None
 
