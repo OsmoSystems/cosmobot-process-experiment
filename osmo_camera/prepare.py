@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from subprocess import check_output, CalledProcessError
 from uuid import getnode as get_mac
 from collections import namedtuple
-from osmo_camera.file_structure import create_directory, iso_datetime_for_filename
+from file_structure import create_directory, iso_datetime_for_filename
 
 BASE_OUTPUT_PATH = os.path.abspath('../output/')
 
@@ -113,8 +113,7 @@ def get_experiment_configuration():
 
     # add variants to the list of variants
     for variant in args['variant']:
-        variant_name = variant[0]
-        capture_params = variant[1]
+        variant_name, capture_params = variant
         output_directory = os.path.join(experiment_configuration.experiment_directory_path, variant_name)
         experiment_configuration.variants.append(ExperimentVariant(variant_name, capture_params, output_directory))
 
