@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta
 
-from .camera import simulate_capture_with_copy
+from .camera import capture
 from .file_structure import iso_datetime_for_filename
 from .prepare import hostname_is_valid, get_experiment_configuration, create_file_structure_for_experiment
 from .storage import how_many_images_with_free_space, free_space_for_one_image
@@ -57,7 +57,7 @@ def perform_experiment(configuration):
             image_filename = f'{iso_ish_datetime}-{sequence}.jpeg'
             image_filepath = os.path.join(variant.output_directory, image_filename)
 
-            simulate_capture_with_copy(image_filepath, additional_capture_params=variant.capture_params)
+            capture(image_filepath, additional_capture_params=variant.capture_params)
 
             # this may do nothing depending on if sync is currently occuring
             sync_directory_in_separate_process(variant.output_directory)
