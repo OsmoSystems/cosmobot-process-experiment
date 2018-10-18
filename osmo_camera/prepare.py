@@ -108,7 +108,7 @@ def create_file_structure_for_experiment(configuration):
             yaml.dump(configuration._asdict(), outfile, default_flow_style=False)
 
 
-def is_hostname_valid(hostname):
+def hostname_is_valid(hostname):
     '''Does hostname follow the pattern we expect pi-cam-[last four of MAC]
      Args:
         hostname: hostname of machine
