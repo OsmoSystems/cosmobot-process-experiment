@@ -52,7 +52,7 @@ def perform_experiment(configuration):
             if not free_space_for_one_image():
                 quit("There is insufficient space to save the image.  Quitting.")
 
-            iso_ish_datetime = iso_datetime_for_filename(configuration.start_date)
+            iso_ish_datetime = iso_datetime_for_filename(datetime.now())
             image_filename = f'{iso_ish_datetime}-{sequence}.jpeg'
             image_filepath = os.path.join(variant.output_directory, image_filename)
 
@@ -74,7 +74,7 @@ if __name__ == '__main__':
     configuration = get_experiment_configuration()
     create_file_structure_for_experiment(configuration)
 
-    if hostname_is_valid(configuration.hostname):
+    if not hostname_is_valid(configuration.hostname):
         QUIT_MESSAGE = f'"{configuration.hostname}" is not a valid hostname.'
         QUIT_MESSAGE += " Contact your local dev for instructions on setting a valid hostname."
         quit(QUIT_MESSAGE)
