@@ -15,27 +15,27 @@ BASE_OUTPUT_PATH = os.path.abspath('../output/')
 ExperimentConfiguration = namedtuple(
     'ExperimentConfiguration',
     [
-        'name',  # <-- this line and below keys for args passed from command line to define the experiment config
-        'interval',
-        'duration',
-        'variants',
-        'start_date',  # <-- this line and below are keys used for running the experiment
-        'end_date',
-        'experiment_directory_path',
-        'command',  # <-- this line and below are keys for metadata to store
-        'git_hash',
-        'hostname',
-        'mac',
-        'mac_last_4'
+        'name',  # The Name of the experiment.  Used for naming directories for output.
+        'interval',  # The interval in seconds between the capture of images.
+        'duration',  # How long in seconds should the experiment run for.
+        'variants',  # array of variants that define different capture settings to be run during each capture iteration
+        'start_date',  # date the experiment was started
+        'end_date',  # date at which to end the experiment.  If duration is not set then this is effectively indefinite
+        'experiment_directory_path',  # directory/path to write files to
+        'command',  # full command with arguments issued to start the experiment from the command line
+        'git_hash',  # git hash of camera-sensor-prototype repo
+        'hostname',  # hostname of the device the experient was executed on
+        'mac',  # mac address
+        'mac_last_4'  # last four of mac address
     ]
 )
 
 ExperimentVariant = namedtuple(
     'ExperimentVariant',
     [
-        'name',
-        'capture_params',
-        'output_directory'
+        'name',  # name of variant
+        'capture_params',  # parameters to pass to raspistill binary through the command line
+        'output_directory'  # (deprecated) output directory for the variant within the top level experiment directory
     ]
 )
 
@@ -70,17 +70,8 @@ def get_experiment_configuration():
      Args:
         None, but retrieves arguments from the command line using _parse_args
      Returns:
-        an experiment configuration namedtuple
-          interval (required): The interval in seconds between the capture of images.
-          name (required): The Name of the experiment.  Used for naming directories for output.
-          duration (optional): How long in seconds should the experiment run for.
-          variants (optional): array of variants that define different capture settings to
-          be run during each capture iteration.  a variant requires two sub arguments
-            name (variant[0]): name to identify variant with e.g. 'short_exposure' or 'long_exposure'
-            capture_params (variant[1]): parameters to pass to raspistill command e.g.
-                                         ' -ss 100 -iso 100'
-          command (retrieved): full command issued from the command line
-          git_hash (retrieved): git hash or message that says no git repo present
+        an instance of ExperimentConfiguration namedtuple
+
     '''
     args = _parse_args()
     start_date = datetime.now()
