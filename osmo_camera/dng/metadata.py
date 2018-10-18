@@ -7,7 +7,14 @@ import PIL.ExifTags
 
 
 # Just the EXIF tags we care about
-ExifTags = namedtuple('ExifTags', 'capture_datetime iso exposure_time')
+ExifTags = namedtuple(
+    'ExifTags',
+    [
+        'capture_datetime',
+        'iso',
+        'exposure_time'
+    ]
+)
 
 
 def _read_exif_tags(image_path):
