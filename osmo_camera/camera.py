@@ -1,4 +1,5 @@
-from subprocess import check_output
+import os
+from subprocess import check_call
 
 
 def capture(filename, additional_capture_params=''):
@@ -13,11 +14,10 @@ def capture(filename, additional_capture_params=''):
     '''
     command = f'raspistill --raw -o {filename} {additional_capture_params}'
     print(f'Capturing image using raspistill: {command}')
-    command_output = check_output(command, shell=True).decode("utf-8")
-    return command_output
+    check_call(command, shell=True)
 
 
-def simulate_capture_with_copy(filename):
+def simulate_capture_with_copy(filename, **kwargs):
     ''' Simulate capture by copying image file
 
     Args:
@@ -26,7 +26,7 @@ def simulate_capture_with_copy(filename):
     Returns:
         Resulting command line output of the copy command
     '''
-    command = f'cp ./image_for_development.jpeg {filename}'
-    print(f'Simulate capture using cp: {command}')
-    command_output = check_output(command, shell=True).decode("utf-8")
-    return command_output
+    test_image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'v2_image_for_development.jpeg')
+    command = f'cp "{test_image_path}" "{filename}"'
+    print(f'Simulate capture: {command}')
+    check_call(command, shell=True)

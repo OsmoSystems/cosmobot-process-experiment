@@ -31,14 +31,11 @@ def perform_experiment(configuration):
     # estimated images can be stored
     if configuration.duration is None:
         how_many_images_can_be_captured = how_many_images_with_free_space()
-        print("No experimental duration provided.")
-        print(f"Estimated number of images that can be captured with free space: {how_many_images_can_be_captured}")
+        print('No experimental duration provided.')
+        print(f'Estimated number of images that can be captured with free space: {how_many_images_can_be_captured}')
 
     # Initial value of start_date results in immediate capture on first iteration in while loop
     next_capture_time = configuration.start_date
-
-    # image sequence during camera capture
-    sequence = 1
 
     while configuration.duration is None or datetime.now() < configuration.end_date:
         if datetime.now() < next_capture_time:
@@ -51,23 +48,21 @@ def perform_experiment(configuration):
         for variant in configuration.variants:
 
             if not free_space_for_one_image():
-                quit("There is insufficient space to save the image.  Quitting.")
+                quit('There is insufficient space to save the image.  Quitting.')
 
             iso_ish_datetime = iso_datetime_for_filename(datetime.now())
-            image_filename = f'{iso_ish_datetime}-{sequence}.jpeg'
-            image_filepath = os.path.join(variant.output_directory, image_filename)
+            image_filename = f'{iso_ish_datetime}{variant.capture_params}.jpeg'
+            image_filepath = os.path.join(configuration.experiment_directory_path, image_filename)
 
             capture(image_filepath, additional_capture_params=variant.capture_params)
 
             # this may do nothing depending on if sync is currently occuring
-            sync_directory_in_separate_process(variant.output_directory)
+            sync_directory_in_separate_process(configuration.experiment_directory_path)
 
-        sequence = sequence + 1
-
-    final_sync_for_experiment(configuration.variants)
+    final_sync_for_experiment(configuration.experiment_directory_path)
 
 
-def final_sync_for_experiment(variants):
+def final_sync_for_experiment(experiment_directory_path):
     # final sync when experiment runner finishes or a keyboard interrupt is detected
     # From testing I noticed that if a file(s) is written during after a sync process begins it was
     # not being added to a list to sync. My hunch is that this is due to when a syncing process initially begins,
@@ -75,8 +70,7 @@ def final_sync_for_experiment(variants):
     # written after a syncing process begins they will not sync.  so, to finish things up we shut down all of the
     # existing sync processes and start new ones
     end_syncing_processes()
-    for variant in variants:
-        sync_directory_in_separate_process(variant.output_directory, wait_for_finish=True)
+    sync_directory_in_separate_process(experiment_directory_path, wait_for_finish=True)
 
 
 def run_experiment():
@@ -84,17 +78,18 @@ def run_experiment():
 
     if not hostname_is_valid(configuration.hostname):
         quit_message = f'"{configuration.hostname}" is not a valid hostname.'
-        quit_message += " Contact your local dev for instructions on setting a valid hostname."
+        quit_message += ' Contact your local dev for instructions on setting a valid hostname.'
         quit(quit_message)
 
     create_file_structure_for_experiment(configuration)
+
     try:
         perform_experiment(configuration)
     except KeyboardInterrupt:
         print('Keyboard interrupt detected, attempting final sync')
-        final_sync_for_experiment(configuration.variants)
+        final_sync_for_experiment(configuration.experiment_directory_path)
         quit('Final sync after keyboard interrupt completed.')
 
 
 if __name__ == '__main__':
-    run_experiment()
+    print('Please call "run_experiment" instead of "python experiment.py"')

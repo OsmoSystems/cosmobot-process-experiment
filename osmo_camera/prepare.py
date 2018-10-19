@@ -19,7 +19,7 @@ ExperimentConfiguration = namedtuple(
         'name',  # The Name of the experiment.  Used for naming directories for output.
         'interval',  # The interval in seconds between the capture of images.
         'duration',  # How long in seconds should the experiment run for.
-        'variants',  # array of variants that define different capture settings to be run during each capture iteration
+        'variants',  # array of ExperimentVariants that define different capture settings to be run each iteration
         'start_date',  # date the experiment was started
         'end_date',  # date at which to end the experiment.  If duration is not set then this is effectively indefinite
         'experiment_directory_path',  # directory/path to write files to
@@ -27,16 +27,13 @@ ExperimentConfiguration = namedtuple(
         'git_hash',  # git hash of camera-sensor-prototype repo
         'hostname',  # hostname of the device the experient was executed on
         'mac',  # mac address
-        'mac_last_4'  # last four of mac address
     ]
 )
 
 ExperimentVariant = namedtuple(
     'ExperimentVariant',
     [
-        'name',  # name of variant
         'capture_params',  # parameters to pass to raspistill binary through the command line
-        'output_directory'  # (deprecated) output directory for the variant within the top level experiment directory
     ]
 )
 
@@ -50,18 +47,13 @@ def _parse_args():
     '''
     arg_parser = argparse.ArgumentParser()
 
-    # required arguments
-    arg_parser.add_argument("--interval", required=True, type=int, help="interval for image capture in seconds")
-    arg_parser.add_argument("--name", required=True, type=str, help="name for experiment")
-    arg_parser.add_argument("--variant", required=True, type=str, action='append', nargs=2,
-                            metavar=('name', 'capture_params'),
-                            help="variants of image capture to use during experiment." +
-                            "example: --variant capture_type1 ' -ss 500000 -iso 100' " +
-                            "--variant capture_type2 ' -ss 100000 -iso 200' ...")
-
-    # optional arguments
-    arg_parser.add_argument("--duration", required=False, type=int, default=None,
-                            help="duration in seconds")
+    arg_parser.add_argument('--name', required=True, type=str, help='name for experiment')
+    arg_parser.add_argument('--interval', required=True, type=int, help='interval between image capture in seconds')
+    arg_parser.add_argument('--duration', required=False, type=int, default=None, help='Duration in seconds. Optional.')
+    arg_parser.add_argument('--variant', required=True, type=str, action='append', help='''
+        variants of camera capture parameters to use during experiment.
+        Ex: --variant " -ss 500000 -iso 100" --variant " -ss 100000 -iso 200" ...
+    ''')
 
     return vars(arg_parser.parse_args())
 
@@ -75,19 +67,21 @@ def get_experiment_configuration():
 
     '''
     args = _parse_args()
+
+    duration = args['duration']
     start_date = datetime.now()
-    end_date = start_date if args['duration'] is None else start_date + timedelta(seconds=args['duration'])
+    end_date = start_date if duration is None else start_date + timedelta(seconds=duration)
+    mac_address = get_mac()
+    mac_last_4 = str(mac_address)[-4:]
 
     iso_ish_datetime = iso_datetime_for_filename(start_date)
-
-    experiment_directory_name = f'{iso_ish_datetime}-MAC{str(get_mac())[-4:]}-{args["name"]}'
+    experiment_directory_name = f'{iso_ish_datetime}-MAC{mac_last_4}-{args["name"]}'
     experiment_directory_path = os.path.join(BASE_OUTPUT_PATH, experiment_directory_name)
 
     experiment_configuration = ExperimentConfiguration(
         name=args['name'],
         interval=args['interval'],
-        duration=args['duration'],
-        variants=[],
+        duration=duration,
         start_date=start_date,
         end_date=end_date,
         experiment_directory_path=experiment_directory_path,
@@ -95,20 +89,11 @@ def get_experiment_configuration():
         git_hash=_git_hash(),
         hostname=gethostname(),
         mac=get_mac(),
-        mac_last_4=str(get_mac())[-4:]
+        variants=[
+            ExperimentVariant(capture_params=capture_params)
+            for capture_params in args['variant']
+        ]
     )
-
-    # add variants to the list of variants
-    for variant in args['variant']:
-        variant_name, capture_params = variant
-        output_directory = os.path.join(experiment_configuration.experiment_directory_path, variant_name)
-        experiment_configuration.variants.append(
-            ExperimentVariant(
-                name=variant_name,
-                capture_params=capture_params,
-                output_directory=output_directory
-            )
-        )
 
     return experiment_configuration
 
@@ -116,13 +101,9 @@ def get_experiment_configuration():
 def create_file_structure_for_experiment(configuration):
     create_directory(configuration.experiment_directory_path)
 
-    # create variant directories and write experiment configuration metadata to file
-    for variant in configuration.variants:
-        create_directory(variant.output_directory)
-        variant_output_directory = variant.output_directory
-        metadata_path = os.path.join(variant_output_directory, 'experiment_metadata.yml')
-        with open(metadata_path, 'w') as outfile:
-            yaml.dump(configuration._asdict(), outfile, default_flow_style=False)
+    metadata_path = os.path.join(configuration.experiment_directory_path, 'experiment_metadata.yml')
+    with open(metadata_path, 'w') as metadata_file:
+        yaml.dump(configuration._asdict(), metadata_file, default_flow_style=False)
 
 
 def hostname_is_valid(hostname):
@@ -132,24 +113,21 @@ def hostname_is_valid(hostname):
      Returns:
         Boolean: is hostname valid
     '''
-    if re.search("[0-9]{4}$", hostname) and re.search("pi-cam", hostname):
-        return True
-
-    return False
+    return re.search('pi-cam-[0-9]{4}$', hostname) is not None
 
 
 def _git_hash():
-    '''Retrieve hit hash if it exists
+    '''Retrieve git hash if it exists
      Args:
         None
      Returns:
-        Boolean: git hash or if not git repo error message
+        Git hash or error message
     '''
     command = 'git rev-parse HEAD'
 
     try:
-        command_output = check_output(command, shell=True).decode("utf-8").rstrip()
+        command_output = check_output(command, shell=True).decode('utf-8').rstrip()
     except CalledProcessError:
-        command_output = "'git rev-parse HEAD' retrieval failed.  No repo?"
+        command_output = '"git rev-parse HEAD" retrieval failed.  No repo?'
 
     return command_output
