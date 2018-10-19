@@ -1,4 +1,4 @@
-import os
+import pkg_resources
 from subprocess import check_call
 
 
@@ -26,7 +26,7 @@ def simulate_capture_with_copy(filename, **kwargs):
     Returns:
         Resulting command line output of the copy command
     '''
-    test_image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'v2_image_for_development.jpeg')
+    test_image_path = pkg_resources.resource_filename(__name__, 'v2_image_for_development.jpeg')
     command = f'cp "{test_image_path}" "{filename}"'
     print(f'Simulate capture: {command}')
     check_call(command, shell=True)
