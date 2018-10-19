@@ -71,7 +71,7 @@ def get_experiment_configuration():
     duration = args['duration']
     start_date = datetime.now()
     end_date = start_date if duration is None else start_date + timedelta(seconds=duration)
-    mac_address = get_mac()
+    mac_address = hex(get_mac())
     mac_last_4 = str(mac_address)[-4:]
 
     iso_ish_datetime = iso_datetime_for_filename(start_date)
