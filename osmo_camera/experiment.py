@@ -63,7 +63,7 @@ def perform_experiment(configuration):
 
 
 def end_experiment(experiment_configuration, quit_message):
-    ''' Complete an experiment by ensurinag all remaining images finish syncing '''
+    ''' Complete an experiment by ensuring all remaining images finish syncing '''
     # If a file(s) is written after a sync process begins it does not get added to the list to sync.
     # This is fine during an experiment, but at the end of the experiment, we want to make sure to sync all the
     # remaining images. To that end, we end any existing sync process and start a new one
