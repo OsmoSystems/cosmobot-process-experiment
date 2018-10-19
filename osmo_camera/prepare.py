@@ -8,7 +8,8 @@ from datetime import datetime, timedelta
 from subprocess import check_output, CalledProcessError
 from uuid import getnode as get_mac
 from collections import namedtuple
-from file_structure import create_directory, iso_datetime_for_filename
+
+from .file_structure import create_directory, iso_datetime_for_filename
 
 BASE_OUTPUT_PATH = os.path.abspath('../output/')
 

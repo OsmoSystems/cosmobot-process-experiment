@@ -1,10 +1,11 @@
 import os
 from datetime import datetime, timedelta
-from camera import capture
-from file_structure import iso_datetime_for_filename
-from prepare import hostname_is_valid, get_experiment_configuration, create_file_structure_for_experiment
-from storage import how_many_images_with_free_space, free_space_for_one_image
-from sync_manager import sync_directory_in_separate_process, end_syncing_processes
+
+from .camera import capture
+from .file_structure import iso_datetime_for_filename
+from .prepare import hostname_is_valid, get_experiment_configuration, create_file_structure_for_experiment
+from .storage import how_many_images_with_free_space, free_space_for_one_image
+from .sync_manager import sync_directory_in_separate_process, end_syncing_processes
 
 
 def perform_experiment(configuration):
@@ -78,17 +79,22 @@ def final_sync_for_experiment(variants):
         sync_directory_in_separate_process(variant.output_directory, wait_for_finish=True)
 
 
-if __name__ == '__main__':
+def run_experiment():
     configuration = get_experiment_configuration()
-    create_file_structure_for_experiment(configuration)
 
     if not hostname_is_valid(configuration.hostname):
-        QUIT_MESSAGE = f'"{configuration.hostname}" is not a valid hostname.'
-        QUIT_MESSAGE += ' Contact your local dev for instructions on setting a valid hostname.'
+        quit_message = f'"{configuration.hostname}" is not a valid hostname.'
+        quit_message += " Contact your local dev for instructions on setting a valid hostname."
+        quit(quit_message)
 
+    create_file_structure_for_experiment(configuration)
     try:
         perform_experiment(configuration)
     except KeyboardInterrupt:
         print('Keyboard interrupt detected, attempting final sync')
         final_sync_for_experiment(configuration.variants)
         quit('Final sync after keyboard interrupt completed.')
+
+
+if __name__ == '__main__':
+    run_experiment()

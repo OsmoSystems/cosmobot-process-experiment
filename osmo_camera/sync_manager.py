@@ -1,5 +1,6 @@
 import multiprocessing
-from s3 import sync_to_s3
+
+from .s3 import sync_to_s3
 
 # sync processes keyed by the directory to be synced
 _SYNC_PROCESSES = dict()
