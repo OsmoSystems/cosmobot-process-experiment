@@ -63,16 +63,23 @@ def _get_flattened_channels(image):
     return channels
 
 
-def plot_histogram(image, minimal=True):
+def plot_histogram(image, title='', bins=1024):
     ''' Plot a histogram of the image
+
+    Args:
+        image: numpy array of an RGB image
+        title: title of the data set, will be used in the plot title if minimal=False
+        bins: number of bins for the histogram - it's recommended to use the intensity resolution of your image.
+            Defaults to 2 ** 10 = 1024
+    Returns:
+        plotly FigureWidget. Call display() on this to view it.
     '''
     # Assume this is one of our standard RGB images with values between 0 and 1
+    range_per_channel = (0, 1)
     red, green, blue = _get_flattened_channels(image)
-    max_value = 1
-    bins = 200
 
     histograms_and_bin_edges_by_color = {
-        color_name: np.histogram(channel, bins, range=(0, max_value), density=True)
+        color_name: np.histogram(channel, bins, range=range_per_channel, density=True)
         for color_name, channel
         in {'red': red, 'green': green, 'blue': blue}.items()
     }
@@ -94,10 +101,7 @@ def plot_histogram(image, minimal=True):
     ]
 
     layout_kwargs = {
-        'height': 300,
-        'showlegend': False,
-    } if minimal else {
-        'title': 'Pixel density histogram',
+        'title': f'{title} pixel density histogram',
         'xaxis': {'title': 'Channel value'},
         'yaxis': {'title': 'Density'}
     }
