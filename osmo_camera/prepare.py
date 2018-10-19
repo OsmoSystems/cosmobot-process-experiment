@@ -9,9 +9,8 @@ from subprocess import check_output, CalledProcessError
 from uuid import getnode as get_mac
 from collections import namedtuple
 
-from .file_structure import create_directory, iso_datetime_for_filename
+from .file_structure import create_directory, get_base_output_path, iso_datetime_for_filename
 
-BASE_OUTPUT_PATH = os.path.abspath('../output/')
 
 ExperimentConfiguration = namedtuple(
     'ExperimentConfiguration',
@@ -76,7 +75,7 @@ def get_experiment_configuration():
 
     iso_ish_datetime = iso_datetime_for_filename(start_date)
     experiment_directory_name = f'{iso_ish_datetime}-MAC{mac_last_4}-{args["name"]}'
-    experiment_directory_path = os.path.join(BASE_OUTPUT_PATH, experiment_directory_name)
+    experiment_directory_path = os.path.join(get_base_output_path(), experiment_directory_name)
 
     experiment_configuration = ExperimentConfiguration(
         name=args['name'],
