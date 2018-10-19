@@ -10,7 +10,10 @@ setup(
     url='https://www.github.com/osmosystems/camera-sensor-prototype',
     packages=find_packages(),
     entry_points={
-        'console_scripts': ['run_experiment = osmo_camera.experiment:run_experiment']
+        'console_scripts': [
+            'run_experiment = osmo_camera.experiment:run_experiment',
+            'run_settings_experiment = osmo_camera.settings_experiment:run_settings_experiment'
+        ]
     },
     install_requires=[
         'boto',
