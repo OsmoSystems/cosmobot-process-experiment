@@ -47,7 +47,16 @@ class TestSyncFromS3:
         ('syncs to gettempdir if not mac ', None, 'Not Darwin', sentinel.tempdir),
         ('syncs to /tmp if mac ', None, 'Darwin', '/tmp'),
     ])
-    def test_local_sync_dir_conditions(self, name, local_sync_dir, os_name, expected_sync_dir, mock_path_join, mock_os):
+    def test_local_sync_dir_conditions(
+        self,
+        name,
+        local_sync_dir,
+        os_name,
+        expected_sync_dir,
+        mock_path_join,
+        mock_os,
+        mock_check_call
+    ):
         mock_os.return_value = os_name
         module.sync_from_s3('experiment_directory_name', local_sync_dir)
 
