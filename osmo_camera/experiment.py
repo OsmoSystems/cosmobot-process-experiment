@@ -78,7 +78,7 @@ def run_experiment():
     if not hostname_is_valid(configuration.hostname):
         quit_message = f'"{configuration.hostname}" is not a valid hostname.'
         quit_message += ' Contact your local dev for instructions on setting a valid hostname.'
-        end_experiment(configuration, quit_message)
+        quit(quit_message)
 
     create_file_structure_for_experiment(configuration)
 
