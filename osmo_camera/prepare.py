@@ -87,7 +87,7 @@ def get_experiment_configuration():
         command=' '.join(sys.argv),
         git_hash=_git_hash(),
         hostname=gethostname(),
-        mac=get_mac(),
+        mac=mac_address,
         variants=[
             ExperimentVariant(capture_params=capture_params)
             for capture_params in args['variant']
@@ -112,7 +112,7 @@ def hostname_is_valid(hostname):
      Returns:
         Boolean: is hostname valid
     '''
-    return re.search('pi-cam-[0-9]{4}$', hostname) is not None
+    return re.search('pi-cam-[0-9A-F]{4}$', hostname) is not None
 
 
 def _git_hash():

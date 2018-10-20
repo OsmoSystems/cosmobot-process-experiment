@@ -2,7 +2,7 @@ from . import prepare as module
 
 
 def test_hostname_is_valid():
-    assert module.hostname_is_valid('pi-cam-2222') is True
+    assert module.hostname_is_valid('pi-cam-CF22') is True
 
 
 def test_hostname_is_invalid():
