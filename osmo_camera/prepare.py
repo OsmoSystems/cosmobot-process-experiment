@@ -112,7 +112,7 @@ def hostname_is_valid(hostname):
      Returns:
         Boolean: is hostname valid
     '''
-    return re.search('pi-cam-[0-9A-F]{4}$', hostname) is not None
+    return re.search('^pi-cam-[0-9A-F]{4}$', hostname) is not None
 
 
 def _git_hash():
