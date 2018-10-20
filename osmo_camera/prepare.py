@@ -74,7 +74,7 @@ def get_experiment_configuration():
     mac_last_4 = str(mac_address)[-4:]
 
     iso_ish_datetime = iso_datetime_for_filename(start_date)
-    experiment_directory_name = f'{iso_ish_datetime}-PI{mac_last_4}-{args["name"]}'
+    experiment_directory_name = f'{iso_ish_datetime}-Pi{mac_last_4}-{args["name"]}'
     experiment_directory_path = os.path.join(get_base_output_path(), experiment_directory_name)
 
     experiment_configuration = ExperimentConfiguration(
