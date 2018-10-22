@@ -11,8 +11,7 @@ setup(
     packages=find_packages(),
     entry_points={
         'console_scripts': [
-            'run_experiment = osmo_camera.experiment:run_experiment',
-            'run_settings_experiment = osmo_camera.settings_experiment:run_settings_experiment'
+            'run_experiment = osmo_camera.experiment:run_experiment'
         ]
     },
     install_requires=[
