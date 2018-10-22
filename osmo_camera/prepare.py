@@ -64,14 +64,6 @@ def _parse_args():
     return vars(arg_parser.parse_args())
 
 
-def _parse_variants_from_settings_lists(exposures, isos):
-    return [
-        f'" -iso {iso} -ss {exposure}" '
-        for exposure in exposures
-        for iso in isos
-    ]
-
-
 def get_experiment_configuration():
     '''Return a constructed named experimental configuration in a namedtuple.
      Args:
@@ -109,30 +101,12 @@ def get_experiment_configuration():
         ]
     )
 
-    # add variants to the list of variants
-    for variant in args['variant']:
-        capture_params = variant
-        variant_name = capture_params.replace(' ', '_').replace('-', '')
-        experiment_configuration.variants.append(
-            ExperimentVariant(
-                name=variant_name,
-                capture_params=capture_params,
-                output_directory=experiment_directory_path
-            )
-        )
-
-    # if exposure and iso lists are provided, add variants that iterate through the values provided
+    # add variants of exposure and iso lists if provided
     if args['exposures'] is not None and args['isos'] is not None:
         experiment_configuration.variants.append(
-            [
-                ExperimentVariant(
-                    name=f'" -ISO {iso} -ss {exposure}" ',
-                    capture_params='',
-                    output_directory=experiment_directory_path
-                )
-                for exposure in args['exposures']
-                for iso in args['isos']
-            ]
+            ExperimentVariant(capture_params=f'" -ss {exposure} -ISO {iso}"')
+            for exposure in args['exposures']
+            for iso in args['isos']
         )
 
     return experiment_configuration
