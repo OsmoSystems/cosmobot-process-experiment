@@ -55,11 +55,10 @@ def _parse_args():
         Ex: --variant " -ss 500000 -iso 100" --variant " -ss 100000 -iso 200" ...
     ''')
 
-    settings_group = arg_parser.add_argument_group('settings')
-    settings_group.add_argument("--exposures", required=False, type=int, nargs='+', default=None,
-                                help="list of exposures to iterate capture through ex. --exposures 1000000, 2000000")
-    settings_group.add_argument("--isos", required=False, type=int, nargs='+', default=None,
-                                help="list of isos to iterate capture through ex. --isos 100, 200")
+    arg_parser.add_argument("--exposures", required=False, type=int, nargs='+', default=None,
+                            help="list of exposures to iterate capture through ex. --exposures 1000000, 2000000")
+    arg_parser.add_argument("--isos", required=False, type=int, nargs='+', default=None,
+                            help="list of isos to iterate capture through ex. --isos 100, 200")
 
     return vars(arg_parser.parse_args())
 
@@ -102,11 +101,12 @@ def get_experiment_configuration():
     )
 
     # add variants of exposure and iso lists if provided
-    if args['exposures'] is not None and args['isos'] is not None:
+    if args['exposures'] is not None:
+        isos = args['isos'] if args['isos'] is not None else [100]
         experiment_configuration.variants.append(
             ExperimentVariant(capture_params=f'" -ss {exposure} -ISO {iso}"')
             for exposure in args['exposures']
-            for iso in args['isos']
+            for iso in isos
         )
 
     return experiment_configuration
