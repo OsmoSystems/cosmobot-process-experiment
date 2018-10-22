@@ -11,7 +11,7 @@ from collections import namedtuple
 
 from .file_structure import create_directory, iso_datetime_for_filename
 
-BASE_OUTPUT_PATH = os.path.abspath('../output/')
+BASE_OUTPUT_PATH = os.path.abspath('./output/')
 
 ExperimentConfiguration = namedtuple(
     'ExperimentConfiguration',
@@ -50,10 +50,9 @@ def _parse_args():
     arg_parser.add_argument('--name', required=True, type=str, help='name for experiment')
     arg_parser.add_argument('--interval', required=True, type=int, help='interval between image capture in seconds')
     arg_parser.add_argument('--duration', required=False, type=int, default=None, help='Duration in seconds. Optional.')
-    arg_parser.add_argument('--variant', required=True, type=str, action='append', help='''
-        variants of camera capture parameters to use during experiment.
-        Ex: --variant " -ss 500000 -iso 100" --variant " -ss 100000 -iso 200" ...
-    ''')
+    arg_parser.add_argument('--variant', required=False, type=str, default=[' -ss 1500000 -iso 100'], action='append',
+                            help='''variants of camera capture parameters to use during experiment.
+                            Ex: --variant " -ss 500000 -iso 100" --variant " -ss 100000 -iso 200" ...''')
 
     arg_parser.add_argument("--exposures", required=False, type=int, nargs='+', default=None,
                             help="list of exposures to iterate capture through ex. --exposures 1000000, 2000000")
@@ -103,7 +102,7 @@ def get_experiment_configuration():
     # add variants of exposure and iso lists if provided
     if args['exposures'] is not None:
         isos = args['isos'] if args['isos'] is not None else [100]
-        experiment_configuration.variants.append(
+        experiment_configuration.variants.extend(
             ExperimentVariant(capture_params=f'" -ss {exposure} -ISO {iso}"')
             for exposure in args['exposures']
             for iso in isos
