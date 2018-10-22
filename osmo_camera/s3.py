@@ -1,11 +1,12 @@
 import platform
 import os
 import tempfile
-from subprocess import check_call, check_output
+from subprocess import check_call
+
 import boto
 
 
-def sync_from_s3(s3_directory, local_sync_dir=None):
+def sync_from_s3(experiment_directory_name, local_sync_dir=None):
     ''' Syncs raw images from s3 to a local tmp directory (can optionally be provided)
 
     Args:
@@ -21,11 +22,11 @@ def sync_from_s3(s3_directory, local_sync_dir=None):
         # https://stackoverflow.com/questions/847850/cross-platform-way-of-getting-temp-directory-in-python
         local_sync_dir = '/tmp' if platform.system() == 'Darwin' else tempfile.gettempdir()
 
-    sync_directory_location = os.path.join(local_sync_dir, s3_directory)
+    sync_directory_location = os.path.join(local_sync_dir, experiment_directory_name)
 
     # Would be better to use boto, but neither boto nor boto3 support sync
     # https://github.com/boto/boto3/issues/358
-    command = f'aws s3 sync s3://camera-sensor-experiments/{s3_directory} {sync_directory_location}'
+    command = f'aws s3 sync s3://camera-sensor-experiments/{experiment_directory_name} {sync_directory_location}'
     check_call([command], shell=True)
 
     return sync_directory_location
@@ -45,12 +46,12 @@ def sync_to_s3(local_sync_dir):
     # It looks like sync is not a supported function of the python boto library
     # Work around is to use cli sync for now (requires aws cli to be installed)
     print(f'Performing sync of experiments directory: {local_sync_dir}')
+    experiment_dir_name = os.path.basename(os.path.normpath(local_sync_dir))
 
     # This argument pattern issues a uni-directional sync to S3 bucket
     # https://docs.aws.amazon.com/cli/latest/reference/s3/sync.html
-    command = f'aws s3 sync {local_sync_dir} s3://camera-sensor-experiments'
-    command_output = check_output(command, shell=True).decode("utf-8")
-    return command_output
+    command = f'aws s3 sync {local_sync_dir} s3://camera-sensor-experiments/{experiment_dir_name}'
+    check_call(command, shell=True)
 
 
 def list_experiments():

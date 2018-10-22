@@ -2,53 +2,41 @@ import multiprocessing
 
 from .s3 import sync_to_s3
 
-# sync processes keyed by the directory to be synced
-_SYNC_PROCESSES = dict()
+
+_SYNC_PROCESS = None
 
 
-def _sync_for_directory_is_alive(directory_key):
-    '''Checks if a sync process is currently being run for the directory passed in
-     Args:
-        directory_key: key to check within the SYNC_PROCESSES dictionary
-     Returns:
-        Boolean: Used to check if a directory is currently syncing
-    '''
-    return (directory_key in _SYNC_PROCESSES and _SYNC_PROCESSES[directory_key] is not None and
-            _SYNC_PROCESSES[directory_key].is_alive())
-
-
-def end_syncing_processes():
-    '''Stop all processes currently syncing.  Intended to be used
-       if experimental image capture has finished and a final
+def end_syncing_process():
+    '''Stops the syncing process. Intended to be used if experimental image capture has finished and a final
        sync should be initiated.
      Args:
         None
      Returns:
         None
     '''
+    global _SYNC_PROCESS
+    if _SYNC_PROCESS and _SYNC_PROCESS.is_alive():
+        _SYNC_PROCESS.terminate()
 
-    for directory_key in _SYNC_PROCESSES:
-        process = _SYNC_PROCESSES[directory_key]
-        process.terminate()
-        _SYNC_PROCESSES[directory_key] = None
+    _SYNC_PROCESS = None
 
 
 def sync_directory_in_separate_process(directory, wait_for_finish=False):
-    '''Instantiates a separate process for syncing a directory.  Stores
-       a reference to the process to check later for subsequent syncs.
+    ''' Instantiates a separate process for syncing a directory to s3.  Stores a reference to the process to check
+        later for subsequent syncs.
      Args:
         directory: directory to sync
-        wait_for_finish (optional): Should the newly invoked process be completed before
-        returning from the function (async/sync).
+        wait_for_finish (optional): If True, wait for new process to complete before returning from the function.
      Returns:
         None.
     '''
-    if _sync_for_directory_is_alive(directory):
+    global _SYNC_PROCESS
+    if _SYNC_PROCESS and _SYNC_PROCESS.is_alive():
         return
 
-    sync_process = multiprocessing.Process(target=sync_to_s3, args=(directory,))
-    sync_process.start()
-    _SYNC_PROCESSES[directory] = sync_process
+    _SYNC_PROCESS = multiprocessing.Process(target=sync_to_s3, args=(directory,))
+    _SYNC_PROCESS.start()
 
     if wait_for_finish:
-        sync_process.join()
+        # .join() means "wait for a thread to complete"
+        _SYNC_PROCESS.join()
