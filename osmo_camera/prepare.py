@@ -53,17 +53,31 @@ def _parse_args():
     # required arguments
     arg_parser.add_argument("--interval", required=True, type=int, help="interval for image capture in seconds")
     arg_parser.add_argument("--name", required=True, type=str, help="name for experiment")
-    arg_parser.add_argument("--variant", required=True, type=str, action='append', nargs=2,
+    arg_parser.add_argument("--variant", required=True, type=str, action='append', nargs=1,
                             metavar=('name', 'capture_params'),
                             help="variants of image capture to use during experiment." +
-                            "example: --variant capture_type1 ' -ss 500000 -iso 100' " +
-                            "--variant capture_type2 ' -ss 100000 -iso 200' ...")
+                            "example: --variant ' -ss 500000 -iso 100' " +
+                            "--variant ' -ss 100000 -iso 200' ...")
 
     # optional arguments
     arg_parser.add_argument("--duration", required=False, type=int, default=None,
                             help="duration in seconds")
 
+    settings_group = arg_parser.add_argument_group('settings')
+    settings_group.add_argument("--exposures", required=False, type=int, nargs='+', default=None,
+                                help="list of exposures to iterate capture through ex. --exposures 1000000, 2000000")
+    settings_group.add_argument("--isos", required=False, type=int, nargs='+', default=None,
+                                help="list of isos to iterate capture through ex. --isos 100, 200")
+
     return vars(arg_parser.parse_args())
+
+
+def _parse_variants_from_settings_lists(exposures, isos):
+    return [
+        f'" -iso {iso} -ss {exposure}" '
+        for exposure in exposures
+        for iso in isos
+    ]
 
 
 def get_experiment_configuration():
@@ -100,14 +114,27 @@ def get_experiment_configuration():
 
     # add variants to the list of variants
     for variant in args['variant']:
-        variant_name, capture_params = variant
-        output_directory = os.path.join(experiment_configuration.experiment_directory_path, variant_name)
+        capture_params = variant
+        variant_name = capture_params.replace(' ', '_').replace('-', '')
         experiment_configuration.variants.append(
             ExperimentVariant(
                 name=variant_name,
                 capture_params=capture_params,
-                output_directory=output_directory
+                output_directory=experiment_directory_path
             )
+        )
+
+    if args['exposures'] is not None and args['isos'] is not None:
+        experiment_configuration.variants.append(
+            [
+                ExperimentVariant(
+                    name=f'" -ISO {iso} -ss {exposure}" ',
+                    capture_params='',
+                    output_directory=experiment_directory_path
+                )
+                for exposure in args['exposures']
+                for iso in args['isos']
+            ]
         )
 
     return experiment_configuration
