@@ -1,6 +1,10 @@
 import os
 
 
+def get_base_output_path():
+    return os.path.expanduser('~/camera-sensor-output/')
+
+
 def get_files_with_extension(directory, extension):
     ''' Get all file paths in the given directory with the given extension, sorted alphanumerically
 
