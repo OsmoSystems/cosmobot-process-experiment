@@ -12,16 +12,6 @@ setup(
     entry_points={
         'console_scripts': ['run_experiment = osmo_camera.experiment:run_experiment']
     },
-    install_requires=[
-        'boto',
-        'ipywidgets',
-        'numpy',
-        'matplotlib',
-        'opencv-python',
-        'pandas',
-        'Pillow',
-        'plotly >= 3, < 4',
-        'rawpy',
-    ],
+    install_requires=[],
     include_package_data=True
 )
