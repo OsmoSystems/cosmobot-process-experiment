@@ -95,7 +95,7 @@ def get_experiment_configuration():
         mac=get_mac(),
         variants=[
             ExperimentVariant(capture_params=capture_params)
-            for capture_params in args['variant']
+            for capture_params in pretty_filename_for_variant(args['variant'])
         ]
     )
 
@@ -103,7 +103,7 @@ def get_experiment_configuration():
     if args['exposures'] is not None:
         isos = args['isos'] if args['isos'] is not None else [100]
         experiment_configuration.variants.extend(
-            ExperimentVariant(capture_params=f'" -ss {exposure} -ISO {iso}"')
+            ExperimentVariant(capture_params=pretty_filename_for_variant(f'" -ss {exposure} -ISO {iso}"'))
             for exposure in args['exposures']
             for iso in isos
         )
@@ -127,6 +127,10 @@ def hostname_is_valid(hostname):
         Boolean: is hostname valid
     '''
     return re.search('pi-cam-[0-9]{4}$', hostname) is not None
+
+
+def pretty_filename_for_variant(variant):
+    return variant.replace('-', '').replace(' ', '_')
 
 
 def _git_hash():
