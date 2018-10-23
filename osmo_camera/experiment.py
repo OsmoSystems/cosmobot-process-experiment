@@ -51,7 +51,8 @@ def perform_experiment(configuration):
                 end_experiment(configuration, quit_message='Insufficient space to save the image. Quitting.')
 
             iso_ish_datetime = iso_datetime_for_filename(datetime.now())
-            image_filename = f'{iso_ish_datetime}{variant.capture_params}.jpeg'.replace('-', '').replace(' ', '_')
+            capture_params_for_filename = variant.capture_params.replace('-', '').replace(' ', '_')
+            image_filename = f'{iso_ish_datetime}{capture_params_for_filename}.jpeg'
             image_filepath = os.path.join(configuration.experiment_directory_path, image_filename)
 
             capture(image_filepath, additional_capture_params=variant.capture_params)

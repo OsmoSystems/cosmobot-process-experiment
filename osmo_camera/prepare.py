@@ -12,7 +12,9 @@ from collections import namedtuple
 from .file_structure import create_directory, iso_datetime_for_filename
 
 BASE_OUTPUT_PATH = os.path.abspath('./output/')
-DEFAULT_CAPTURE_PARAMS = ' -ss 1500000 -iso 100'
+DEFAULT_ISO = 100
+DEFAULT_EXPOSURE = 1500000
+DEFAULT_CAPTURE_PARAMS = f' -ss {DEFAULT_EXPOSURE} -ISO {DEFAULT_ISO}'
 
 ExperimentConfiguration = namedtuple(
     'ExperimentConfiguration',
@@ -53,7 +55,7 @@ def _parse_args():
     arg_parser.add_argument('--duration', required=False, type=int, default=None, help='Duration in seconds. Optional.')
     arg_parser.add_argument('--variant', required=False, type=str, default=[], action='append',
                             help='''variants of camera capture parameters to use during experiment.
-                            Ex: --variant " -ss 500000 -iso 100" --variant " -ss 100000 -iso 200" ...''')
+                            Ex: --variant " -ss 500000 -ISO 100" --variant " -ss 100000 -ISO 200" ...''')
 
     arg_parser.add_argument("--exposures", required=False, type=int, nargs='+', default=None,
                             help="list of exposures to iterate capture through ex. --exposures 1000000, 2000000")
@@ -61,6 +63,27 @@ def _parse_args():
                             help="list of isos to iterate capture through ex. --isos 100, 200")
 
     return vars(arg_parser.parse_args())
+
+
+def get_experiment_variants(args):
+    variants = [
+        ExperimentVariant(capture_params=capture_params)
+        for capture_params in args['variant']
+    ]
+
+    # add variants of exposure and iso lists if provided
+    if args['exposures']:
+        isos = args['isos'] or [DEFAULT_ISO]
+        variants.extend(
+            ExperimentVariant(capture_params=f'" -ss {exposure} -ISO {iso}"')
+            for exposure in args['exposures']
+            for iso in isos
+        )
+
+    if not variants:
+        variants = [ExperimentVariant(capture_params=DEFAULT_CAPTURE_PARAMS)]
+
+    return variants
 
 
 def get_experiment_configuration():
@@ -83,22 +106,7 @@ def get_experiment_configuration():
     experiment_directory_name = f'{iso_ish_datetime}-MAC{mac_last_4}-{args["name"]}'
     experiment_directory_path = os.path.join(BASE_OUTPUT_PATH, experiment_directory_name)
 
-    variants = [
-        ExperimentVariant(capture_params=capture_params)
-        for capture_params in args['variant']
-    ]
-
-    # add variants of exposure and iso lists if provided
-    if args['exposures'] is not None:
-        isos = args['isos'] if args['isos'] is not None else [100]
-        variants.extend(
-            ExperimentVariant(capture_params=f'" -ss {exposure} -ISO {iso}"')
-            for exposure in args['exposures']
-            for iso in isos
-        )
-
-    if len(variants) == 0:
-        variants = [ExperimentVariant(capture_params=DEFAULT_CAPTURE_PARAMS)]
+    variants = get_experiment_variants(args)
 
     experiment_configuration = ExperimentConfiguration(
         name=args['name'],
@@ -132,7 +140,7 @@ def hostname_is_valid(hostname):
      Returns:
         Boolean: is hostname valid
     '''
-    return re.search('pi-cam-[0-9]{4}$', hostname) is not None
+    return True#re.search('pi-cam-[0-9]{4}$', hostname) is not None
 
 
 def _git_hash():
