@@ -9,8 +9,11 @@ from subprocess import check_output, CalledProcessError
 from uuid import getnode as get_mac
 from collections import namedtuple
 
-from .file_structure import create_directory, get_base_output_path, iso_datetime_for_filename
+from .file_structure import create_directory, iso_datetime_for_filename, get_base_output_path
 
+DEFAULT_ISO = 100
+DEFAULT_EXPOSURE = 1500000
+DEFAULT_CAPTURE_PARAMS = f' -ss {DEFAULT_EXPOSURE} -ISO {DEFAULT_ISO}'
 
 ExperimentConfiguration = namedtuple(
     'ExperimentConfiguration',
@@ -49,12 +52,40 @@ def _parse_args():
     arg_parser.add_argument('--name', required=True, type=str, help='name for experiment')
     arg_parser.add_argument('--interval', required=True, type=int, help='interval between image capture in seconds')
     arg_parser.add_argument('--duration', required=False, type=int, default=None, help='Duration in seconds. Optional.')
-    arg_parser.add_argument('--variant', required=True, type=str, action='append', help='''
-        variants of camera capture parameters to use during experiment.
-        Ex: --variant " -ss 500000 -iso 100" --variant " -ss 100000 -iso 200" ...
-    ''')
+    arg_parser.add_argument('--variant', required=False, type=str, default=[], action='append',
+                            help='variants of camera capture parameters to use during experiment.'
+                            'Ex: --variant " -ss 500000 -ISO 100" --variant " -ss 100000 -ISO 200" ...'
+                            f'If not provided, "{DEFAULT_CAPTURE_PARAMS}" will be used')
+
+    arg_parser.add_argument("--exposures", required=False, type=int, nargs='+', default=None,
+                            help="list of exposures to iterate capture through ex. --exposures 1000000, 2000000")
+    arg_parser.add_argument("--isos", required=False, type=int, nargs='+', default=None,
+                            help='List of isos to iterate capture through ex. --isos 100, 200 . \n'
+                            f' If not provided and --exposures is provided, ISO {DEFAULT_ISO} will'
+                            ' be used when iterating over exposures.')
 
     return vars(arg_parser.parse_args())
+
+
+def get_experiment_variants(args):
+    variants = [
+        ExperimentVariant(capture_params=capture_params)
+        for capture_params in args['variant']
+    ]
+
+    # add variants of exposure and iso lists if provided
+    if args['exposures']:
+        isos = args['isos'] or [DEFAULT_ISO]
+        variants.extend(
+            ExperimentVariant(capture_params=f'" -ss {exposure} -ISO {iso}"')
+            for exposure in args['exposures']
+            for iso in isos
+        )
+
+    if not variants:
+        variants = [ExperimentVariant(capture_params=DEFAULT_CAPTURE_PARAMS)]
+
+    return variants
 
 
 def get_experiment_configuration():
@@ -77,6 +108,8 @@ def get_experiment_configuration():
     experiment_directory_name = f'{iso_ish_datetime}-Pi{mac_last_4}-{args["name"]}'
     experiment_directory_path = os.path.join(get_base_output_path(), experiment_directory_name)
 
+    variants = get_experiment_variants(args)
+
     experiment_configuration = ExperimentConfiguration(
         name=args['name'],
         interval=args['interval'],
@@ -88,10 +121,7 @@ def get_experiment_configuration():
         git_hash=_git_hash(),
         hostname=gethostname(),
         mac=mac_address,
-        variants=[
-            ExperimentVariant(capture_params=capture_params)
-            for capture_params in args['variant']
-        ]
+        variants=variants
     )
 
     return experiment_configuration
