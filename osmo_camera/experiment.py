@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta
 
-from .camera import capture
+from .camera import simulate_capture_with_copy as capture
 from .file_structure import iso_datetime_for_filename
 from .prepare import hostname_is_valid, get_experiment_configuration, create_file_structure_for_experiment
 from .storage import how_many_images_with_free_space, free_space_for_one_image
@@ -51,10 +51,10 @@ def perform_experiment(configuration):
                 end_experiment(configuration, quit_message='Insufficient space to save the image. Quitting.')
 
             iso_ish_datetime = iso_datetime_for_filename(datetime.now())
-            image_filename = f'{iso_ish_datetime}{variant.capture_params}.jpeg'
+            image_filename = f'{iso_ish_datetime}{variant.capture_params}.jpeg'.replace('-', '').replace(' ', '_')
             image_filepath = os.path.join(configuration.experiment_directory_path, image_filename)
 
-            capture(image_filepath, additional_capture_params=variant.capture_params)
+            capture(image_filepath)
 
             # If a sync is currently occuring, this is a no-op.
             sync_directory_in_separate_process(configuration.experiment_directory_path)
