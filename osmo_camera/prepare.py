@@ -9,9 +9,8 @@ from subprocess import check_output, CalledProcessError
 from uuid import getnode as get_mac
 from collections import namedtuple
 
-from .file_structure import create_directory, iso_datetime_for_filename
+from .file_structure import create_directory, iso_datetime_for_filename, get_base_output_path
 
-BASE_OUTPUT_PATH = os.path.abspath('./output/')
 DEFAULT_ISO = 100
 DEFAULT_EXPOSURE = 1500000
 DEFAULT_CAPTURE_PARAMS = f' -ss {DEFAULT_EXPOSURE} -ISO {DEFAULT_ISO}'
@@ -54,8 +53,9 @@ def _parse_args():
     arg_parser.add_argument('--interval', required=True, type=int, help='interval between image capture in seconds')
     arg_parser.add_argument('--duration', required=False, type=int, default=None, help='Duration in seconds. Optional.')
     arg_parser.add_argument('--variant', required=False, type=str, default=[], action='append',
-                            help='''variants of camera capture parameters to use during experiment.
-                            Ex: --variant " -ss 500000 -ISO 100" --variant " -ss 100000 -ISO 200" ...''')
+                            help=f'variants of camera capture parameters to use during experiment.' +
+                            'Ex: --variant " -ss 500000 -ISO 100" --variant " -ss 100000 -ISO 200" ...' +
+                            'If not provided, {DEFAULT_CAPTURE_PARAMS} will be used')
 
     arg_parser.add_argument("--exposures", required=False, type=int, nargs='+', default=None,
                             help="list of exposures to iterate capture through ex. --exposures 1000000, 2000000")
@@ -104,7 +104,7 @@ def get_experiment_configuration():
 
     iso_ish_datetime = iso_datetime_for_filename(start_date)
     experiment_directory_name = f'{iso_ish_datetime}-MAC{mac_last_4}-{args["name"]}'
-    experiment_directory_path = os.path.join(BASE_OUTPUT_PATH, experiment_directory_name)
+    experiment_directory_path = os.path.join(get_base_output_path(), experiment_directory_name)
 
     variants = get_experiment_variants(args)
 
