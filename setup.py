@@ -6,10 +6,12 @@ setup(
     version='0.0.1',
     author='Osmo Systems',
     author_email='dev@osmobot.com',
-    description='Code for processing image-collection experiments',
-    url='https://www.github.com/osmosystems/cosmobot-process-experiment.git',
+    description='Prototype code for an osmobot camera sensor',
+    url='https://www.github.com/osmosystems/camera-sensor-prototype',
     packages=find_packages(),
-    entry_points={},
+    entry_points={
+        'console_scripts': ['run_experiment = osmo_camera.experiment:run_experiment']
+    },
     install_requires=[
         'boto',
         'ipywidgets',
