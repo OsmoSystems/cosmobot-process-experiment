@@ -12,6 +12,7 @@ from collections import namedtuple
 from .file_structure import create_directory, iso_datetime_for_filename
 
 BASE_OUTPUT_PATH = os.path.abspath('./output/')
+DEFAULT_CAPTURE_PARAMS = [' -ss 1500000 -iso 100']
 
 ExperimentConfiguration = namedtuple(
     'ExperimentConfiguration',
@@ -50,7 +51,7 @@ def _parse_args():
     arg_parser.add_argument('--name', required=True, type=str, help='name for experiment')
     arg_parser.add_argument('--interval', required=True, type=int, help='interval between image capture in seconds')
     arg_parser.add_argument('--duration', required=False, type=int, default=None, help='Duration in seconds. Optional.')
-    arg_parser.add_argument('--variant', required=False, type=str, default=[' -ss 1500000 -iso 100'], action='append',
+    arg_parser.add_argument('--variant', required=False, type=str, default=None, action='append',
                             help='''variants of camera capture parameters to use during experiment.
                             Ex: --variant " -ss 500000 -iso 100" --variant " -ss 100000 -iso 200" ...''')
 
@@ -95,7 +96,7 @@ def get_experiment_configuration():
         mac=get_mac(),
         variants=[
             ExperimentVariant(capture_params=capture_params)
-            for capture_params in pretty_filename_for_variant(args['variant'])
+            for capture_params in args['variant']
         ]
     )
 
@@ -103,10 +104,13 @@ def get_experiment_configuration():
     if args['exposures'] is not None:
         isos = args['isos'] if args['isos'] is not None else [100]
         experiment_configuration.variants.extend(
-            ExperimentVariant(capture_params=pretty_filename_for_variant(f'" -ss {exposure} -ISO {iso}"'))
+            ExperimentVariant(capture_params=f'" -ss {exposure} -ISO {iso}"')
             for exposure in args['exposures']
             for iso in isos
         )
+
+    if len(experiment_configuration.variants) == 0:
+        experiment_configuration.variants = DEFAULT_CAPTURE_PARAMS
 
     return experiment_configuration
 
@@ -127,10 +131,6 @@ def hostname_is_valid(hostname):
         Boolean: is hostname valid
     '''
     return re.search('pi-cam-[0-9]{4}$', hostname) is not None
-
-
-def pretty_filename_for_variant(variant):
-    return variant.replace('-', '').replace(' ', '_')
 
 
 def _git_hash():
