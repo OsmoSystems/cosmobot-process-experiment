@@ -9,9 +9,8 @@ from subprocess import check_output, CalledProcessError
 from uuid import getnode as get_mac
 from collections import namedtuple
 
-from .file_structure import create_directory, iso_datetime_for_filename
+from .file_structure import create_directory, get_base_output_path, iso_datetime_for_filename
 
-BASE_OUTPUT_PATH = os.path.abspath('../output/')
 
 ExperimentConfiguration = namedtuple(
     'ExperimentConfiguration',
@@ -75,8 +74,8 @@ def get_experiment_configuration():
     mac_last_4 = str(mac_address)[-4:]
 
     iso_ish_datetime = iso_datetime_for_filename(start_date)
-    experiment_directory_name = f'{iso_ish_datetime}-MAC{mac_last_4}-{args["name"]}'
-    experiment_directory_path = os.path.join(BASE_OUTPUT_PATH, experiment_directory_name)
+    experiment_directory_name = f'{iso_ish_datetime}-Pi{mac_last_4}-{args["name"]}'
+    experiment_directory_path = os.path.join(get_base_output_path(), experiment_directory_name)
 
     experiment_configuration = ExperimentConfiguration(
         name=args['name'],
@@ -88,7 +87,7 @@ def get_experiment_configuration():
         command=' '.join(sys.argv),
         git_hash=_git_hash(),
         hostname=gethostname(),
-        mac=get_mac(),
+        mac=mac_address,
         variants=[
             ExperimentVariant(capture_params=capture_params)
             for capture_params in args['variant']
@@ -113,7 +112,7 @@ def hostname_is_valid(hostname):
      Returns:
         Boolean: is hostname valid
     '''
-    return re.search('pi-cam-[0-9]{4}$', hostname) is not None
+    return re.search('^pi-cam-[0-9A-F]{4}$', hostname) is not None
 
 
 def _git_hash():

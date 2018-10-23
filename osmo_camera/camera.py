@@ -12,7 +12,7 @@ def capture(filename, additional_capture_params=''):
     Returns:
         Resulting command line output of the raspistill command
     '''
-    command = f'raspistill --raw -o {filename} {additional_capture_params}'
+    command = f'raspistill --raw -o "{filename}" {additional_capture_params}'
     print(f'Capturing image using raspistill: {command}')
     check_call(command, shell=True)
 
