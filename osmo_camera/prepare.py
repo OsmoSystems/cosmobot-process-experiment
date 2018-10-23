@@ -120,7 +120,7 @@ def get_experiment_configuration():
         command=' '.join(sys.argv),
         git_hash=_git_hash(),
         hostname=gethostname(),
-        mac=get_mac(),
+        mac=mac_address,
         variants=variants
     )
 
