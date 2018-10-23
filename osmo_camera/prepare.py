@@ -53,14 +53,16 @@ def _parse_args():
     arg_parser.add_argument('--interval', required=True, type=int, help='interval between image capture in seconds')
     arg_parser.add_argument('--duration', required=False, type=int, default=None, help='Duration in seconds. Optional.')
     arg_parser.add_argument('--variant', required=False, type=str, default=[], action='append',
-                            help=f'variants of camera capture parameters to use during experiment.' +
-                            'Ex: --variant " -ss 500000 -ISO 100" --variant " -ss 100000 -ISO 200" ...' +
-                            'If not provided, {DEFAULT_CAPTURE_PARAMS} will be used')
+                            help='variants of camera capture parameters to use during experiment.'
+                            'Ex: --variant " -ss 500000 -ISO 100" --variant " -ss 100000 -ISO 200" ...'
+                            f'If not provided, "{DEFAULT_CAPTURE_PARAMS}" will be used')
 
     arg_parser.add_argument("--exposures", required=False, type=int, nargs='+', default=None,
                             help="list of exposures to iterate capture through ex. --exposures 1000000, 2000000")
     arg_parser.add_argument("--isos", required=False, type=int, nargs='+', default=None,
-                            help="list of isos to iterate capture through ex. --isos 100, 200")
+                            help='List of isos to iterate capture through ex. --isos 100, 200 . \n'
+                            f' If not provided and --exposures is provided, ISO {DEFAULT_ISO} will'
+                            ' be used when iterating over exposures.')
 
     return vars(arg_parser.parse_args())
 
