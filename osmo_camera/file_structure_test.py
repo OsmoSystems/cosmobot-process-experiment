@@ -17,8 +17,8 @@ def mock_path_join(mocker):
 
 
 @pytest.fixture
-def mock_mkdir(mocker):
-    return mocker.patch('os.mkdir')
+def mock_makedirs(mocker):
+    return mocker.patch('os.makedirs')
 
 
 @pytest.fixture
@@ -27,27 +27,27 @@ def mock_listdir(mocker):
 
 
 class TestCreateOuputDirectory:
-    def test_returns_output_directory_path(self, mock_path_exists, mock_path_join, mock_mkdir):
+    def test_returns_output_directory_path(self, mock_path_exists, mock_path_join, mock_makedirs):
         mock_path_join.return_value = sentinel.expected_output_directory_path
 
         actual_output_directory_path = module.create_output_directory('/foo/bar', 'baz')
 
         assert actual_output_directory_path == sentinel.expected_output_directory_path
 
-    def test_creates_output_directory_if_doesnt_exist(self, mock_path_exists, mock_path_join, mock_mkdir):
+    def test_creates_output_directory_if_doesnt_exist(self, mock_path_exists, mock_path_join, mock_makedirs):
         mock_path_exists.return_value = False
         mock_path_join.return_value = sentinel.expected_output_directory_path
 
         module.create_output_directory('/foo/bar', 'baz')
 
-        mock_mkdir.assert_called_with(sentinel.expected_output_directory_path)
+        mock_makedirs.assert_called_with(sentinel.expected_output_directory_path)
 
-    def test_doesnt_create_output_directory_if_exists(self, mock_path_exists, mock_path_join, mock_mkdir):
+    def test_doesnt_create_output_directory_if_exists(self, mock_path_exists, mock_path_join, mock_makedirs):
         mock_path_exists.return_value = True
 
         module.create_output_directory('/foo/bar', 'baz')
 
-        mock_mkdir.assert_not_called()
+        mock_makedirs.assert_not_called()
 
 
 def _mock_path_join(path, filename):
