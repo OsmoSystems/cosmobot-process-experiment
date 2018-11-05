@@ -56,6 +56,10 @@ def process_experiment(
         Saves the image_summary_data as a .csv in the directory where this function was called.
     '''
     print('1. Sync images from s3 to local tmp directory...')
+    # TODO: add to top-level signature and this function call:
+    # downsample_ratio: Optional[int],
+    # start_time: Optional[datetime.datetime],
+    # end_time: Optional[datetime.datetime],
     raw_images_dir = sync_from_s3(experiment_dir, local_sync_dir)
 
     print('2. Convert all images from raw to dng...')
