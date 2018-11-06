@@ -2,7 +2,7 @@ from copy import deepcopy
 
 import cv2
 
-from osmo_camera import rgb
+from osmo_camera import rgb, jupyter
 
 
 def choose_regions(rgb_image):
@@ -46,15 +46,24 @@ def choose_regions(rgb_image):
 def prompt_for_ROI_selection(rgb_image):
     # Make image brighter to enable selecting ROIs even on very dark images
     brighter_rgb_image = rgb_image * 3
-    ROIs = choose_regions(brighter_rgb_image)
-    return ROIs
+    unnamed_ROI_definitions = choose_regions(brighter_rgb_image)
 
+    numbered_ROI_definitions = {
+        zero_based_index + 1: list(ROI)
+        for zero_based_index, ROI in enumerate(unnamed_ROI_definitions)
+    }
 
-def input_ROI_names(ROIs):
+    jupyter.show_image(
+        draw_ROIs_on_image(brighter_rgb_image, numbered_ROI_definitions),
+        title='Image to assist in ROI naming',
+        figsize=[7, 7]
+    )
+
     print('\nName your ROIs in the same order you selected them. Names must be unique.')
+
     ROI_definitions = {
-        input(f'Unique name for ROI #{ROI_index}: '): ROI  # Convert np array to list to make print readable
-        for ROI_index, ROI in iter(ROIs.items())
+        input(f'Unique name for ROI #{one_based_index_for_ROI}: '): ROI  # Convert np array to list to make print readable
+        for one_based_index_for_ROI, ROI in numbered_ROI_definitions.items()
     }
 
     return ROI_definitions

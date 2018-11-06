@@ -2,7 +2,7 @@ from datetime import datetime
 
 from osmo_camera.s3 import sync_from_s3
 from osmo_camera.process_images import process_images
-from osmo_camera.select_ROI import prompt_for_ROI_selection, input_ROI_names
+from osmo_camera.select_ROI import prompt_for_ROI_selection, draw_ROIs_on_image
 from osmo_camera.summary_images import generate_summary_images
 from osmo_camera.file_structure import get_files_with_extension, iso_datetime_for_filename
 from osmo_camera import raw, dng, jupyter
@@ -67,26 +67,12 @@ def process_experiment(
 
     print('3. Prompt for ROI selections (if not provided)...')
     if not ROI_definitions:
-        unnamed_ROI_definitions = prompt_for_ROI_selection(first_rgb_image)
-        numbered_ROI_definitions = {
-            index + 1: list(ROI)
-            for index, ROI in enumerate(unnamed_ROI_definitions)
-        }
-
-        jupyter.show_image(
-            first_rgb_image,
-            title='Image to assist in ROI naming',
-            figsize=[7, 7],
-            ROI_definitions=numbered_ROI_definitions
-        )
-
-        ROI_definitions = input_ROI_names(numbered_ROI_definitions)
+        ROI_definitions = prompt_for_ROI_selection(first_rgb_image)
 
     jupyter.show_image(
-        first_rgb_image,
+        draw_ROIs_on_image(first_rgb_image, ROI_definitions),
         title='Reference image with labelled ROIs',
-        figsize=[7, 7],
-        ROI_definitions=ROI_definitions
+        figsize=[7, 7]
     )
 
     saving_or_not = 'Save' if save_summary_images else 'Don\'t save'

@@ -5,7 +5,6 @@ import numpy as np
 import plotly.graph_objs as go
 
 from osmo_camera.s3 import list_experiments
-from osmo_camera.select_ROI import draw_ROIs_on_image
 
 
 def select_experiment():
@@ -18,22 +17,15 @@ def select_experiment():
     return selection
 
 
-def show_image(rgb_image, figsize=None, title='', ROI_definitions=None):
+def show_image(rgb_image, figsize=None, title=''):
     ''' Show an image in an ipython notebook.
 
     Args:
         rgb_image: numpy.ndarray of an RGB image
         figsize: 2-tuple of desired figure size in inches; will be passed to `plt.figure()`
-        ROI_definitions: Optional. If provided, will draw the ROIs on the displayed image
     '''
     plt.figure(figsize=figsize)
-
-    if ROI_definitions:
-        rgb_image_with_ROIs = draw_ROIs_on_image(rgb_image, ROI_definitions)
-        plt.imshow(rgb_image_with_ROIs)
-    else:
-        plt.imshow(rgb_image)
-
+    plt.imshow(rgb_image)
     plt.title(title)
     plt.show()
 
