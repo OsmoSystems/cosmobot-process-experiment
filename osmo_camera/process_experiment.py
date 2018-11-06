@@ -68,18 +68,19 @@ def process_experiment(
     print('3. Prompt for ROI selections (if not provided)...')
     if not ROI_definitions:
         unnamed_ROI_definitions = prompt_for_ROI_selection(first_rgb_image)
+        numbered_ROI_definitions = {
+            index + 1: list(ROI)
+            for index, ROI in enumerate(unnamed_ROI_definitions)
+        }
 
         jupyter.show_image(
             first_rgb_image,
             title='Image to assist in ROI naming',
             figsize=[7, 7],
-            ROI_definitions={
-                index + 1: list(ROI)
-                for index, ROI in enumerate(unnamed_ROI_definitions)
-            }
+            ROI_definitions=numbered_ROI_definitions
         )
 
-        ROI_definitions = input_ROI_names(unnamed_ROI_definitions)
+        ROI_definitions = input_ROI_names(numbered_ROI_definitions)
 
     jupyter.show_image(
         first_rgb_image,

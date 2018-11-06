@@ -53,8 +53,8 @@ def prompt_for_ROI_selection(rgb_image):
 def input_ROI_names(ROIs):
     print('\nName your ROIs in the same order you selected them. Names must be unique.')
     ROI_definitions = {
-        input(f'Unique name for ROI #{index + 1}: '): list(ROI)  # Convert np array to list to make print readable
-        for index, ROI in enumerate(ROIs)
+        input(f'Unique name for ROI #{ROI_index}: '): ROI  # Convert np array to list to make print readable
+        for ROI_index, ROI in iter(ROIs.items())
     }
 
     return ROI_definitions
