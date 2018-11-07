@@ -54,7 +54,7 @@ def prompt_for_ROI_selection(rgb_image):
         for zero_based_index, ROI in enumerate(unnamed_ROI_definitions)
     }
 
-    # show helper image for naming ROIs to have meaning other than sequence
+    # show helper image for naming ROIs
     jupyter.show_image(
         draw_ROIs_on_image(brighter_rgb_image, numbered_ROI_definitions),
         title='Image to assist in ROI naming',
@@ -64,8 +64,8 @@ def prompt_for_ROI_selection(rgb_image):
     print('\nName your ROIs in the same order you selected them. Names must be unique.')
 
     ROI_definitions = {
-        input(f'Unique name for ROI #{one_based_index_ROI}: '): ROI  # Convert np array to list to make print readable
-        for one_based_index_ROI, ROI in numbered_ROI_definitions.items()
+        input(f'Unique name for ROI #{roi_number}: '): ROI  # Convert np array to list to make print readable
+        for roi_number, ROI in numbered_ROI_definitions.items()
     }
 
     return ROI_definitions
