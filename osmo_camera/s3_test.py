@@ -36,6 +36,7 @@ def mock_get_images_info(mocker):
     # _get_images_info uses boto to interact with s3 (through _list_s3_folder_contents); use this fixture to mock it.
     return mocker.patch.object(module, '_get_images_info')
 
+
 @pytest.fixture
 def mock_list_s3_folder_contents(mocker):
     # _list_s3_folder_contents uses boto to interact with s3; use this fixture to mock it.
@@ -158,7 +159,7 @@ class TestGetImagesInfo:
             expected_images_info
         )
 
-    def test_returns_empty_dataframe_if_no_files(self, mock_list_s3_folder_contents):
+    def test_returns_empty_dataframe_if_no_files(self, mocker, mock_list_s3_folder_contents):
         mock_list_s3_folder_contents.return_value = []
 
         pd.testing.assert_frame_equal(
