@@ -75,3 +75,14 @@ class TestIsoDatetimeForFilename:
         expected = '2018-01-02--13-14-15'
 
         assert actual == expected
+
+
+class TestIsoDatetimeAndRestFromFilename:
+    def test_returns_datetime(self):
+        actual = module.datetime_and_rest_from_filename('2018-01-02--13-14-15-something-something.jpeg')
+        expected = (
+            datetime(2018, 1, 2, 13, 14, 15),
+            '-something-something.jpeg'
+        )
+
+        assert actual == expected
