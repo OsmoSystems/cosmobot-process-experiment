@@ -2,7 +2,7 @@ import platform
 import os
 import tempfile
 from subprocess import check_call
-
+import re
 import boto
 
 
@@ -32,6 +32,14 @@ def sync_from_s3(experiment_directory_name, local_sync_dir=None):
     return sync_directory_location
 
 
+def filter_experiments(experiment_names, regex):
+    # Filter with regex and reverse list of directories to sort most recent first
+    # (assumes directory name starts with ISO date)
+    return list(reversed([
+        experiment_name for experiment_name in experiment_names if re.search(regex, experiment_name)
+    ]))
+
+
 def list_experiments():
     ''' Lists all experiment directories in the "camera-sensor-experiments" bucket
     '''
@@ -47,5 +55,7 @@ def list_experiments():
 
     experiment_names = [directory.name.strip('/') for directory in experiment_directories]
 
-    # Reverse list of directories to sort most recent first (assumes directory name starts with ISO date)
-    return list(reversed(experiment_names))
+    experiment_names_with_hyphens_in_isodate = filter_experiments(experiment_names, r'^\d{4}-\d\d-\d\d.')
+    experiment_names_without_hyphens_in_isodate = filter_experiments(experiment_names, r'^\d{8}.')
+
+    return experiment_names_with_hyphens_in_isodate + experiment_names_without_hyphens_in_isodate
