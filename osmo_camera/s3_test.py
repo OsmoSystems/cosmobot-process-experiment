@@ -71,7 +71,7 @@ class TestAlterExperimentList:
     ]
 
     def test_returns_ordered_list(self):
-        actual_ordered_list = module.order_experiment_list(self.unordered_unfiltered_list_for_tests)
+        actual_ordered_list = module.order_experiment_list_by_isodate_formats(self.unordered_unfiltered_list_for_tests)
         expected_ordered_list = [
             '2018-11-08--11-26-00-Pi4E82-test', '2018-11-08--11-25-27-Pi4E82-test',
             '20180902103940_temperature', '20180902103709_temperature'

@@ -32,7 +32,7 @@ def sync_from_s3(experiment_directory_name, local_sync_dir=None):
     return sync_directory_location
 
 
-def filter_experiment_list(experiment_names, regex):
+def filter_and_reverse_experiment_list(experiment_names, regex):
     # Filter with regex and reverse list of directories to sort most recent first
     # (assumes directory name starts with ISO date)
     return list(reversed([
@@ -40,14 +40,21 @@ def filter_experiment_list(experiment_names, regex):
     ]))
 
 
-def order_experiment_list(experiment_names):
-    experiment_names_with_hyphens_in_isodate = filter_experiment_list(experiment_names, r'^\d{4}-\d\d-\d\d.')
-    experiment_names_without_hyphens_in_isodate = filter_experiment_list(experiment_names, r'^\d{8}.')
+def order_experiment_list_by_isodate_formats(experiment_names):
+    experiment_names_with_hyphens_in_isodate = filter_and_reverse_experiment_list(
+        experiment_names,
+        r'^\d{4}-\d\d-\d\d.'
+    )
+    experiment_names_without_hyphens_in_isodate = filter_and_reverse_experiment_list(experiment_names, r'^\d{8}.')
     return experiment_names_with_hyphens_in_isodate + experiment_names_without_hyphens_in_isodate
 
 
 def list_experiments():
     ''' Lists all experiment directories in the "camera-sensor-experiments" bucket
+
+        Returns: a list of experiment names that is filtered and ordered (by isodate formats YYYY-MM-DD & YYYYMMDD)
+        The list will be a concatenated set of lists, with the items starting with a list of YYYY-MM-DD formated names
+        that are ordered by descending date followed by the same ordering but with a list of YYYYMMDD formatted names.
     '''
     try:
         # TODO (SOFT-538): Stop checking in access key!
@@ -60,4 +67,4 @@ def list_experiments():
     experiment_directories = bucket.list('', '/')
 
     experiment_names = [directory.name.strip('/') for directory in experiment_directories]
-    return order_experiment_list(experiment_names)
+    return order_experiment_list_by_isodate_formats(experiment_names)
