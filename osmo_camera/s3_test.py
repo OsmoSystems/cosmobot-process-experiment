@@ -79,7 +79,7 @@ class TestAlterExperimentList:
         assert actual_ordered_list == expected_ordered_list
 
     def test_returns_filtered_list_for_new_isodate_format(self):
-        actual_filtered_list = module.filter_experiment_list(
+        actual_filtered_list = module.filter_and_reverse_experiment_list(
             self.unordered_unfiltered_list_for_tests,
             r'^\d{4}-\d\d-\d\d.'
         )
@@ -87,6 +87,9 @@ class TestAlterExperimentList:
         assert actual_filtered_list == expected_filtered_list
 
     def test_returns_filtered_list_for_old_isodate_format(self):
-        actual_filtered_list = module.filter_experiment_list(self.unordered_unfiltered_list_for_tests, r'^\d{8}.')
+        actual_filtered_list = module.filter_and_reverse_experiment_list(
+            self.unordered_unfiltered_list_for_tests,
+            r'^\d{8}.'
+        )
         expected_filtered_list = ['20180902103940_temperature', '20180902103709_temperature']
         assert actual_filtered_list == expected_filtered_list
