@@ -71,7 +71,7 @@ def process_experiment(
         downsample_ratio=sync_downsample_ratio,
         start_time=sync_start_time,
         end_time=sync_end_time,
-        sync_parent_dir=local_sync_dir
+        local_sync_dir=local_sync_dir
     )
 
     print('2. Convert all images from raw to dng...')
