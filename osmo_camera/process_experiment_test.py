@@ -12,6 +12,7 @@ def mock_side_effects(mocker):
     mocker.patch.object(module, '_open_first_image').return_value = sentinel.first_rgb_image
     mocker.patch.object(module, 'jupyter')
     mocker.patch.object(module, 'process_images').return_value = sentinel.image_summary_data
+    mocker.patch.object(module, 'draw_ROIs_on_image').return_value = sentinel.rgb_image_with_ROI_definitions
     mocker.patch.object(module, '_save_summary_statistics_csv')
 
 
