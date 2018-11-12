@@ -119,7 +119,7 @@ def _get_capture_groups(variants: Sequence[str]) -> pd.Series:
     Returns:
         a pd.Series of capture groups corresponding to the "loop index" that each image was taken in.
         This Series is intended to be appended onto the images_info DataFrame as a column.
-        For instance, if the experiment captured 3 variants and 5 looped over those variants 5 times
+        For instance, if the experiment captured 3 variants and looped over those variants 5 times
         (for a total of 15 images), the first image of each variant will get capture_group 0, the second will get
         capture_group 1, etc.
     '''
