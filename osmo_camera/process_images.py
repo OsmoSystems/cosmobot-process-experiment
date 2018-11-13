@@ -19,6 +19,7 @@ def _coefficient_of_variation(image):
     return np.std(image, axis=IMAGE_AXES) / np.mean(image, axis=IMAGE_AXES)
 
 
+# Type annotation clears things up for Mypy
 ROI_STATISTIC_CALCULATORS: Dict[str, Callable] = {
     'mean': partial(np.mean, axis=IMAGE_AXES),
     'median': partial(np.median, axis=IMAGE_AXES),
