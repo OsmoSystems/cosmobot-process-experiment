@@ -33,16 +33,17 @@ def mock_platform(mocker):
 
 @pytest.fixture
 def mock_get_images_info(mocker):
-    # _get_images_info uses boto to interact with s3 (through _list_s3_folder_contents); use this fixture to mock it.
+    # _get_images_info uses boto to interact with s3 (through _list_camera_sensor_experiments_s3_bucket_contents);
+    # use this fixture to mock it.
     return mocker.patch.object(module, '_get_images_info')
 
 
 @pytest.fixture
-def mock_list_s3_folder_contents(mocker):
-    # _list_s3_folder_contents uses boto to interact with s3; use this fixture to mock it.
+def mock_list_camera_sensor_experiments_s3_bucket_contents(mocker):
+    # _list_camera_sensor_experiments_s3_bucket_contents uses boto to interact with s3; use this fixture to mock it.
     # If you are trying to avoid side-effects at a high level, note that using this is redundant to using
     # mock_get_images_info()
-    return mocker.patch.object(module, '_list_s3_folder_contents')
+    return mocker.patch.object(module, '_list_camera_sensor_experiments_s3_bucket_contents')
 
 
 class TestSyncFromS3:
@@ -121,19 +122,22 @@ class TestGetLocalExperimentDir:
 
 
 class TestGetImagesInfo:
-    def test_calls_list_with_correctly_appended_slash_on_experiment_directory_name(self, mock_list_s3_folder_contents):
-        # Experiment directory has no trailing slash; the slash should be added by _list_s3_folder_contents.
+    def test_calls_list_with_correctly_appended_slash_on_experiment_directory_name(
+        self, mock_list_camera_sensor_experiments_s3_bucket_contents
+    ):
+        # Experiment directory has no trailing slash; the slash should be added by
+        # _list_camera_sensor_experiments_s3_bucket_contents.
         # If it's not added, we'll also get files from directories with longer names than the one we actually want
         experiment_key = 'my_experiment'
-        mock_list_s3_folder_contents.return_value = []
+        mock_list_camera_sensor_experiments_s3_bucket_contents.return_value = []
 
         module._get_images_info(experiment_key)
 
-        mock_list_s3_folder_contents.assert_called_once_with('my_experiment/')
+        mock_list_camera_sensor_experiments_s3_bucket_contents.assert_called_once_with('my_experiment/')
 
-    def test_creates_appropriate_dataframe(self, mock_list_s3_folder_contents):
+    def test_creates_appropriate_dataframe(self, mock_list_camera_sensor_experiments_s3_bucket_contents):
         experiment_key = 'yyyy-mm-dd-experiment_name'
-        mock_list_s3_folder_contents.return_value = [
+        mock_list_camera_sensor_experiments_s3_bucket_contents.return_value = [
             f'{experiment_key}/2018-10-27--21-24-17_ss_31000_ISO_100.jpeg',
             f'{experiment_key}/2018-10-27--21-24-23_ss_1_ISO_100.jpeg',
             f'{experiment_key}/experiment_metadata.yml',
@@ -159,8 +163,8 @@ class TestGetImagesInfo:
             expected_images_info
         )
 
-    def test_returns_empty_dataframe_if_no_files(self, mocker, mock_list_s3_folder_contents):
-        mock_list_s3_folder_contents.return_value = []
+    def test_returns_empty_dataframe_if_no_files(self, mocker, mock_list_camera_sensor_experiments_s3_bucket_contents):
+        mock_list_camera_sensor_experiments_s3_bucket_contents.return_value = []
 
         pd.testing.assert_frame_equal(
             module._get_images_info(mocker.sentinel.experiment_s3_key),
@@ -271,7 +275,7 @@ class TestFilterToTimeRange:
 
 class TestListExperiments:
     def test_returns_stripped_reversed_directories(self, mocker):
-        mocker.patch.object(module, '_list_s3_folder_contents').return_value = [
+        mocker.patch.object(module, '_list_camera_sensor_experiments_s3_bucket_contents').return_value = [
             'directory_1/',
             'directory_2/',
         ]

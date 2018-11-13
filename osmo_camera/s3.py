@@ -15,12 +15,12 @@ from . import file_structure
 CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME = 'camera-sensor-experiments'
 
 
-def _list_s3_folder_contents(s3_prefix: str) -> List[str]:
+def _list_camera_sensor_experiments_s3_bucket_contents(directory_name: str = '') -> List[str]:
     ''' Get a list of all of the files in a logical directory off s3, within the camera sensor experiments bucket.
 
     Arguments:
-        s3_prefix: prefix within our experiments bucket on s3, inclusive of trailing slash if you'd like the list of
-            files within a directory. This can be '' to get the top-level index of the bucket
+        directory_name: prefix within our experiments bucket on s3, inclusive of trailing slash if you'd like the list
+            of files within a "directory". Default is '' to get the top-level index of the bucket.
 
     Returns:
         list of key names under the prefix provided.
@@ -33,7 +33,7 @@ def _list_s3_folder_contents(s3_prefix: str) -> List[str]:
         return []
 
     bucket = s3.get_bucket(CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME)
-    keys = bucket.list(s3_prefix, '/')
+    keys = bucket.list(directory_name, '/')
 
     return list([key.name for key in keys])
 
@@ -43,8 +43,8 @@ def _download_s3_files(experiment_directory_name: str, file_names: List[str], ou
     '''
 
     include_args = ' '.join([
-        f'--include "{key}"'
-        for key in file_names
+        f'--include "{file_name}"'
+        for file_name in file_names
     ])
 
     # Would be better to use boto, but neither boto nor boto3 support sync
@@ -70,11 +70,11 @@ def _get_timestamp_and_variant(filename):
     return timestamp, variant
 
 
-def _get_images_info(experiment_s3_key: str) -> pd.DataFrame:
+def _get_images_info(experiment_directory: str) -> pd.DataFrame:
     ''' Organized DataFrame of of the .jpeg file contents of a directory in our bucket on s3.
 
     Arguments:
-        experiment_s3_key: directory name for an experiment within our experiment results bucket on s3
+        experiment_directory: directory name for an experiment within our experiment results bucket on s3
     Returns:
         a DataFrame containing one row for each .jpeg file in the experiment directory. Each row has a:
             Timestamp: a datetime taken from the filename
@@ -82,8 +82,8 @@ def _get_images_info(experiment_s3_key: str) -> pd.DataFrame:
             capture_group: a capture group index; see _get_capture_groups() for what that means
             s3_key: full filename with extension
     '''
-    s3_prefix = f'{experiment_s3_key}/'
-    all_keys = _list_s3_folder_contents(s3_prefix)
+    s3_prefix = f'{experiment_directory}/'
+    all_keys = _list_camera_sensor_experiments_s3_bucket_contents(s3_prefix)
     prefix_length = len(s3_prefix)
 
     jpeg_filenames = [
@@ -121,7 +121,7 @@ def _get_capture_groups(variants: Sequence[str]) -> pd.Series:
         This Series is intended to be appended onto the images_info DataFrame as a column.
         For instance, if the experiment captured 3 variants and looped over those variants 5 times
         (for a total of 15 images), the first image of each variant will get capture_group 0, the second will get
-        capture_group 1, etc.
+        capture_group 1, etc. so _get_capture_groups would return pd.Series([0,0,0,1,1,1,2,2,2,3,3,3,4,4,4]).
     '''
     num_images = len(variants)
     num_variants = len(set(variants))
@@ -163,7 +163,8 @@ def _filter_to_time_range(
     If start/end not provided, the appropriate end won't be filtered
     Args:
         images_info: pandas DataFrame with a Timestamp column
-        start_time, end_time: optional, inclusive time values to filter the output data
+        start_time: Optional. inclusive time value to filter the output data
+        end_time: Optional. inclusive time value to filter the output data
     Returns:
         slice of the input DataFrame matching the start and end values provided
     '''
@@ -171,8 +172,7 @@ def _filter_to_time_range(
     # version and causes pd to blow up.
     start_time = start_time or pd.Timestamp.min
     end_time = end_time or pd.Timestamp.max
-    filtered = (images_info['Timestamp'] >= start_time) & (images_info['Timestamp'] <= end_time)
-    return images_info[filtered]
+    return images_info[(images_info['Timestamp'] >= start_time) & (images_info['Timestamp'] <= end_time)]
 
 
 def _get_local_experiment_dir(
@@ -232,7 +232,7 @@ def sync_from_s3(
 def list_experiments():
     ''' Lists all experiment directories in the "camera-sensor-experiments" bucket
     '''
-    experiment_directories = _list_s3_folder_contents('')
+    experiment_directories = _list_camera_sensor_experiments_s3_bucket_contents('')
 
     experiment_names = [directory.rstrip('/') for directory in experiment_directories]
 
