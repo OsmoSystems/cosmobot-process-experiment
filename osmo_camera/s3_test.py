@@ -125,13 +125,12 @@ class TestGetImagesInfo:
     def test_calls_list_with_correctly_appended_slash_on_experiment_directory_name(
         self, mock_list_camera_sensor_experiments_s3_bucket_contents
     ):
+        mock_list_camera_sensor_experiments_s3_bucket_contents.return_value = []
+
         # Experiment directory has no trailing slash; the slash should be added by
         # _list_camera_sensor_experiments_s3_bucket_contents.
         # If it's not added, we'll also get files from directories with longer names than the one we actually want
-        experiment_key = 'my_experiment'
-        mock_list_camera_sensor_experiments_s3_bucket_contents.return_value = []
-
-        module._get_images_info(experiment_key)
+        module._get_images_info('my_experiment')
 
         mock_list_camera_sensor_experiments_s3_bucket_contents.assert_called_once_with('my_experiment/')
 
@@ -244,9 +243,9 @@ class TestDownsample:
         ])
         expected_downsampled_df = images_info[images_info['capture_group'].isin(expected_capture_groups)]
 
-        downsampled_df = module._downsample(images_info, ratio)
+        actual_downsampled_df = module._downsample(images_info, ratio)
 
-        pd.testing.assert_frame_equal(downsampled_df, expected_downsampled_df)
+        pd.testing.assert_frame_equal(actual_downsampled_df, expected_downsampled_df)
 
 
 class TestFilterToTimeRange:
