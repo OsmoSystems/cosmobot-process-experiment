@@ -166,7 +166,7 @@ def _filter_to_time_range(
     Args:
         images_info: pandas DataFrame with a Timestamp column
         start_time: Optional. Inclusive time value to filter the output data
-        end_time: Optional. inclusive time value to filter the output data
+        end_time: Optional. Inclusive time value to filter the output data
     Returns:
         slice of the input DataFrame matching the start and end values provided
     '''
