@@ -273,12 +273,12 @@ class TestFilterToTimeRange:
 
 
 class TestListExperiments:
-    def test_returns_stripped_reversed_directories(self, mocker):
+    def test_returns_cleaned_sorted_directories(self, mocker):
         mocker.patch.object(module, '_list_camera_sensor_experiments_s3_bucket_contents').return_value = [
-            'directory_1/',
-            'directory_2/',
+            '2018-01-01--12-01-01_directory_1/',
+            '2018-01-01--12-02-01_directory_2/',
         ]
-        assert module.list_experiments() == ['directory_2', 'directory_1']
+        assert module.list_experiments() == ['2018-01-01--12-02-01_directory_2', '2018-01-01--12-01-01_directory_1']
 
 
 class TestAlterExperimentList:
