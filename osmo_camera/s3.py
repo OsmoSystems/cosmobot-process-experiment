@@ -206,7 +206,7 @@ def sync_from_s3(
     Args:
         experiment_dir: The name of the experiment directory in s3
         downsample_ratio: Ratio to downsample images by -
-            If downsample_ratio = 1, keep all images
+            If downsample_ratio = 1, keep all images (default)
             If downsample_ratio = 2, keep half of the capture groups
             If downsample_ratio = 3, keep one in three groups
         start_time: if provided, no images before this datetime will by synced
