@@ -54,8 +54,8 @@ def process_experiment(
             If downsample_ratio = 1, keep all images (default)
             If downsample_ratio = 2, keep half of the images for each variant
             If downsample_ratio = 3, keep one in three images
-        sync_start_time: Optional. if provided, no images before this datetime will by synced
-        sync_end_time: Optional. if provided, no images after this datetime will by synced
+        sync_start_time: Optional. If provided, no images before this datetime will by synced
+        sync_end_time: Optional. If provided, no images after this datetime will by synced
         save_summary_images: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of local_sync_dir
         save_ROIs: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of local_sync_dir
 

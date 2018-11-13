@@ -60,7 +60,7 @@ class TestSyncFromS3:
                 'Timestamp': datetime.datetime(2018, 1, 2),
                 'capture_group': 0,
                 'variant': 'some_variant',
-                'filename': mocker.sentinel.filename_for_file
+                'filename': mocker.sentinel.filename
             }
         ])
         module.sync_from_s3(
@@ -76,7 +76,7 @@ class TestSyncFromS3:
         # triple indexing: list of calls -> list of call args -> check_call argument 0 is itself a list.
         actual_s3_command = mock_check_call.call_args[0][0][0]
         assert 'aws s3 sync' in actual_s3_command
-        assert str(mocker.sentinel.filename_for_file) in actual_s3_command
+        assert str(mocker.sentinel.filename) in actual_s3_command
 
 
 class TestDownloadS3Files:
