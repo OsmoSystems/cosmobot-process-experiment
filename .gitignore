@@ -57,6 +57,5 @@ docs/_build/
 # PyBuilder
 target/
 
-/output/
-\.pytest_cache/
+# Mypy type checking
 .mypy_cache/
