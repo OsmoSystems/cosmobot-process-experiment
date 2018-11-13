@@ -50,12 +50,12 @@ def process_experiment(
             Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI:
                 (start_col, start_row, cols, rows)
         local_sync_dir: Optional. The name of the local directory where images will be synced and processed
-        sync_downsample_ratio: Ratio to downsample images by when syncing:
-            If downsample_ratio = 1, keep all images
+        sync_downsample_ratio: Optional. Ratio to downsample images by when syncing:
+            If downsample_ratio = 1, keep all images (default)
             If downsample_ratio = 2, keep half of the images for each variant
             If downsample_ratio = 3, keep one in three images
-        sync_start_time: if provided, no images before this datetime will by synced
-        sync_end_time: if provided, no images after this datetime will by synced
+        sync_start_time: Optional. if provided, no images before this datetime will by synced
+        sync_end_time: Optional. if provided, no images after this datetime will by synced
         save_summary_images: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of local_sync_dir
         save_ROIs: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of local_sync_dir
 
