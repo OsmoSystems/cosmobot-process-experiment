@@ -61,3 +61,35 @@ class TestSyncFromS3:
         module.sync_from_s3('experiment_directory_name', local_sync_dir)
 
         mock_path_join.assert_called_with(expected_sync_dir, 'experiment_directory_name')
+
+
+class TestAlterExperimentList:
+
+    unordered_unfiltered_list_for_tests = [
+        '20180902103709_temperature', '20180902103940_temperature',
+        '2018-11-08--11-25-27-Pi4E82-test', '2018-11-08--11-26-00-Pi4E82-test'
+    ]
+
+    def test_returns_ordered_list(self):
+        actual_ordered_list = module.order_experiment_list_by_isodate_formats(self.unordered_unfiltered_list_for_tests)
+        expected_ordered_list = [
+            '2018-11-08--11-26-00-Pi4E82-test', '2018-11-08--11-25-27-Pi4E82-test',
+            '20180902103940_temperature', '20180902103709_temperature'
+        ]
+        assert actual_ordered_list == expected_ordered_list
+
+    def test_returns_filtered_list_for_new_isodate_format(self):
+        actual_filtered_list = module.filter_and_reverse_experiment_list(
+            self.unordered_unfiltered_list_for_tests,
+            r'^\d{4}-\d\d-\d\d.'
+        )
+        expected_filtered_list = ['2018-11-08--11-26-00-Pi4E82-test', '2018-11-08--11-25-27-Pi4E82-test']
+        assert actual_filtered_list == expected_filtered_list
+
+    def test_returns_filtered_list_for_old_isodate_format(self):
+        actual_filtered_list = module.filter_and_reverse_experiment_list(
+            self.unordered_unfiltered_list_for_tests,
+            r'^\d{8}.'
+        )
+        expected_filtered_list = ['20180902103940_temperature', '20180902103709_temperature']
+        assert actual_filtered_list == expected_filtered_list
