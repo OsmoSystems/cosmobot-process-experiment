@@ -146,7 +146,7 @@ def _downsample(images_info: pd.DataFrame, downsample_ratio: int) -> pd.DataFram
         images_info: pandas DataFrame with a capture_group column
         downsample_ratio: integer ratio of input rows to output rows: the x in "give me 1 out of every X capture groups"
             If downsample_ratio = 1, keep all images
-            If downsample_ratio = 2, keep half of the capture groups
+            If downsample_ratio = 2, keep every other capture group
             If downsample_ratio = 3, keep one in three groups
     Returns:
         a slice of the images_info DataFrame downsampled as instructed
