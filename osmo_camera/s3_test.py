@@ -60,11 +60,11 @@ class TestSyncFromS3:
                 'Timestamp': datetime.datetime(2018, 1, 2),
                 'capture_group': 0,
                 'variant': 'some_variant',
-                's3_key': mocker.sentinel.s3_key_for_file
+                'filename': mocker.sentinel.filename_for_file
             }
         ])
         module.sync_from_s3(
-            mocker.sentinel.experiment_directory_name,
+            mocker.sentinel.experiment_directory,
             downsample_ratio=1,
             start_time=datetime.datetime(2018, 1, 1),
             end_time=datetime.datetime(2018, 1, 3),
@@ -76,13 +76,13 @@ class TestSyncFromS3:
         # triple indexing: list of calls -> list of call args -> check_call argument 0 is itself a list.
         actual_s3_command = mock_check_call.call_args[0][0][0]
         assert 'aws s3 sync' in actual_s3_command
-        assert str(mocker.sentinel.s3_key_for_file) in actual_s3_command
+        assert str(mocker.sentinel.filename_for_file) in actual_s3_command
 
 
 class TestDownloadS3Files:
     def test_calls_s3_sync_command(self, mock_check_call, mock_path_join):
         module._download_s3_files(
-            experiment_directory_name='my_experiment',
+            experiment_directory='my_experiment',
             file_names=[
                 'image1.jpeg',
                 'image2.jpeg',
@@ -115,14 +115,14 @@ class TestGetLocalExperimentDir:
         mock_platform,
     ):
         mock_platform.return_value = os_name
-        actual = module._get_local_experiment_dir('experiment_directory_name', local_sync_dir)
+        actual = module._get_local_experiment_dir('experiment_directory', local_sync_dir)
 
-        expected = os.path.join(expected_sync_dir, 'experiment_directory_name')
+        expected = os.path.join(expected_sync_dir, 'experiment_directory')
         assert actual == expected
 
 
 class TestGetImagesInfo:
-    def test_calls_list_with_correctly_appended_slash_on_experiment_directory_name(
+    def test_calls_list_with_correctly_appended_slash_on_experiment_directory(
         self, mock_list_camera_sensor_experiments_s3_bucket_contents
     ):
         mock_list_camera_sensor_experiments_s3_bucket_contents.return_value = []
@@ -135,30 +135,30 @@ class TestGetImagesInfo:
         mock_list_camera_sensor_experiments_s3_bucket_contents.assert_called_once_with('my_experiment/')
 
     def test_creates_appropriate_dataframe(self, mock_list_camera_sensor_experiments_s3_bucket_contents):
-        experiment_key = 'yyyy-mm-dd-experiment_name'
+        experiment_directory = 'yyyy-mm-dd-experiment_name'
         mock_list_camera_sensor_experiments_s3_bucket_contents.return_value = [
-            f'{experiment_key}/2018-10-27--21-24-17_ss_31000_ISO_100.jpeg',
-            f'{experiment_key}/2018-10-27--21-24-23_ss_1_ISO_100.jpeg',
-            f'{experiment_key}/experiment_metadata.yml',
+            f'{experiment_directory}/2018-10-27--21-24-17_ss_31000_ISO_100.jpeg',
+            f'{experiment_directory}/2018-10-27--21-24-23_ss_1_ISO_100.jpeg',
+            f'{experiment_directory}/experiment_metadata.yml',
         ]
 
         expected_images_info = pd.DataFrame([
             {
                 'Timestamp': datetime.datetime(2018, 10, 27, 21, 24, 17),
                 'variant': '_ss_31000_ISO_100',
-                's3_key': '2018-10-27--21-24-17_ss_31000_ISO_100.jpeg',
+                'filename': '2018-10-27--21-24-17_ss_31000_ISO_100.jpeg',
                 'capture_group': 0,
             },
             {
                 'Timestamp': datetime.datetime(2018, 10, 27, 21, 24, 23),
                 'variant': '_ss_1_ISO_100',
-                's3_key': '2018-10-27--21-24-23_ss_1_ISO_100.jpeg',
+                'filename': '2018-10-27--21-24-23_ss_1_ISO_100.jpeg',
                 'capture_group': 0,
             }
         ], columns=module._IMAGES_INFO_COLUMNS)
 
         pd.testing.assert_frame_equal(
-            module._get_images_info(experiment_key),
+            module._get_images_info(experiment_directory),
             expected_images_info
         )
 
@@ -166,7 +166,7 @@ class TestGetImagesInfo:
         mock_list_camera_sensor_experiments_s3_bucket_contents.return_value = []
 
         pd.testing.assert_frame_equal(
-            module._get_images_info(mocker.sentinel.experiment_s3_key),
+            module._get_images_info(mocker.sentinel.experiment_directory),
             pd.DataFrame(columns=module._IMAGES_INFO_COLUMNS)
         )
 

@@ -38,7 +38,7 @@ def _list_camera_sensor_experiments_s3_bucket_contents(directory_name: str = '')
     return list([key.name for key in keys])
 
 
-def _download_s3_files(experiment_directory_name: str, file_names: List[str], output_directory: str) -> None:
+def _download_s3_files(experiment_directory: str, file_names: List[str], output_directory: str) -> None:
     ''' Download specific filenames from within an experiment directory on s3.
     '''
 
@@ -50,7 +50,7 @@ def _download_s3_files(experiment_directory_name: str, file_names: List[str], ou
     # Would be better to use boto, but neither boto nor boto3 support sync
     # https://github.com/boto/boto3/issues/358
     command = (
-        f'aws s3 sync s3://{CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME}/{experiment_directory_name} {output_directory} '
+        f'aws s3 sync s3://{CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME}/{experiment_directory} {output_directory} '
         f'--exclude "*" {include_args}'
     )
     check_call([command], shell=True)
@@ -59,7 +59,7 @@ def _download_s3_files(experiment_directory_name: str, file_names: List[str], ou
 _IMAGES_INFO_COLUMNS = [
     'Timestamp',
     'variant',
-    's3_key',
+    'filename',
     'capture_group'
 ]
 
@@ -81,7 +81,7 @@ def _get_images_info(experiment_directory: str) -> pd.DataFrame:
             Timestamp: a datetime taken from the filename
             variant: variant portion of the .jpeg filename
             capture_group: a capture group index; see _get_capture_groups() for what that means
-            s3_key: full filename with extension
+            filename: full filename with extension
     '''
     s3_prefix = f'{experiment_directory}/'
     all_keys = _list_camera_sensor_experiments_s3_bucket_contents(s3_prefix)
@@ -104,7 +104,7 @@ def _get_images_info(experiment_directory: str) -> pd.DataFrame:
     return pd.DataFrame({
         'Timestamp': timestamps,
         'variant': variants,
-        's3_key': jpeg_filenames,
+        'filename': jpeg_filenames,
         'capture_group': _get_capture_groups(variants)
     }, columns=_IMAGES_INFO_COLUMNS)
 
@@ -178,12 +178,12 @@ def _filter_to_time_range(
 
 
 def _get_local_experiment_dir(
-    experiment_directory_name,
+    experiment_directory,
     local_sync_dir: Optional[str] = None
 ):
     ''' Get the directory where we should place experiment output
     Args:
-        experiment_directory_name: Directory name for this particular experiment. Not a full path
+        experiment_directory: Directory name for this particular experiment. Not a full path
         local_sync_dir: Local parent path that contains experiments. If provided, should exist already
             If not provided, we will use a recommended temp directory based on your system.
     '''
@@ -193,11 +193,11 @@ def _get_local_experiment_dir(
         # https://stackoverflow.com/questions/847850/cross-platform-way-of-getting-temp-directory-in-python
         local_sync_dir = '/tmp' if platform.system() == 'Darwin' else tempfile.gettempdir()
 
-    return os.path.join(local_sync_dir, experiment_directory_name)
+    return os.path.join(local_sync_dir, experiment_directory)
 
 
 def sync_from_s3(
-    experiment_directory_name,
+    experiment_directory,
     downsample_ratio: int = 1,
     start_time: Optional[datetime.datetime] = None,
     end_time: Optional[datetime.datetime] = None,
@@ -220,13 +220,13 @@ def sync_from_s3(
         Full path of the tmp directory for this experiment
     '''
 
-    local_experiment_dir = _get_local_experiment_dir(experiment_directory_name, local_sync_dir)
+    local_experiment_dir = _get_local_experiment_dir(experiment_directory, local_sync_dir)
 
-    images_info = _get_images_info(experiment_directory_name)
+    images_info = _get_images_info(experiment_directory)
     downsampled_image_info = _downsample(images_info, downsample_ratio)
     filtered_image_info = _filter_to_time_range(downsampled_image_info, start_time, end_time)
-    s3_keys_to_download = list(filtered_image_info['s3_key'].values)
-    _download_s3_files(experiment_directory_name, s3_keys_to_download, local_experiment_dir)
+    filenames_to_download = list(filtered_image_info['filename'].values)
+    _download_s3_files(experiment_directory, filenames_to_download, local_experiment_dir)
 
     return local_experiment_dir
 
