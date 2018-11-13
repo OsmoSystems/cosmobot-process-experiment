@@ -96,8 +96,6 @@ def _get_images_info(experiment_directory: str) -> pd.DataFrame:
         # Early out to avoid zero-length errors
         return pd.DataFrame(columns=_IMAGES_INFO_COLUMNS)
 
-    variants = pd.Series(['x'] * len(jpeg_filenames))
-
     timestamps_and_variants = [_get_timestamp_and_variant(filename) for filename in jpeg_filenames]
     timestamps, variants = zip(*timestamps_and_variants)
 
