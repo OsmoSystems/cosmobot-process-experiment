@@ -64,10 +64,15 @@ class TestSyncFromS3:
 
 
 UNORDERED_UNFILTERED_LIST_FOR_TESTS = [
-    '20180902103709_temperature', '20180902103940_temperature',
-    '2018-11-08--11-25-27-Pi4E82-test', '2018-11-08--11-26-00-Pi4E82-test',
+    '20180902103709_temperature',
+    '20180902103940_temperature',
+    '2018-11-08--11-25-27-Pi4E82-test',
+    '2018-11-08--11-26-00-Pi4E82-test',
     'should_be_filtered.jpng'
 ]
+
+ISO_ISH_DATE_WITH_HYPHENS_REGEX = r'^\d{4}-\d\d-\d\d.'
+ISO_ISH_DATE_WITHOUT_HYPHENS_REGEX = r'^\d{8}.'
 
 
 class TestFilterAndSortExperimentList:
@@ -75,17 +80,23 @@ class TestFilterAndSortExperimentList:
     def test_returns_filtered_list_for_new_isodate_format(self):
         actual_filtered_list = module._filter_and_sort_experiment_list(
             UNORDERED_UNFILTERED_LIST_FOR_TESTS,
-            r'^\d{4}-\d\d-\d\d.'
+            ISO_ISH_DATE_WITH_HYPHENS_REGEX
         )
-        expected_filtered_list = ['2018-11-08--11-26-00-Pi4E82-test', '2018-11-08--11-25-27-Pi4E82-test']
+        expected_filtered_list = [
+            '2018-11-08--11-26-00-Pi4E82-test',
+            '2018-11-08--11-25-27-Pi4E82-test'
+        ]
         assert actual_filtered_list == expected_filtered_list
 
     def test_returns_filtered_list_for_old_isodate_format(self):
         actual_filtered_list = module._filter_and_sort_experiment_list(
             UNORDERED_UNFILTERED_LIST_FOR_TESTS,
-            r'^\d{8}.'
+            ISO_ISH_DATE_WITHOUT_HYPHENS_REGEX
         )
-        expected_filtered_list = ['20180902103940_temperature', '20180902103709_temperature']
+        expected_filtered_list = [
+            '20180902103940_temperature',
+            '20180902103709_temperature'
+        ]
         assert actual_filtered_list == expected_filtered_list
 
 
@@ -94,7 +105,9 @@ class TestOrderExperimentList:
     def test_returns_ordered_list(self):
         actual_ordered_list = module._order_experiment_list_by_isodate_formats(UNORDERED_UNFILTERED_LIST_FOR_TESTS)
         expected_ordered_list = [
-            '2018-11-08--11-26-00-Pi4E82-test', '2018-11-08--11-25-27-Pi4E82-test',
-            '20180902103940_temperature', '20180902103709_temperature'
+            '2018-11-08--11-26-00-Pi4E82-test',
+            '2018-11-08--11-25-27-Pi4E82-test',
+            '20180902103940_temperature',
+            '20180902103709_temperature'
         ]
         assert actual_ordered_list == expected_ordered_list
