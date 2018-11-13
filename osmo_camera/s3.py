@@ -126,6 +126,8 @@ def _get_capture_groups(variants: Sequence[str]) -> pd.Series:
     num_images = len(variants)
     num_variants = len(set(variants))
 
+    # In case the last capture group isn't complete (due to the experiment ending early)
+    # Make sure to round up for the number of capture groups
     num_capture_groups = int(np.ceil(num_images / num_variants))
 
     full_capture_groups = np.concatenate([
