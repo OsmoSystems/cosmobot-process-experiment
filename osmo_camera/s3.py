@@ -110,7 +110,8 @@ def _get_images_info(experiment_directory: str) -> pd.DataFrame:
 
 
 def _get_capture_groups(variants: Sequence[str]) -> pd.Series:
-    ''' Provide a series which groups images into logical capture groups by time.
+    ''' Provide a series which groups images into logical "capture groups"
+     by time.
 
     This implementation deals with the case of a "small" capture group in case an experiment is terminated early,
     but it does NOT deal with missing variants in the middle of an experiment. Please don't do that.
