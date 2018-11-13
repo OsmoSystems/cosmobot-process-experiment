@@ -33,8 +33,7 @@ def sync_from_s3(experiment_directory_name, local_sync_dir=None):
 
 
 def _filter_and_sort_experiment_list(experiment_names, regex):
-    # Filter with regex and reverse list of directories to sort most recent first
-    # (assumes directory name starts with ISO date)
+    # Filter with a regex and sort the list of directories to sort most recent first
     filtered_list = [experiment_name for experiment_name in experiment_names if re.search(regex, experiment_name)]
     return sorted(filtered_list, reverse=True)
 
