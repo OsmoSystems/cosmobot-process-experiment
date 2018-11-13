@@ -1,4 +1,9 @@
+import datetime
 import os
+
+
+_FILENAME_DATETIME_FORMAT = '%Y-%m-%d--%H-%M-%S'
+FILENAME_TIMESTAMP_LENGTH = len('2018-01-01--12-01-01')
 
 
 def get_files_with_extension(directory, extension):
@@ -37,6 +42,19 @@ def create_directory(new_directory_path):
 
 def iso_datetime_for_filename(datetime):
     ''' Returns datetime as a ISO-ish format string that can be used in filenames (which can't inclue ":")
-        datetime(2018, 1, 1, 12, 1, 1) --> '2018-01-01--12-01-01'
+    iso_datetime_for_filename(datetime.datetime(2018, 1, 1, 12, 1, 1)) -> '2018-01-01--12-01-01'
     '''
-    return datetime.strftime('%Y-%m-%d--%H-%M-%S')
+    return datetime.strftime(_FILENAME_DATETIME_FORMAT)
+
+
+def datetime_from_filename(filename: str) -> datetime.datetime:
+    ''' Recover a datetime that has been encoded into a filename, also returning the remainder of the filename
+
+    Arguments:
+        filename: filename to process. Should start with an ISO-ish datetime
+            as produced by iso_datetime_for_filename()
+    Returns:
+        a datetime.datetime object matching the one that was encoded in the filename
+    '''
+
+    return datetime.datetime.strptime(filename[:FILENAME_TIMESTAMP_LENGTH], _FILENAME_DATETIME_FORMAT)

@@ -75,3 +75,16 @@ class TestIsoDatetimeForFilename:
         expected = '2018-01-02--13-14-15'
 
         assert actual == expected
+
+    def test_result_length_matches_constant(self):
+        actual = module.iso_datetime_for_filename(datetime(2018, 1, 2, 13, 14, 15))
+
+        assert len(actual) == module.FILENAME_TIMESTAMP_LENGTH
+
+
+class TestIsoDatetimeAndRestFromFilename:
+    def test_returns_datetime(self):
+        actual = module.datetime_from_filename('2018-01-02--13-14-15-something-something.jpeg')
+        expected = datetime(2018, 1, 2, 13, 14, 15)
+
+        assert actual == expected

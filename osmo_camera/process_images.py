@@ -1,13 +1,14 @@
 from itertools import chain
 from functools import partial
 import os
+from typing import Callable, Dict
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from osmo_camera.file_structure import get_files_with_extension, create_output_directory
-from osmo_camera.select_ROI import get_ROIs_for_image
 from osmo_camera import dng, rgb
+from osmo_camera.file_structure import create_output_directory, get_files_with_extension
+from osmo_camera.select_ROI import get_ROIs_for_image
 
 
 # Running numpy calculations against this axis aggregates over the image for each channel, as color channels are axis=2
@@ -18,7 +19,8 @@ def _coefficient_of_variation(image):
     return np.std(image, axis=IMAGE_AXES) / np.mean(image, axis=IMAGE_AXES)
 
 
-ROI_STATISTIC_CALCULATORS = {
+# Type annotation clears things up for Mypy
+ROI_STATISTIC_CALCULATORS: Dict[str, Callable] = {
     'mean': partial(np.mean, axis=IMAGE_AXES),
     'median': partial(np.median, axis=IMAGE_AXES),
     'min': partial(np.amin, axis=IMAGE_AXES),
