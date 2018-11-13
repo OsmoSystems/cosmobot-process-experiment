@@ -65,7 +65,8 @@ _IMAGES_INFO_COLUMNS = [
 
 
 def _get_timestamp_and_variant(filename):
-    timestamp, rest = file_structure.datetime_and_rest_from_filename(filename)
+    timestamp = file_structure.datetime_from_filename(filename)
+    rest = filename[file_structure.FILENAME_TIMESTAMP_LENGTH:]
     variant, extension = os.path.splitext(rest)
     return timestamp, variant
 
