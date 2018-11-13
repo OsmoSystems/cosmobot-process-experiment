@@ -42,9 +42,7 @@ def create_directory(new_directory_path):
 
 def iso_datetime_for_filename(datetime):
     ''' Returns datetime as a ISO-ish format string that can be used in filenames (which can't inclue ":")
-
-    >>> iso_datetime_for_filename(datetime.datetime(2018, 1, 1, 12, 1, 1))
-    '2018-01-01--12-01-01'
+    iso_datetime_for_filename(datetime.datetime(2018, 1, 1, 12, 1, 1)) -> '2018-01-01--12-01-01'
     '''
     return datetime.strftime(_FILENAME_DATETIME_FORMAT)
 
@@ -57,9 +55,6 @@ def datetime_from_filename(filename: str) -> datetime.datetime:
             as produced by iso_datetime_for_filename()
     Returns:
         a datetime.datetime object matching the one that was encoded in the filename
-
-    >>> datetime_from_filename('2018-01-01--12-01-01-something.jpeg')
-    datetime.datetime(2018, 1, 1, 12, 1, 1)
     '''
 
     return datetime.datetime.strptime(filename[:FILENAME_TIMESTAMP_LENGTH], _FILENAME_DATETIME_FORMAT)
