@@ -253,7 +253,7 @@ class TestFilterToTimeRange:
     @pytest.mark.parametrize("name, start_time, end_time, expected_indices", [
         ('leaves everything alone if no start or end time provided', None, None, [0, 1, 2, 3, 4]),
         ('filter start only, inclusive', datetime.datetime(2018, 2, 1), None, [1, 2, 3, 4]),
-        ('filter start only, inclusive', None, datetime.datetime(2018, 3, 1), [0, 1, 2]),
+        ('filter end only, inclusive', None, datetime.datetime(2018, 3, 1), [0, 1, 2]),
         ('filter both', datetime.datetime(2018, 2, 15), datetime.datetime(2018, 4, 15), [2, 3]),
     ])
     def test_filtering(self, name, start_time, end_time, expected_indices):
