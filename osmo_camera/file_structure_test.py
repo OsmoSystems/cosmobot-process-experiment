@@ -88,3 +88,11 @@ class TestIsoDatetimeAndRestFromFilename:
         expected = datetime(2018, 1, 2, 13, 14, 15)
 
         assert actual == expected
+
+
+class TestFilenameHasFormat:
+    def test_filename_has_correct_datetime_format:
+        assert module.datetime_from_filename('2018-01-02--13-14-15-something-something.jpeg') is True
+
+    def test_filename_has_not_correct_datetime_format:
+        assert module.datetime_from_filename('2018-01-02--13-aa-15-something-something.jpeg') is False
