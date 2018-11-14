@@ -59,6 +59,7 @@ class TestSyncFromS3:
         # triple indexing: list of calls -> list of call args -> check_call argument 0 is itself a list.
         actual_s3_command = mock_check_call.call_args[0][0][0]
         assert 'aws s3 sync' in actual_s3_command
+        assert 'local_sync_path/experiment_directory' in actual_s3_command
         assert str(mocker.sentinel.filename) in actual_s3_command
 
 
