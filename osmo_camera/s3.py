@@ -1,9 +1,7 @@
 import datetime
 import os
-import platform
 import re
 from subprocess import check_call
-import tempfile
 from typing import Sequence, List, Optional
 
 import boto
@@ -39,7 +37,7 @@ def _list_camera_sensor_experiments_s3_bucket_contents(directory_name: str = '')
     return list([key.name for key in keys])
 
 
-def _download_s3_files(experiment_directory: str, file_names: List[str], output_directory: str) -> None:
+def _download_s3_files(experiment_directory: str, file_names: List[str], output_directory_path: str) -> None:
     ''' Download specific filenames from within an experiment directory on s3.
     '''
 
@@ -51,7 +49,7 @@ def _download_s3_files(experiment_directory: str, file_names: List[str], output_
     # Would be better to use boto, but neither boto nor boto3 support sync
     # https://github.com/boto/boto3/issues/358
     command = (
-        f'aws s3 sync s3://{CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME}/{experiment_directory} {output_directory} '
+        f'aws s3 sync s3://{CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME}/{experiment_directory} {output_directory_path} '
         f'--exclude "*" {include_args}'
     )
     check_call([command], shell=True)
@@ -178,50 +176,31 @@ def _filter_to_time_range(
     return images_info[(images_info['Timestamp'] >= start_time) & (images_info['Timestamp'] <= end_time)]
 
 
-def _get_local_experiment_dir(
-    experiment_directory,
-    local_sync_dir: Optional[str] = None
-):
-    ''' Get the directory where we should place experiment output
-    Args:
-        experiment_directory: Directory name for this particular experiment. Not a full path
-        local_sync_dir: Local parent path that contains experiments. If provided, should exist already
-            If not provided, we will use a recommended temp directory based on your system.
-    '''
-    if not local_sync_dir:
-        # On MacOS (Darwin), tempfile.gettempdir() returns a weird auto-generated directory
-        # e.g. '/var/folders/nj/269977hs0_96bttwj2gs_jhhp48z54/T'
-        # https://stackoverflow.com/questions/847850/cross-platform-way-of-getting-temp-directory-in-python
-        local_sync_dir = '/tmp' if platform.system() == 'Darwin' else tempfile.gettempdir()
-
-    return os.path.join(local_sync_dir, experiment_directory)
-
-
 def sync_from_s3(
     experiment_directory,
+    local_sync_directory_path: str,
     downsample_ratio: int = 1,
     start_time: Optional[datetime.datetime] = None,
     end_time: Optional[datetime.datetime] = None,
-    local_sync_dir: Optional[str] = None
 ) -> str:
     ''' Syncs raw images from s3 to a local tmp directory (can optionally be provided)
 
     Args:
         experiment_dir: The name of the experiment directory in s3
+        local_sync_directory_path: The full path of the local parent directory which contains experiment sync
+            directories.
         downsample_ratio: Ratio to downsample images by -
             If downsample_ratio = 1, keep all images (default)
             If downsample_ratio = 2, keep half of the capture groups
             If downsample_ratio = 3, keep one in three groups
         start_time: if provided, no images before this datetime will by synced
         end_time: if provided, no images after this datetime will by synced
-        local_sync_dir: If provided, the full path of the local parent directory which contains experiment sync
-            directories. If not provided, a temporary directory will be used.
 
     Returns:
         Full path of the tmp directory for this experiment
     '''
 
-    local_experiment_dir = _get_local_experiment_dir(experiment_directory, local_sync_dir)
+    local_experiment_dir = os.path.join(local_sync_directory_path, experiment_directory)
 
     images_info = _get_images_info(experiment_directory)
     downsampled_image_info = _downsample(images_info, downsample_ratio)

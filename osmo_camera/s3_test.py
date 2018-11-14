@@ -1,5 +1,4 @@
 import datetime
-import os
 
 import pandas as pd
 import pytest
@@ -8,27 +7,11 @@ from . import s3 as module
 
 
 @pytest.fixture
-def mock_path_join(mocker):
-    mock_path_join = mocker.patch('os.path.join')
-    mock_path_join.return_value = 'sync_dir_location'
-
-    return mock_path_join
-
-
-@pytest.fixture
 def mock_check_call(mocker):
     mock_check_call = mocker.patch.object(module, 'check_call')
     mock_check_call.return_value = None
 
     return mock_check_call
-
-
-@pytest.fixture
-def mock_platform(mocker):
-    mock_gettempdir = mocker.patch('tempfile.gettempdir')
-    mock_gettempdir.return_value = 'tempfile.gettempdir() result'
-
-    return mocker.patch('platform.system')
 
 
 @pytest.fixture
@@ -51,8 +34,7 @@ class TestSyncFromS3:
         self,
         mocker,
         mock_check_call,
-        mock_get_images_info,
-        mock_path_join
+        mock_get_images_info
     ):
         ''' the method under test just calls a lot of sub-functions, so this is a smoke test only. '''
         mock_get_images_info.return_value = pd.DataFrame([
@@ -64,7 +46,8 @@ class TestSyncFromS3:
             }
         ])
         module.sync_from_s3(
-            mocker.sentinel.experiment_directory,
+            'experiment_directory',
+            'local_sync_path',
             downsample_ratio=1,
             start_time=datetime.datetime(2018, 1, 1),
             end_time=datetime.datetime(2018, 1, 3),
@@ -76,49 +59,28 @@ class TestSyncFromS3:
         # triple indexing: list of calls -> list of call args -> check_call argument 0 is itself a list.
         actual_s3_command = mock_check_call.call_args[0][0][0]
         assert 'aws s3 sync' in actual_s3_command
+        assert 'local_sync_path/experiment_directory' in actual_s3_command
         assert str(mocker.sentinel.filename) in actual_s3_command
 
 
 class TestDownloadS3Files:
-    def test_calls_s3_sync_command(self, mock_check_call, mock_path_join):
+    def test_calls_s3_sync_command(self, mock_check_call):
         module._download_s3_files(
             experiment_directory='my_experiment',
             file_names=[
                 'image1.jpeg',
                 'image2.jpeg',
             ],
-            output_directory='local_sync_dir'
+            output_directory_path='local_sync_path'
         )
 
         expected_command = (
-            'aws s3 sync s3://camera-sensor-experiments/my_experiment local_sync_dir '
+            'aws s3 sync s3://camera-sensor-experiments/my_experiment local_sync_path '
             '--exclude "*" '
             '--include "image1.jpeg" --include "image2.jpeg"'
         )
 
         mock_check_call.assert_called_with([expected_command], shell=True)
-
-
-class TestGetLocalExperimentDir:
-    @pytest.mark.parametrize("name,local_sync_dir,os_name,expected_sync_dir", [
-        ('syncs to local_sync_dir if provided', 'local_sync_dir', 'Not Darwin', 'local_sync_dir'),
-        ('syncs to gettempdir if not mac ', None, 'Not Darwin', 'tempfile.gettempdir() result'),
-        ('syncs to /tmp if mac ', None, 'Darwin', '/tmp'),
-    ])
-    def test_local_sync_dir_conditions(
-        self,
-        name,
-        local_sync_dir,
-        os_name,
-        expected_sync_dir,
-        mock_path_join,
-        mock_platform,
-    ):
-        mock_platform.return_value = os_name
-        actual = module._get_local_experiment_dir('experiment_directory', local_sync_dir)
-
-        expected = os.path.join(expected_sync_dir, 'experiment_directory')
-        assert actual == expected
 
 
 class TestGetImagesInfo:
