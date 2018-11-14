@@ -243,33 +243,22 @@ class TestListExperiments:
         assert module.list_experiments() == ['2018-01-01--12-02-01_directory_2', '2018-01-01--12-01-01_directory_1']
 
 
-class TestAlterExperimentList:
 
-    unordered_unfiltered_list_for_tests = [
-        '20180902103709_temperature', '20180902103940_temperature',
-        '2018-11-08--11-25-27-Pi4E82-test', '2018-11-08--11-26-00-Pi4E82-test'
-    ]
+UNORDERED_UNFILTERED_LIST_FOR_TESTS = [
+    '20180902103709_temperature',
+    '20180902103940_temperature',
+    '2018-11-08--11-25-27-Pi4E82-test',
+    '2018-11-08--11-26-00-Pi4E82-test',
+    'should_be_filtered.jpng'
+]
 
-    def test_returns_ordered_list(self):
-        actual_ordered_list = module.order_experiment_list_by_isodate_formats(self.unordered_unfiltered_list_for_tests)
-        expected_ordered_list = [
-            '2018-11-08--11-26-00-Pi4E82-test', '2018-11-08--11-25-27-Pi4E82-test',
-            '20180902103940_temperature', '20180902103709_temperature'
-        ]
-        assert actual_ordered_list == expected_ordered_list
+
+class TestFilterAndSortExperimentList:
 
     def test_returns_filtered_list_for_new_isodate_format(self):
-        actual_filtered_list = module.filter_and_reverse_experiment_list(
-            self.unordered_unfiltered_list_for_tests,
-            r'^\d{4}-\d\d-\d\d.'
-        )
-        expected_filtered_list = ['2018-11-08--11-26-00-Pi4E82-test', '2018-11-08--11-25-27-Pi4E82-test']
-        assert actual_filtered_list == expected_filtered_list
-
-    def test_returns_filtered_list_for_old_isodate_format(self):
-        actual_filtered_list = module.filter_and_reverse_experiment_list(
-            self.unordered_unfiltered_list_for_tests,
-            r'^\d{8}.'
-        )
-        expected_filtered_list = ['20180902103940_temperature', '20180902103709_temperature']
+        actual_filtered_list = module._experiment_list_by_isodate_format_date_desc(UNORDERED_UNFILTERED_LIST_FOR_TESTS)
+        expected_filtered_list = [
+            '2018-11-08--11-26-00-Pi4E82-test',
+            '2018-11-08--11-25-27-Pi4E82-test'
+        ]
         assert actual_filtered_list == expected_filtered_list

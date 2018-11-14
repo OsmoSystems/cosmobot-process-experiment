@@ -3,7 +3,6 @@ import os
 import re
 from subprocess import check_call
 from typing import Sequence, List, Optional
-
 import boto
 import numpy as np
 import pandas as pd
@@ -211,21 +210,9 @@ def sync_from_s3(
     return local_experiment_dir
 
 
-def filter_and_reverse_experiment_list(experiment_names, regex):
-    # Filter with regex and reverse list of directories to sort most recent first
-    # (assumes directory name starts with ISO date)
-    return list(reversed([
-        experiment_name for experiment_name in experiment_names if re.search(regex, experiment_name)
-    ]))
-
-
-def order_experiment_list_by_isodate_formats(experiment_names):
-    experiment_names_with_hyphens_in_isodate = filter_and_reverse_experiment_list(
-        experiment_names,
-        r'^\d{4}-\d\d-\d\d.'
-    )
-    experiment_names_without_hyphens_in_isodate = filter_and_reverse_experiment_list(experiment_names, r'^\d{8}.')
-    return experiment_names_with_hyphens_in_isodate + experiment_names_without_hyphens_in_isodate
+def _experiment_list_by_isodate_format_date_desc(experiment_names):
+    filtered_list = [experiment_name for experiment_name in experiment_names if file_structure.filename_has_correct_datetime_format(experiment_name)]
+    return sorted(filtered_list, reverse=True)
 
 
 def list_experiments():
@@ -239,4 +226,4 @@ def list_experiments():
 
     experiment_names = [directory.rstrip('/') for directory in experiment_directories]
 
-    return order_experiment_list_by_isodate_formats(experiment_names)
+    return _experiment_list_by_isodate_format_date_desc(experiment_names)
