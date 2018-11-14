@@ -28,7 +28,7 @@ def _save_summary_statistics_csv(experiment_dir, image_summary_data):
 
 def process_experiment(
     experiment_dir,
-    raspiraw_location,
+    raspiraw_parent_path,
     local_sync_path,
     ROI_definitions=[],
     sync_downsample_ratio=1,
@@ -45,7 +45,7 @@ def process_experiment(
 
     Args:
         experiment_dir: The name of the experiment directory in s3
-        raspiraw_location: The path to the local directory where raspiraw is installed
+        raspiraw_parent_path: The parent directory raspiraw is installed under (one level above your raspiraw/ checkout)
         local_sync_path: The path to the local directory where images will be synced and processed
         ROI_definitions: Optional. Pre-selected ROI_definitions: a map of {ROI_name: ROI_definition}
             Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI:
@@ -75,7 +75,7 @@ def process_experiment(
     )
 
     print('2. Convert all images from raw to dng...')
-    raw.convert.to_dng(raspiraw_location, raw_images_dir=raw_images_dir)
+    raw.convert.to_dng(raspiraw_parent_path, raw_images_dir=raw_images_dir)
 
     # Open and display the first image for reference
     first_rgb_image = _open_first_image(raw_images_dir)
