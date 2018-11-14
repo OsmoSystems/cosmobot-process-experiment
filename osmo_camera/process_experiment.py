@@ -29,8 +29,8 @@ def _save_summary_statistics_csv(experiment_dir, image_summary_data):
 def process_experiment(
     experiment_dir,
     raspiraw_location,
+    local_sync_path,
     ROI_definitions=[],
-    local_sync_dir=None,
     sync_downsample_ratio=1,
     sync_start_time=None,
     sync_end_time=None,
@@ -45,19 +45,19 @@ def process_experiment(
 
     Args:
         experiment_dir: The name of the experiment directory in s3
-        raspiraw_location: The name of the local directory where raspiraw is installed
+        raspiraw_location: The path to the local directory where raspiraw is installed
+        local_sync_path: The path to the local directory where images will be synced and processed
         ROI_definitions: Optional. Pre-selected ROI_definitions: a map of {ROI_name: ROI_definition}
             Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI:
                 (start_col, start_row, cols, rows)
-        local_sync_dir: Optional. The name of the local directory where images will be synced and processed
         sync_downsample_ratio: Optional. Ratio to downsample images by when syncing:
             If downsample_ratio = 1, keep all images (default)
             If downsample_ratio = 2, keep half of the images for each variant
             If downsample_ratio = 3, keep one in three images
         sync_start_time: Optional. If provided, no images before this datetime will by synced
         sync_end_time: Optional. If provided, no images after this datetime will by synced
-        save_summary_images: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of local_sync_dir
-        save_ROIs: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of local_sync_dir
+        save_summary_images: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of local_sync_path
+        save_ROIs: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of local_sync_path
 
     Returns:
         image_summary_data: A pandas DataFrame of summary statistics
@@ -65,13 +65,13 @@ def process_experiment(
 
         Saves the image_summary_data as a .csv in the directory where this function was called.
     '''
-    print('1. Sync images from s3 to local tmp directory...')
+    print(f'1. Sync images from s3 to local directory within {local_sync_path}...')
     raw_images_dir = sync_from_s3(
         experiment_dir,
+        local_sync_path=local_sync_path,
         downsample_ratio=sync_downsample_ratio,
         start_time=sync_start_time,
         end_time=sync_end_time,
-        local_sync_dir=local_sync_dir
     )
 
     print('2. Convert all images from raw to dng...')

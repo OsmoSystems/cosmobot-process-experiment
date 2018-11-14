@@ -31,6 +31,7 @@ class TestProcessExperiment:
         actual_image_summary_data, actual_ROI_definitions = module.process_experiment(
             sentinel.experiment_dir,
             sentinel.raspiraw_location,
+            sentinel.local_sync_path,
             ROI_definitions=sentinel.ROI_definitions,
         )
 
@@ -43,6 +44,7 @@ class TestProcessExperiment:
         actual_image_summary_data, actual_ROI_definitions = module.process_experiment(
             sentinel.experiment_dir,
             sentinel.raspiraw_location,
+            sentinel.local_sync_path,
             ROI_definitions=None,
         )
 
@@ -53,6 +55,7 @@ class TestProcessExperiment:
         actual_image_summary_data, actual_ROI_definitions = module.process_experiment(
             sentinel.experiment_dir,
             sentinel.raspiraw_location,
+            sentinel.local_sync_path,
             ROI_definitions=sentinel.ROI_definitions,
         )
 
@@ -63,6 +66,7 @@ class TestProcessExperiment:
         module.process_experiment(
             sentinel.experiment_dir,
             sentinel.raspiraw_location,
+            sentinel.local_sync_path,
             ROI_definitions=sentinel.ROI_definitions,
             save_summary_images=True,
         )
@@ -73,6 +77,7 @@ class TestProcessExperiment:
         module.process_experiment(
             sentinel.experiment_dir,
             sentinel.raspiraw_location,
+            sentinel.local_sync_path,
             ROI_definitions=sentinel.ROI_definitions,
         )
 
