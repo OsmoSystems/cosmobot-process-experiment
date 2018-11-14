@@ -65,5 +65,5 @@ def filename_has_correct_datetime_format(filename, datetime_format=_FILENAME_DAT
         expected_datetime_len = len(datetime.datetime.now().strftime(datetime_format))
         datetime.datetime.strptime(filename[:expected_datetime_len], datetime_format)
         return True
-    except ValueError as e:
+    except ValueError:
         return False

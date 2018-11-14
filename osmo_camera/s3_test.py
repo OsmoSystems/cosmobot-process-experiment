@@ -243,7 +243,6 @@ class TestListExperiments:
         assert module.list_experiments() == ['2018-01-01--12-02-01_directory_2', '2018-01-01--12-01-01_directory_1']
 
 
-
 UNORDERED_UNFILTERED_LIST_FOR_TESTS = [
     '20180902103709_temperature',
     '20180902103940_temperature',

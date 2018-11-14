@@ -1,6 +1,5 @@
 import datetime
 import os
-import re
 from subprocess import check_call
 from typing import Sequence, List, Optional
 import boto
@@ -211,7 +210,10 @@ def sync_from_s3(
 
 
 def _experiment_list_by_isodate_format_date_desc(experiment_names):
-    filtered_list = [experiment_name for experiment_name in experiment_names if file_structure.filename_has_correct_datetime_format(experiment_name)]
+    filtered_list = [
+        experiment_name for experiment_name in experiment_names
+        if file_structure.filename_has_correct_datetime_format(experiment_name)
+    ]
     return sorted(filtered_list, reverse=True)
 
 
