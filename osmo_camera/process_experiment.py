@@ -50,6 +50,7 @@ def process_experiment(
         ROI_definitions: Optional. Pre-selected ROI_definitions: a map of {ROI_name: ROI_definition}
             Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI:
                 (start_col, start_row, cols, rows)
+            If not provided, we'll present you with a GUI to select ROI definitions.
         sync_downsample_ratio: Optional. Ratio to downsample images by when syncing:
             If downsample_ratio = 1, keep all images (default)
             If downsample_ratio = 2, keep half of the images for each variant
