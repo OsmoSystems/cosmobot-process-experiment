@@ -178,7 +178,7 @@ def _filter_to_time_range(
 
 def sync_from_s3(
     experiment_directory,
-    local_sync_path: str,
+    local_sync_directory_path: str,
     downsample_ratio: int = 1,
     start_time: Optional[datetime.datetime] = None,
     end_time: Optional[datetime.datetime] = None,
@@ -187,7 +187,7 @@ def sync_from_s3(
 
     Args:
         experiment_dir: The name of the experiment directory in s3
-        local_sync_path: The full path of the local parent directory which contains experiment sync
+        local_sync_directory_path: The full path of the local parent directory which contains experiment sync
             directories.
         downsample_ratio: Ratio to downsample images by -
             If downsample_ratio = 1, keep all images (default)
@@ -200,7 +200,7 @@ def sync_from_s3(
         Full path of the tmp directory for this experiment
     '''
 
-    local_experiment_dir = os.path.join(local_sync_path, experiment_directory)
+    local_experiment_dir = os.path.join(local_sync_directory_path, experiment_directory)
 
     images_info = _get_images_info(experiment_directory)
     downsampled_image_info = _downsample(images_info, downsample_ratio)

@@ -29,7 +29,7 @@ def _save_summary_statistics_csv(experiment_dir, image_summary_data):
 def process_experiment(
     experiment_dir,
     raspiraw_parent_path,
-    local_sync_path,
+    local_sync_directory_path,
     ROI_definitions=[],
     sync_downsample_ratio=1,
     sync_start_time=None,
@@ -46,7 +46,7 @@ def process_experiment(
     Args:
         experiment_dir: The name of the experiment directory in s3
         raspiraw_parent_path: The parent directory raspiraw is installed under (one level above your raspiraw/ checkout)
-        local_sync_path: The path to the local directory where images will be synced and processed
+        local_sync_directory_path: The path to the local directory where images will be synced and processed
         ROI_definitions: Optional. Pre-selected ROI_definitions: a map of {ROI_name: ROI_definition}
             Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI:
                 (start_col, start_row, cols, rows)
@@ -57,8 +57,9 @@ def process_experiment(
             If downsample_ratio = 3, keep one in three images
         sync_start_time: Optional. If provided, no images before this datetime will by synced
         sync_end_time: Optional. If provided, no images after this datetime will by synced
-        save_summary_images: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of local_sync_path
-        save_ROIs: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of local_sync_path
+        save_summary_images: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of
+            local_sync_directory_path
+        save_ROIs: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of local_sync_directory_path
 
     Returns:
         image_summary_data: A pandas DataFrame of summary statistics
@@ -66,10 +67,10 @@ def process_experiment(
 
         Saves the image_summary_data as a .csv in the directory where this function was called.
     '''
-    print(f'1. Sync images from s3 to local directory within {local_sync_path}...')
+    print(f'1. Sync images from s3 to local directory within {local_sync_directory_path}...')
     raw_images_dir = sync_from_s3(
         experiment_dir,
-        local_sync_path=local_sync_path,
+        local_sync_directory_path=local_sync_directory_path,
         downsample_ratio=sync_downsample_ratio,
         start_time=sync_start_time,
         end_time=sync_end_time,
