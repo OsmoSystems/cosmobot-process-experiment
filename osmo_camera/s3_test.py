@@ -70,7 +70,7 @@ class TestDownloadS3Files:
                 'image1.jpeg',
                 'image2.jpeg',
             ],
-            output_directory='local_sync_path'
+            output_directory_path='local_sync_path'
         )
 
         expected_command = (

@@ -37,7 +37,7 @@ def _list_camera_sensor_experiments_s3_bucket_contents(directory_name: str = '')
     return list([key.name for key in keys])
 
 
-def _download_s3_files(experiment_directory: str, file_names: List[str], output_directory: str) -> None:
+def _download_s3_files(experiment_directory: str, file_names: List[str], output_directory_path: str) -> None:
     ''' Download specific filenames from within an experiment directory on s3.
     '''
 
@@ -49,7 +49,7 @@ def _download_s3_files(experiment_directory: str, file_names: List[str], output_
     # Would be better to use boto, but neither boto nor boto3 support sync
     # https://github.com/boto/boto3/issues/358
     command = (
-        f'aws s3 sync s3://{CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME}/{experiment_directory} {output_directory} '
+        f'aws s3 sync s3://{CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME}/{experiment_directory} {output_directory_path} '
         f'--exclude "*" {include_args}'
     )
     check_call([command], shell=True)
