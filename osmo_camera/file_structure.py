@@ -60,10 +60,17 @@ def datetime_from_filename(filename: str) -> datetime.datetime:
     return datetime.datetime.strptime(filename[:FILENAME_TIMESTAMP_LENGTH], _FILENAME_DATETIME_FORMAT)
 
 
-def filename_has_correct_datetime_format(filename, datetime_format=_FILENAME_DATETIME_FORMAT):
+def filename_has_correct_datetime_format(filename):
+    ''' Is an ISO formatted date a substring at the start of filename
+
+    Arguments:
+        filename: filename to validate
+    Returns:
+        a true/false value that is used to validate file format is correct
+    '''
+
     try:
-        expected_datetime_len = len(datetime.datetime.now().strftime(datetime_format))
-        datetime.datetime.strptime(filename[:expected_datetime_len], datetime_format)
+        datetime_from_filename(filename)
         return True
     except ValueError:
         return False

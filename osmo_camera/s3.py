@@ -210,6 +210,7 @@ def sync_from_s3(
 
 
 def _experiment_list_by_isodate_format_date_desc(experiment_names):
+    # Filter only filenames that contain the correct iso date format and reverse, sorting most recent first
     filtered_list = [
         experiment_name for experiment_name in experiment_names
         if file_structure.filename_has_correct_datetime_format(experiment_name)

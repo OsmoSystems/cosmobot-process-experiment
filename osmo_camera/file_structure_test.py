@@ -91,8 +91,12 @@ class TestIsoDatetimeAndRestFromFilename:
 
 
 class TestFilenameHasFormat:
-    def test_filename_has_correct_datetime_format(self):
-        assert module.filename_has_correct_datetime_format('2018-01-02--13-14-15-something-something.jpeg') is True
 
-    def test_filename_has_not_correct_datetime_format(self):
-        assert module.filename_has_correct_datetime_format('2018-01-02--13-aa-15-something-something.jpeg') is False
+    @pytest.mark.parametrize("filename, truthiness", [
+        ('2018-01-02--13-14-15-something-something.jpeg', True),
+        ('2018-01-02--13-aa-15-something-something.jpeg', False),
+        ('2018-01-02--13-14-1-hi-hi.jpeg', False),
+        ('prefix-2018-01-02--13-14-15something-something.jpeg', False),
+    ])
+    def test_filename_has_correct_datetime_format(self, filename, truthiness):
+        assert module.filename_has_correct_datetime_format(filename) is truthiness
