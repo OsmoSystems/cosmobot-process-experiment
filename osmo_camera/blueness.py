@@ -1,8 +1,5 @@
-from osmo_camera import dng, rgb, correction
-
-import correction.dark_frame as dark_frame
-import correction.dark_frame_correction, flat_field_correction
-from correction import intensity_correction
+from osmo_camera import dng, rgb
+from osmo_camera.correction import dark_frame, flat_field, intensity
 
 
 def _calculate_blueness(input_rgb, roi):
@@ -13,8 +10,8 @@ def _calculate_blueness(input_rgb, roi):
 
 def images_to_bluenesses(
     dng_image_paths,
-    target_roi,
-    intensity_correction_roi
+    roi_for_blueness,
+    roi_for_intensity_correction,
 ):
     ''' Process all DNGs through dark frame, flat field, and intensity correction (Stubbed)
 
@@ -27,28 +24,43 @@ def images_to_bluenesses(
         A dictionary of blue values that is keyed by dng file path
     '''
 
-    dark_frame_adjusted_rgb = dict()
-    flat_field_adjusted_rgb = dict()
-    intensity_corrected_rgb = dict()
-    blueness = dict()
+    dark_frame_corrected_rgb_by_filepath = dict()
+    flat_field_corrected_rgb_by_filepath = dict()
+    intensity_corrected_rgb_by_filepath = dict()
+    blueness_by_filepath = dict()
 
+    # open all images and perform dark frame correction
     for image_path in dng_image_paths:
-        dark_frame_adjusted_rgb[image_path] = dark_frame_correction(dng.open(image_path))
+        image_rgb = dng.open.as_rgb(image_path)
+        dark_frame_rgb = image_rgb  # add retrieval later
+        dark_frame_corrected_rgb_by_filepath[image_path] = dark_frame.dark_frame_correction(image_rgb, dark_frame_rgb)
 
+    # perform flat field correction on all images
     for image_path in dng_image_paths:
-        flat_field_adjusted_rgb[image_path] = flat_field_correction(dark_frame_adjusted_rgb[image_path])
+        dark_frame_corrected_rgb = dark_frame_corrected_rgb_by_filepath[image_path]
+        dark_frame_rgb = dark_frame_corrected_rgb
+        flat_field_rgb = dark_frame_corrected_rgb
 
+        flat_field_corrected_rgb_by_filepath[image_path] = flat_field.flat_field_correction(
+            dark_frame_corrected_rgb,
+            dark_frame_rgb,
+            flat_field_rgb
+        )
+
+    # perform intensity correction on all images
     for image_path in dng_image_paths:
         intensity_correction_roi_spatial_average = rgb.average.spatial_average_of_roi(
-            flat_field_adjusted_rgb,
-            intensity_correction_roi
+            flat_field_corrected_rgb_by_filepath[image_path],
+            roi_for_intensity_correction
         )
-        flat_field_adjusted_rgb[image_path] = intensity_correction(
-            intensity_corrected_rgb,
+
+        flat_field_corrected_rgb_by_filepath[image_path] = intensity.intensity_correction(
+            flat_field_corrected_rgb_by_filepath[image_path],
             intensity_correction_roi_spatial_average
         )
 
-    for image_path, corrected_rgb in intensity_corrected_rgb.items():
-        blueness[image_path] = _calculate_blueness(corrected_rgb, target_roi)
+    # calculate those pesky blue values!
+    for image_path, corrected_rgb in intensity_corrected_rgb_by_filepath.items():
+        blueness_by_filepath[image_path] = _calculate_blueness(corrected_rgb, roi_for_blueness)
 
-    return blueness
+    return blueness_by_filepath
