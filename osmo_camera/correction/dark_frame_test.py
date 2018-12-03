@@ -9,16 +9,10 @@ def test_correction_with_dark_frame():
         [19, 20, 21, 22]
     ])
 
-    dark_frame_rgb = np.array([
-        [1, 2, 3, 4],
-        [5, 6, 7, 8],
-        [9, 10, 11, 12]
-    ])
-
     expected = [
-        [10, 10, 10, 10],
-        [10, 10, 10, 10],
-        [10, 10, 10, 10]
+        [11, 12, 13, 14],
+        [15, 16, 17, 18],
+        [19, 20, 21, 22]
     ]
 
-    np.testing.assert_array_equal(module.dark_frame_correction(input_rgb, dark_frame_rgb), expected)
+    np.testing.assert_array_equal(module.apply_dark_frame_correction(input_rgb, input_rgb), expected)
