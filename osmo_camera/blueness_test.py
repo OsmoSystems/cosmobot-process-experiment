@@ -9,9 +9,9 @@ from osmo_camera import blueness as module
 def mock_correction_effects(mocker):
     mocker.patch.object(dng.open, 'as_rgb')
     mocker.patch.object(rgb.average, 'spatial_average_of_roi').return_value = None
-    mocker.patch.object(dark_frame, 'dark_frame_correction').return_value = None
-    mocker.patch.object(flat_field, 'flat_field_correction').return_value = None
-    mocker.patch.object(intensity, 'intensity_correction').return_value = None
+    mocker.patch.object(dark_frame, 'apply_dark_frame_correction').return_value = None
+    mocker.patch.object(flat_field, 'apply_flat_field_correction').return_value = None
+    mocker.patch.object(intensity, 'apply_intensity_correction').return_value = None
 
 
 def test_images_to_bluenesses(mock_correction_effects):
