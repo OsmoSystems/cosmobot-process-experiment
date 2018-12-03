@@ -62,3 +62,6 @@ target/
 
 # Mypy type checking
 .mypy_cache/
+
+# PyCharm
+.idea
