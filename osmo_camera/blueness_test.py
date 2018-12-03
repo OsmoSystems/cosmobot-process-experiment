@@ -1,5 +1,4 @@
 import pytest
-import numpy as np
 from osmo_camera import dng, rgb
 from osmo_camera.correction import dark_frame, flat_field, intensity
 
@@ -9,14 +8,10 @@ from osmo_camera import blueness as module
 @pytest.fixture
 def mock_correction_effects(mocker):
     mocker.patch.object(dng.open, 'as_rgb')
-    mocker.patch.object(rgb.average, 'spatial_average_of_roi').return_value = [0]
-    mocker.patch.object(dark_frame, 'dark_frame_correction').return_value = [0]
-    mocker.patch.object(flat_field, 'flat_field_correction').return_value = [0]
-    mocker.patch.object(intensity, 'intensity_correction').return_value = np.array([
-        [11, 12, 13, 14],
-        [15, 16, 17, 18],
-        [19, 20, 21, 22]
-    ])
+    mocker.patch.object(rgb.average, 'spatial_average_of_roi').return_value = None
+    mocker.patch.object(dark_frame, 'dark_frame_correction').return_value = None
+    mocker.patch.object(flat_field, 'flat_field_correction').return_value = None
+    mocker.patch.object(intensity, 'intensity_correction').return_value = None
 
 
 def test_images_to_bluenesses(mock_correction_effects):
