@@ -1,6 +1,7 @@
 import numpy as np
 import osmo_camera.correction.intensity as module
 
+
 def test_intensity_correction():
     input_rgb = np.array([
         [1, 2, 3, 4],

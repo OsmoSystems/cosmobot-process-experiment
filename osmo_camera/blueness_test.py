@@ -5,6 +5,7 @@ from osmo_camera.correction import dark_frame, flat_field, intensity
 
 from osmo_camera import blueness as module
 
+
 @pytest.fixture
 def mock_correction_effects(mocker):
     mocker.patch.object(dng.open, 'as_rgb')
@@ -34,6 +35,3 @@ def test_images_to_bluenesses(mock_correction_effects):
     print(bluenesses)
 
     assert True
-
-
-test_images_to_bluenesses(mock_correction_effects)
