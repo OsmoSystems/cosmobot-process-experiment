@@ -2,6 +2,7 @@ from datetime import datetime
 
 from osmo_camera.s3 import sync_from_s3
 from osmo_camera.process_images import process_images
+# from osmo_camera.blueness import images_to_bluenesses
 from osmo_camera.select_ROI import prompt_for_ROI_selection, draw_ROIs_on_image
 from osmo_camera.summary_images import generate_summary_images
 from osmo_camera.file_structure import get_files_with_extension, iso_datetime_for_filename
@@ -102,4 +103,11 @@ def process_experiment(
     image_summary_data = process_images(raw_images_dir, ROI_definitions, save_ROIs)
     _save_summary_statistics_csv(experiment_dir, image_summary_data)
 
-    return image_summary_data, ROI_definitions
+    print('6. Calculate bluenesses')
+    # bluenesses = images_to_bluenesses(
+    #     ['./1.dng', './2.dng'],
+    #     ROI_definitions,
+    #     (0, 0, 0, 0)
+    # )
+
+    return image_summary_data, ROI_definitions  # , bluenesses
