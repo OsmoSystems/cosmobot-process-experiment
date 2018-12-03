@@ -1,12 +1,15 @@
+import numpy as np
 from datetime import datetime
 
 from osmo_camera.s3 import sync_from_s3
 from osmo_camera.process_images import process_images
-# from osmo_camera.blueness import images_to_bluenesses
+from osmo_camera.correction import dark_frame, flat_field, intensity
+from osmo_camera.blueness import calculate_blueness
 from osmo_camera.select_ROI import prompt_for_ROI_selection, draw_ROIs_on_image
 from osmo_camera.summary_images import generate_summary_images
 from osmo_camera.file_structure import get_files_with_extension, iso_datetime_for_filename
-from osmo_camera import raw, dng, jupyter
+from osmo_camera import raw, dng, jupyter, rgb
+
 
 
 def _open_first_image(raw_images_dir):
@@ -32,6 +35,7 @@ def process_experiment(
     raspiraw_parent_path,
     local_sync_directory_path,
     ROI_definitions=[],
+    ROI_for_intensity_correction=(0,0,0,0),
     sync_downsample_ratio=1,
     sync_start_time=None,
     sync_end_time=None,
@@ -43,6 +47,14 @@ def process_experiment(
         2. Convert raw images to .DNG
         3. Select ROIs (if not provided)
         4. Process all ROIs on all images
+        5. Process images into summary statistics...
+        ----- Begin applying corrections and calculate bluenesses -----
+        6. Get DNG filepaths
+        7. Apply dark frame correction
+        8. Apply flat field correction
+        9. Apply intensity correction
+        10. Calculate bluenesses
+        ----- End applying corrections and calculating bluenesses -----
 
     Args:
         experiment_dir: The name of the experiment directory in s3
@@ -103,11 +115,56 @@ def process_experiment(
     image_summary_data = process_images(raw_images_dir, ROI_definitions, save_ROIs)
     _save_summary_statistics_csv(experiment_dir, image_summary_data)
 
-    print('6. Calculate bluenesses')
-    # bluenesses = images_to_bluenesses(
-    #     ['./1.dng', './2.dng'],
-    #     ROI_definitions,
-    #     (0, 0, 0, 0)
-    # )
+    # Image corrections and blueness calculation
+    dark_frame_corrected_rgb_by_filepath = dict()
+    flat_field_corrected_rgb_by_filepath = dict()
+    intensity_corrected_rgb_by_filepath = dict()
+    blueness_by_filepath = dict()
 
-    return image_summary_data, ROI_definitions  # , bluenesses
+    print('6. Get DNG Filepaths')
+    dng_image_paths = get_files_with_extension(raw_images_dir, '.dng')
+
+    print('7. Apply dark frame correction')
+    # open all images and perform dark frame correction
+    for image_path in dng_image_paths:
+        image_rgb = dng.open.as_rgb(image_path)
+        dark_frame_rgb = np.zeros(image_rgb.shape)
+        dark_frame_corrected_rgb_by_filepath[image_path] = dark_frame.apply_dark_frame_correction(
+            image_rgb,
+            dark_frame_rgb
+        )
+
+    print('8. Apply flat field correction')
+    for image_path in dark_frame_corrected_rgb_by_filepath:
+        dark_frame_corrected_rgb = np.array(dark_frame_corrected_rgb_by_filepath[image_path])
+        dark_frame_rgb = np.zeros(dark_frame_corrected_rgb.shape)
+        flat_field_rgb = np.zeros(dark_frame_corrected_rgb.shape)
+
+        flat_field_corrected_rgb_by_filepath[image_path] = flat_field.apply_flat_field_correction(
+            dark_frame_corrected_rgb,
+            dark_frame_rgb,
+            flat_field_rgb
+        )
+
+    print('9. Apply intensity correction')
+    for image_path in flat_field_corrected_rgb_by_filepath:
+        intensity_correction_roi_spatial_average = rgb.average.spatial_average_of_roi(
+            flat_field_corrected_rgb_by_filepath[image_path],
+            ROI_for_intensity_correction
+        )
+
+        intensity_corrected_rgb_by_filepath[image_path] = intensity.apply_intensity_correction(
+            flat_field_corrected_rgb_by_filepath[image_path],
+            intensity_correction_roi_spatial_average
+        )
+
+    print('10. Calculate bluenesses')
+    for image_path, corrected_rgb in intensity_corrected_rgb_by_filepath.items():
+        bluenesses = []
+
+        for ROI in ROI_definitions:
+            bluenesses.append(calculate_blueness(corrected_rgb, ROI))
+
+        blueness_by_filepath[image_path] = np.mean(bluenesses)
+
+    return image_summary_data, ROI_definitions, blueness_by_filepath
