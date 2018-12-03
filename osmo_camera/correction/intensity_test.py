@@ -18,4 +18,4 @@ def test_intensity_correction():
     ]
 
     actual = module.intensity_correction(input_rgb, correction_factor)
-    np.testing.assert_array_equal(actual, expected)
+    np.testing.assert_array_almost_equal(actual, expected, decimal=1)
