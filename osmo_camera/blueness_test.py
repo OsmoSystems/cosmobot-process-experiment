@@ -32,6 +32,4 @@ def test_images_to_bluenesses(mock_correction_effects):
         roi_for_intensity_correction
     )
 
-    print(bluenesses)
-
-    assert True
+    assert bluenesses == {'/1.dng': 0.8, '/2.dng': 0.8}
