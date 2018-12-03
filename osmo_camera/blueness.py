@@ -20,7 +20,7 @@ def images_to_bluenesses(
     Args:
         dng_image_paths: list of file paths for dngs to be processed into a "blue" value
         ROI_definitions: list of ROIs that are averaged for
-        ROI_for_intensity_correction: region to average
+        ROI_for_intensity_correction: region to average and use to correct intensity on `ROI_definitions`
 
     Returns:
         A dictionary of blue values that is keyed by dng file path
@@ -34,7 +34,7 @@ def images_to_bluenesses(
     # open all images and perform dark frame correction
     for image_path in dng_image_paths:
         image_rgb = dng.open.as_rgb(image_path)
-        dark_frame_rgb = image_rgb
+        dark_frame_rgb = np.zeros(image_rgb.shape)
         dark_frame_corrected_rgb_by_filepath[image_path] = dark_frame.apply_dark_frame_correction(
             image_rgb,
             dark_frame_rgb
@@ -42,9 +42,9 @@ def images_to_bluenesses(
 
     # perform flat field correction on all images
     for image_path in dark_frame_corrected_rgb_by_filepath:
-        dark_frame_corrected_rgb = dark_frame_corrected_rgb_by_filepath[image_path]
-        dark_frame_rgb = dark_frame_corrected_rgb
-        flat_field_rgb = dark_frame_corrected_rgb
+        dark_frame_corrected_rgb = np.array(dark_frame_corrected_rgb_by_filepath[image_path])
+        dark_frame_rgb = np.zeros(dark_frame_corrected_rgb.shape)
+        flat_field_rgb = np.zeros(dark_frame_corrected_rgb.shape)
 
         flat_field_corrected_rgb_by_filepath[image_path] = flat_field.apply_flat_field_correction(
             dark_frame_corrected_rgb,
