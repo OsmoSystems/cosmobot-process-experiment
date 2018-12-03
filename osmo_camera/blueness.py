@@ -32,14 +32,14 @@ def images_to_bluenesses(
     # open all images and perform dark frame correction
     for image_path in dng_image_paths:
         image_rgb = dng.open.as_rgb(image_path)
-        dark_frame_rgb = image_rgb  # add retrieval later
+        dark_frame_rgb = image_rgb  # TODO: add retrieval later
         dark_frame_corrected_rgb_by_filepath[image_path] = dark_frame.dark_frame_correction(image_rgb, dark_frame_rgb)
 
     # perform flat field correction on all images
     for image_path in dng_image_paths:
         dark_frame_corrected_rgb = dark_frame_corrected_rgb_by_filepath[image_path]
         dark_frame_rgb = dark_frame_corrected_rgb
-        flat_field_rgb = dark_frame_corrected_rgb
+        flat_field_rgb = dark_frame_corrected_rgb  # TODO: add retrieval later
 
         flat_field_corrected_rgb_by_filepath[image_path] = flat_field.flat_field_correction(
             dark_frame_corrected_rgb,
@@ -54,7 +54,7 @@ def images_to_bluenesses(
             roi_for_intensity_correction
         )
 
-        flat_field_corrected_rgb_by_filepath[image_path] = intensity.intensity_correction(
+        intensity_corrected_rgb_by_filepath[image_path] = intensity.intensity_correction(
             flat_field_corrected_rgb_by_filepath[image_path],
             intensity_correction_roi_spatial_average
         )
