@@ -30,6 +30,7 @@ def process_experiment(
     experiment_dir,
     raspiraw_parent_path,
     local_sync_directory_path,
+    ROI_definitions=[],
     sync_downsample_ratio=1,
     sync_start_time=None,
     sync_end_time=None,
