@@ -41,7 +41,7 @@ def process_experiment(
         1. Sync raw images from s3
         2. Convert raw images to .DNG
         3. Select ROIs (if not provided)
-        4. Process all ROIs on all images
+        4. (Optional) Save summary images
         5. Process images into summary statistics...
 
     Args:
