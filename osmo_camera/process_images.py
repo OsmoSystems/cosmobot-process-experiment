@@ -111,7 +111,7 @@ def ROI_analysis(rgb_image, dng_image_path, ROI_definitions, ROI_crops_dir=None)
 def correct_images(
     dng_image_paths,
     ROI_definitions=[],
-    ROI_for_intensity_correction=(0,0,0,0),
+    ROI_definition_for_intensity_correction=(0,0,0,0),
 ):
     ''' Process all images from an experiment:
         1. Apply dark frame correction
@@ -121,7 +121,7 @@ def correct_images(
     Args:
         dng_image_paths: list of file paths for dngs to be processed into a "blue" value
         ROI_definitions: list of ROIs that are averaged for
-        ROI_for_intensity_correction: region to average and use to correct intensity on `ROI_definitions`
+        ROI_definition_for_intensity_correction: ROI to average and use to correct intensity on `ROI_definitions`
      Returns:
         A dictionary of intensity corrected rgb images that is keyed by dng file path
     '''
@@ -155,14 +155,9 @@ def correct_images(
 
     print('3. Apply intensity correction')
     for image_path in flat_field_corrected_rgb_by_filepath:
-        intensity_correction_roi_spatial_average = rgb.average.spatial_average_of_roi(
-            flat_field_corrected_rgb_by_filepath[image_path],
-            ROI_for_intensity_correction
-        )
-
         intensity_corrected_rgb_by_filepath[image_path] = intensity.apply_intensity_correction(
             flat_field_corrected_rgb_by_filepath[image_path],
-            intensity_correction_roi_spatial_average
+            ROI_definition_for_intensity_correction
         )
 
     return intensity_corrected_rgb_by_filepath
@@ -193,7 +188,7 @@ def process_images(dng_images_dir, ROI_definitions, save_ROIs=False):
     intensity_corrected_rgb_images = correct_images(
         dng_image_paths,
         ROI_definitions,
-        ROI_for_intensity_correction=dummy_intensity_correction_ROI
+        ROI_definition_for_intensity_correction=dummy_intensity_correction_ROI
     )
 
     processed_images = [
