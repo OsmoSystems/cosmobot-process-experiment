@@ -43,13 +43,6 @@ def process_experiment(
         3. Select ROIs (if not provided)
         4. Process all ROIs on all images
         5. Process images into summary statistics...
-        ----- Begin applying corrections and calculate bluenesses -----
-        6. Get DNG filepaths
-        7. Apply dark frame correction
-        8. Apply flat field correction
-        9. Apply intensity correction
-        10. Calculate bluenesses
-        ----- End applying corrections and calculating bluenesses -----
 
     Args:
         experiment_dir: The name of the experiment directory in s3
