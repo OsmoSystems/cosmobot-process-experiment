@@ -8,7 +8,6 @@ from osmo_camera.file_structure import get_files_with_extension, iso_datetime_fo
 from osmo_camera import raw, dng, jupyter
 
 
-
 def _open_first_image(raw_images_dir):
     # Assumes images have already been converted to .DNGs
     dng_image_paths = get_files_with_extension(raw_images_dir, '.dng')
