@@ -1,4 +1,7 @@
+from unittest.mock import sentinel
+
 import numpy as np
+
 import osmo_camera.correction.intensity as module
 
 
@@ -9,13 +12,9 @@ def test_intensity_correction():
         [9, 10, 11, 12]
     ])
 
-    correction_factor = 1.1
+    actual = module.apply_intensity_correction(
+        input_rgb,
+        ROI_definition_for_intensity_correction=sentinel.ROI_definition
+    )
 
-    expected = [
-        [1, 2, 3, 4],
-        [5, 6, 7, 8],
-        [9, 10, 11, 12]
-    ]
-
-    actual = module.apply_intensity_correction(input_rgb, correction_factor)
-    np.testing.assert_array_almost_equal(actual, expected, decimal=1)
+    np.testing.assert_array_equal(actual, input_rgb)
