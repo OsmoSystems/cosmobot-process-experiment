@@ -6,9 +6,9 @@ from typing import Callable, Dict
 import numpy as np
 import pandas as pd
 
-from osmo_camera import dng, rgb
+from osmo_camera import raw, rgb
 from osmo_camera.correction import dark_frame, flat_field, intensity
-from osmo_camera.file_structure import create_output_directory, get_files_with_extension
+from osmo_camera.file_structure import create_output_directory
 from osmo_camera.select_ROI import get_ROIs_for_image
 
 
@@ -50,26 +50,26 @@ def _get_ROI_statistics(ROI):
     return flattened_channel_stats
 
 
-def save_ROI_crops(ROI_crops_dir, dng_image_path, rgb_ROIs_by_name):
+def save_ROI_crops(ROI_crops_dir, raw_image_path, rgb_ROIs_by_name):
     ''' Save ROI crops from the given image as .PNGs in the specified directory
 
     Args:
         ROI_crops_dir: The directory where ROI crops should be saved
-        dng_image_path: The full path of the image to save ROI crops from
+        raw_image_path: The full path of the image to save ROI crops from
         rgb_ROIs_by_name: A map of {ROI_name: rgb_ROI}, where rgb_ROI is an `RGB Image`
 
     Returns:
         None
     '''
     # Construct ROI crop file name from root filename plus ROI name, plus .png extension
-    image_filename_root, _ = os.path.splitext(os.path.basename(dng_image_path))
+    image_filename_root, _ = os.path.splitext(os.path.basename(raw_image_path))
     for ROI_name, rgb_ROI in rgb_ROIs_by_name.items():
         ROI_crop_filename = f'ROI {ROI_name} - {image_filename_root}.png'
         ROI_crop_path = os.path.join(ROI_crops_dir, ROI_crop_filename)
         rgb.save.as_file(rgb_ROI, ROI_crop_path)
 
 
-def process_ROIs(rgb_image, dng_image_path, ROI_definitions, ROI_crops_dir=None):
+def process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir=None):
     ''' Process all the ROIs in a single .DNG image into summary statistics
 
     For each ROI:
@@ -79,7 +79,7 @@ def process_ROIs(rgb_image, dng_image_path, ROI_definitions, ROI_crops_dir=None)
 
     Args:
         rgb_image: 3d numpy array representing an image.
-        dng_image_path: The full file path of a DNG image.
+        raw_image_path: The full file path of a JPEG+RAW image.
         ROI_definitions: Definitions of Regions of Interest (ROIs) to summarize. A map of {ROI_name: ROI_definition}
         Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI: (start_col, start_row, cols, rows)
         ROI_crops_dir: Optional. If provided, ROI crops will be saved to this directory as .PNGs
@@ -90,16 +90,16 @@ def process_ROIs(rgb_image, dng_image_path, ROI_definitions, ROI_crops_dir=None)
     ROIs = get_ROIs_for_image(rgb_image, ROI_definitions)
 
     if ROI_crops_dir is not None:
-        save_ROI_crops(ROI_crops_dir, dng_image_path, ROIs)
+        save_ROI_crops(ROI_crops_dir, raw_image_path, ROIs)
 
-    exif_tags = dng.metadata.get_exif_tags(dng_image_path)
+    exif_tags = raw.metadata.get_exif_tags(raw_image_path)
 
     return [
         {
             'timestamp': exif_tags.capture_datetime,
             'iso': exif_tags.iso,
             'exposure_seconds': exif_tags.exposure_time,
-            'image': os.path.basename(dng_image_path),
+            'image': os.path.basename(raw_image_path),
             'ROI': ROI_name,
             'ROI definition': ROI_definitions[ROI_name],
             **_get_ROI_statistics(ROI)
@@ -118,10 +118,10 @@ def correct_images(
         3. Apply intensity correction
 
     Args:
-        original_rgb_by_filepath: { image_path : image_rgb }
+        original_rgb_by_filepath: A map of {image_path: rgb_image}
         ROI_definition_for_intensity_correction: ROI to average and use to correct intensity on `ROI_definitions`
      Returns:
-        A dictionary of intensity corrected rgb images that is keyed by dng file path
+        A dictionary of intensity corrected rgb images that is keyed by raw file path
     '''
 
     print('--------Correcting Images--------')
@@ -153,42 +153,36 @@ def correct_images(
     return intensity_corrected_rgb_by_filepath
 
 
-def process_images(dng_images_dir, ROI_definitions, save_ROIs=False):
+def process_images(original_rgb_images_by_filepath, ROI_definitions, raw_images_dir, save_ROIs=False):
     ''' Process all images in a given directory
 
     Args:
-        dng_images_dir: The directory of images to process. Assumes images have already been converted to .DNGs
+        original_rgb_images_by_filepath: A map of {image_path: rgb_image}
         ROI_definitions: Definitions of Regions of Interest (ROIs) to summarize. A map of {ROI_name: ROI_definition}
         Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI: (start_col, start_row, cols, rows)
-        save_ROIs: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of dng_images_dir
+        raw_images_dir: The directory where the original raw images live
+        save_ROIs: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of raw_images_dir
 
     Returns:
         An pandas DataFrame in which each row contains summary statistics for a single ROI in a single image
     '''
 
-    dng_image_paths = get_files_with_extension(dng_images_dir, '.dng')
-
     # If ROI crops should be saved, create a directory for them
     ROI_crops_dir = None
     if save_ROIs:
-        ROI_crops_dir = create_output_directory(dng_images_dir, 'ROI crops')
+        ROI_crops_dir = create_output_directory(raw_images_dir, 'ROI crops')
         print('ROI crops saved in:', ROI_crops_dir)
 
     dummy_intensity_correction_ROI = (0, 0, 0, 0)
 
-    original_rgb_by_filepath = {
-        image_path: dng.open.as_rgb(image_path)
-        for image_path in dng_image_paths
-    }
-
     corrected_rgb_images = correct_images(
-        original_rgb_by_filepath,
+        original_rgb_images_by_filepath,
         ROI_definition_for_intensity_correction=dummy_intensity_correction_ROI
     )
 
     processed_ROIs = [
-        process_ROIs(rgb_image, dng_image_path, ROI_definitions, ROI_crops_dir)
-        for dng_image_path, rgb_image in corrected_rgb_images.items()
+        process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir)
+        for raw_image_path, rgb_image in corrected_rgb_images.items()
     ]
 
     summary_statistics = pd.DataFrame(

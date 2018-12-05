@@ -8,12 +8,12 @@ from . import process_experiment as module
 @pytest.fixture
 def mock_side_effects(mocker):
     mocker.patch.object(module, 'sync_from_s3').return_value = sentinel.raw_images_dir
-    mocker.patch.object(module, 'raw')
-    mocker.patch.object(module, '_open_first_image').return_value = sentinel.first_rgb_image
+    mocker.patch.object(module, '_get_first_image').return_value = sentinel.first_rgb_image
     mocker.patch.object(module, 'jupyter')
     mocker.patch.object(module, 'process_images').return_value = sentinel.image_summary_data
     mocker.patch.object(module, 'draw_ROIs_on_image').return_value = sentinel.rgb_image_with_ROI_definitions
     mocker.patch.object(module, '_save_summary_statistics_csv')
+    mocker.patch.object(module, '_get_rgb_images_by_filepath').return_value = sentinel.rgb_images_by_filepath
 
 
 @pytest.fixture
@@ -30,7 +30,6 @@ class TestProcessExperiment:
     def test_returns_image_summary_data_and_ROI_definitions(self, mock_side_effects):
         actual_image_summary_data, actual_ROI_definitions = module.process_experiment(
             sentinel.experiment_dir,
-            sentinel.raspiraw_parent_path,
             sentinel.local_sync_path,
             ROI_definitions=sentinel.ROI_definitions,
         )
@@ -43,7 +42,6 @@ class TestProcessExperiment:
 
         actual_image_summary_data, actual_ROI_definitions = module.process_experiment(
             sentinel.experiment_dir,
-            sentinel.raspiraw_parent_path,
             sentinel.local_sync_path,
             ROI_definitions=None,
         )
@@ -54,7 +52,6 @@ class TestProcessExperiment:
     def test_doesnt_prompt_ROI_if_provided(self, mock_side_effects, mock_prompt_for_ROI_selection):
         actual_image_summary_data, actual_ROI_definitions = module.process_experiment(
             sentinel.experiment_dir,
-            sentinel.raspiraw_parent_path,
             sentinel.local_sync_path,
             ROI_definitions=sentinel.ROI_definitions,
         )
@@ -65,18 +62,20 @@ class TestProcessExperiment:
     def test_saves_summary_images_if_flagged(self, mock_side_effects, mock_generate_summary_images):
         module.process_experiment(
             sentinel.experiment_dir,
-            sentinel.raspiraw_parent_path,
             sentinel.local_sync_path,
             ROI_definitions=sentinel.ROI_definitions,
             save_summary_images=True,
         )
 
-        mock_generate_summary_images.assert_called_with(sentinel.raw_images_dir, sentinel.ROI_definitions)
+        mock_generate_summary_images.assert_called_with(
+            sentinel.rgb_images_by_filepath,
+            sentinel.ROI_definitions,
+            sentinel.raw_images_dir
+        )
 
     def test_doesnt_save_summary_images_if_not_flagged(self, mock_side_effects, mock_generate_summary_images):
         module.process_experiment(
             sentinel.experiment_dir,
-            sentinel.raspiraw_parent_path,
             sentinel.local_sync_path,
             ROI_definitions=sentinel.ROI_definitions,
         )

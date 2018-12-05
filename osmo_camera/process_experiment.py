@@ -4,18 +4,13 @@ from osmo_camera.s3 import sync_from_s3
 from osmo_camera.process_images import process_images
 from osmo_camera.select_ROI import prompt_for_ROI_selection, draw_ROIs_on_image
 from osmo_camera.summary_images import generate_summary_images
-from osmo_camera.file_structure import get_files_with_extension, iso_datetime_for_filename
-from osmo_camera import raw, dng, jupyter
+from osmo_camera.file_structure import iso_datetime_for_filename, get_files_with_extension
+from osmo_camera import raw, jupyter
 
 
-def _open_first_image(raw_images_dir):
-    # Assumes images have already been converted to .DNGs
-    dng_image_paths = get_files_with_extension(raw_images_dir, '.dng')
-
-    first_dng_image_path = dng_image_paths[0]
-    first_rgb_image = dng.open.as_rgb(first_dng_image_path)
-
-    return first_rgb_image
+def _get_first_image(rgb_images_by_filepath):
+    nth_filepath = sorted(rgb_images_by_filepath.keys())[0]  # Assumes images are prefixed with iso-ish datetimes
+    return rgb_images_by_filepath[nth_filepath]
 
 
 def _save_summary_statistics_csv(experiment_dir, image_summary_data):
@@ -26,9 +21,16 @@ def _save_summary_statistics_csv(experiment_dir, image_summary_data):
     return csv_name
 
 
+def _get_rgb_images_by_filepath(raw_images_directory):
+    raw_image_paths = get_files_with_extension(raw_images_directory, '.jpeg')
+    return {
+        raw_image_path: raw.open.as_rgb(raw_image_path)
+        for raw_image_path in raw_image_paths
+    }
+
+
 def process_experiment(
     experiment_dir,
-    raspiraw_parent_path,
     local_sync_directory_path,
     ROI_definitions=[],
     sync_downsample_ratio=1,
@@ -39,14 +41,13 @@ def process_experiment(
 ):
     ''' Process all images from an experiment:
         1. Sync raw images from s3
-        2. Convert raw images to .DNG
+        2. Open JPEG+RAW files as RGB images
         3. Select ROIs (if not provided)
         4. (Optional) Save summary images
         5. Process images into summary statistics...
 
     Args:
         experiment_dir: The name of the experiment directory in s3
-        raspiraw_parent_path: The parent directory raspiraw is installed under (one level above your raspiraw/ checkout)
         local_sync_directory_path: The path to the local directory where images will be synced and processed
         ROI_definitions: Optional. Pre-selected ROI_definitions: a map of {ROI_name: ROI_definition}
             Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI:
@@ -77,16 +78,17 @@ def process_experiment(
         end_time=sync_end_time,
     )
 
-    print('2. Convert all images from raw to dng...')
-    raw.convert.to_dng(raspiraw_parent_path, raw_images_dir=raw_images_dir)
+    print('2. Open all JPEG+RAW images as RGB images...')
+    rgb_images_by_filepath = _get_rgb_images_by_filepath(raw_images_dir)
 
-    # Open and display the first image for reference
-    first_rgb_image = _open_first_image(raw_images_dir)
+    # Display the first image for reference
+    first_rgb_image = _get_first_image(rgb_images_by_filepath)
     jupyter.show_image(first_rgb_image, title='Reference image', figsize=[7, 7])
 
     print('3. Prompt for ROI selections (if not provided)...')
     if not ROI_definitions:
         ROI_definitions = prompt_for_ROI_selection(first_rgb_image)
+        print('ROI definitions:', ROI_definitions)
 
     jupyter.show_image(
         draw_ROIs_on_image(first_rgb_image, ROI_definitions),
@@ -97,10 +99,10 @@ def process_experiment(
     saving_or_not = 'Save' if save_summary_images else 'Don\'t save'
     print(f'4. {saving_or_not} summary images...')
     if save_summary_images:
-        generate_summary_images(raw_images_dir, ROI_definitions)
+        generate_summary_images(rgb_images_by_filepath, ROI_definitions, raw_images_dir)
 
     print('5. Process images into summary statistics...')
-    image_summary_data = process_images(raw_images_dir, ROI_definitions, save_ROIs)
+    image_summary_data = process_images(rgb_images_by_filepath, ROI_definitions, raw_images_dir, save_ROIs)
     _save_summary_statistics_csv(experiment_dir, image_summary_data)
 
     return image_summary_data, ROI_definitions

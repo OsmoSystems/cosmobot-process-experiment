@@ -7,11 +7,11 @@ from . import process_images as module
 
 def test_correct_images():
     original_rgb_by_filepath = {
-        sentinel.dng_path_1: np.array([
+        sentinel.raw_path_1: np.array([
             [[1, 10, 100], [2, 20, 200]],
             [[3, 30, 300], [4, 40, 400]]
         ]),
-        sentinel.dng_path_2: np.array([
+        sentinel.raw_path_2: np.array([
             [[1, 10, 100], [2, 20, 200]],
             [[3, 30, 300], [4, 40, 400]]
         ])

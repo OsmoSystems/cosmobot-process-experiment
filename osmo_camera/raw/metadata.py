@@ -1,6 +1,5 @@
 from collections import namedtuple
 from datetime import datetime
-import os
 
 import PIL.Image
 import PIL.ExifTags
@@ -56,19 +55,15 @@ def _parse_exposure_time(tags):
     return numerator / denominator
 
 
-def get_exif_tags(dng_image_path):
-    ''' Extracts relevant EXIF tags for a .DNG file.
-    Assumes that a .JPEG file of the same name, which actually contains the EXIF data, lives alongside
+def get_exif_tags(raw_image_path):
+    ''' Extracts relevant EXIF tags from a JPEG+RAW file.
 
     Args:
-        dng_image_path: The full file path of the .DNG file to get metadata for
+        raw_image_path: The full file path of the JPEG+RAW file to extract metadata from
 
     Returns:
         Relevant EXIF tags, as an ExifTags namedtuple
     '''
-    dng_image_path_root, dng_image_extension = os.path.splitext(dng_image_path)
-    raw_image_path = f'{dng_image_path_root}.jpeg'
-
     tags = _read_exif_tags(raw_image_path)
 
     return ExifTags(
