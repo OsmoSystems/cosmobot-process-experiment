@@ -1,14 +1,37 @@
+from unittest.mock import sentinel
+
 import numpy as np
+
 from . import process_images as module
 
 
-def test_process_ROI():
+def test_correct_images():
+    original_rgb_by_filepath = {
+        sentinel.dng_path_1: np.array([
+            [[1, 10, 100], [2, 20, 200]],
+            [[3, 30, 300], [4, 40, 400]]
+        ]),
+        sentinel.dng_path_2: np.array([
+            [[1, 10, 100], [2, 20, 200]],
+            [[3, 30, 300], [4, 40, 400]]
+        ])
+    }
+
+    corrected_rgb_images = module.correct_images(
+        original_rgb_by_filepath,
+        ROI_definition_for_intensity_correction=sentinel.ROI_definition
+    )
+
+    assert corrected_rgb_images == original_rgb_by_filepath
+
+
+def test_get_ROI_statistics():
     mock_ROI = np.array([
         [[1, 10, 100], [2, 20, 200]],
         [[3, 30, 300], [4, 40, 400]]
     ])
 
-    actual = module._process_ROI(mock_ROI)
+    actual = module._get_ROI_statistics(mock_ROI)
 
     expected = {
         'r_cv': 1.118033988749895 / 2.5,
