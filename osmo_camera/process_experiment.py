@@ -9,8 +9,8 @@ from osmo_camera import raw, jupyter
 
 
 def _get_first_image(rgb_images_by_filepath):
-    nth_filepath = sorted(rgb_images_by_filepath.keys())[0]  # Assumes images are prefixed with iso-ish datetimes
-    return rgb_images_by_filepath[nth_filepath]
+    first_filepath = sorted(rgb_images_by_filepath.keys())[0]  # Assumes images are prefixed with iso-ish datetimes
+    return rgb_images_by_filepath[first_filepath]
 
 
 def _save_summary_statistics_csv(experiment_dir, image_summary_data):
