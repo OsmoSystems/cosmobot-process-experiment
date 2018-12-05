@@ -35,7 +35,7 @@ def generate_summary_images(rgb_images_by_filepath, ROI_definitions, raw_images_
 
         # Save in new directory, with same name but as a .png.
         filename_root, extension = os.path.splitext(os.path.basename(image_path))
-        summary_image_path = os.path.join(summary_images_dir, f'{filename_root}.png')  # TODO: save as a TIFF instead?
+        summary_image_path = os.path.join(summary_images_dir, f'{filename_root}.png')
 
         rgb.save.as_file(rgb_image_with_ROIs, summary_image_path)
 
