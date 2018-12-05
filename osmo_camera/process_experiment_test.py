@@ -94,3 +94,15 @@ class TestSaveSummaryStatisticsCsv:
         expected_csv_name = '20180101-120101_experiment_dir - summary statistics (generated <iso_ish_datetime>).csv'
 
         mock_to_csv.assert_called_with(expected_csv_name, index=False)
+
+
+def test_get_first_image():
+    mock_rgb_images_by_filepath = {
+        '2017-01-01-image': sentinel.image_2,
+        '2018-01-01-image': sentinel.image_3,
+        '2016-01-01-image': sentinel.image_1,
+
+    }
+    actual = module._get_first_image(mock_rgb_images_by_filepath)
+
+    assert actual == sentinel.image_1
