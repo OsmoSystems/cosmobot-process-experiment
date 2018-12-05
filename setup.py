@@ -17,9 +17,9 @@ setup(
         'matplotlib',
         'opencv-python',
         'pandas',
+        'picamraw',
         'Pillow',
         'plotly >= 3, < 4',
-        'rawpy',
     ],
     include_package_data=True
 )

@@ -72,13 +72,6 @@ def mock_exif_parse(mocker):
 
 
 class TestGetExifTags:
-    def test_reads_sidecar_jpeg_exif(self, mocker, mock_exif_parse):
-        mock_read_exif_tags = mocker.patch.object(module, '_read_exif_tags')
-
-        module.get_exif_tags('mock_image_path.dng')
-
-        mock_read_exif_tags.assert_called_with('mock_image_path.jpeg')
-
     def test_parses_tags_correctly(self, mocker):
         mock_parsed_tags = {
             'DateTimeOriginal': '2018:09:28 20:29:59',
@@ -88,7 +81,7 @@ class TestGetExifTags:
 
         mocker.patch.object(module, '_read_exif_tags').return_value = mock_parsed_tags
 
-        actual = module.get_exif_tags('mock_image_path.dng')
+        actual = module.get_exif_tags('mock_image_path.jpeg')
 
         expected = module.ExifTags(
             capture_datetime=datetime(2018, 9, 28, 20, 29, 59),

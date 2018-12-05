@@ -1,6 +1,5 @@
 # Terminology
 * `RAW image file` - A JPEG+RAW image file as directly captured by a PiCam v2, saved as a .JPEG
-* `.DNG image file` - An RAW image file converted to the Adobe Digital Negative (.DNG) format
 * `RGB image` - A 3D numpy.ndarray: a 2D array of "pixels" (row-major), where each "pixel" is a 1D array of [red, green, blue] channels with a value between 0 and 1. This is our default format for interacting with images. An example 4-pixel (2x2) image would have this shape:
 
 ```
@@ -30,18 +29,6 @@ Set up credentials:
 1. Generate an AWS access key
 2. Run `aws configure` and put in the access key ID and secret key
 3. Confirm your credentials are working by running `aws s3 ls` - you should get a list of directories
-
-### raspiraw
-1. Clone our forked repo:
-```
-git clone https://github.com/OsmoSystems/raspiraw.git
-```
-
-2. Navigate to that directory and run `make`, e.g.:
-```
-~$ cd ~/osmo/raspiraw
-~/osmo/raspiraw$ make
-```
 
 ## Running
 See this example jupyter notebook: "process_experiment - for Cosmobot experiments.ipynb" in the Jupyter Snippets folder: https://drive.google.com/drive/folders/1A-Rlb-VYTwQ6Tl3sm12eR-cnmCHbj6UP

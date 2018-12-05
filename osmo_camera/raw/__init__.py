@@ -1,1 +1,1 @@
-from . import convert  # noqa: F401 (imported but unused)
+from . import open, metadata  # noqa: F401 (imported but unused)
