@@ -51,7 +51,7 @@ def median_seeded_outlier_removed_mean(sample, trim_std=DEFAULT_TRIM_STD):
         trim_std
     )
     return np.mean(trimmed_sample)
-
+# TODO: test edge case handling
 
 msorm = median_seeded_outlier_removed_mean
 
