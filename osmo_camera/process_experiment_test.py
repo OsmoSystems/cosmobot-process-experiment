@@ -106,3 +106,15 @@ def test_get_first_image():
     actual = module._get_first_image(mock_rgb_images_by_filepath)
 
     assert actual == sentinel.image_1
+
+
+def test_get_rgb_images_by_filepath(mocker):
+    mock__get_rgb_images_by_filepath = mocker.patch.object(module, '_get_rgb_images_by_filepath')
+    mock__get_rgb_images_by_filepath.return_value = sentinel.rgb_images_by_filepath
+    mock_os_path_join = mocker.patch('os.path.join')
+    mock_os_path_join.return_value = sentinel.raw_images_directory
+
+    actual = module.get_rgb_images_by_filepath(sentinel.local_sync_directory, sentinel.experiment_directory)
+
+    assert actual == sentinel.rgb_images_by_filepath
+    mock__get_rgb_images_by_filepath.assert_called_with(sentinel.raw_images_directory)
