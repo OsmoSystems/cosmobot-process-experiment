@@ -13,7 +13,7 @@ def mock_side_effects(mocker):
     mocker.patch.object(module, 'process_images').return_value = sentinel.image_summary_data
     mocker.patch.object(module, 'draw_ROIs_on_image').return_value = sentinel.rgb_image_with_ROI_definitions
     mocker.patch.object(module, '_save_summary_statistics_csv')
-    mocker.patch.object(module, '_get_rgb_images_by_filepath').return_value = sentinel.rgb_images_by_filepath
+    mocker.patch.object(module, 'get_rgb_images_by_filepath').return_value = sentinel.rgb_images_by_filepath
 
 
 @pytest.fixture
@@ -24,6 +24,11 @@ def mock_prompt_for_ROI_selection(mocker):
 @pytest.fixture
 def mock_generate_summary_images(mocker):
     return mocker.patch.object(module, 'generate_summary_images')
+
+
+@pytest.fixture
+def mock_os_path_join(mocker):
+    return mocker.patch('os.path.join')
 
 
 class TestProcessExperiment:
@@ -108,13 +113,17 @@ def test_get_first_image():
     assert actual == sentinel.image_1
 
 
-def test_get_rgb_images_by_filepath(mocker):
-    mock__get_rgb_images_by_filepath = mocker.patch.object(module, '_get_rgb_images_by_filepath')
-    mock__get_rgb_images_by_filepath.return_value = sentinel.rgb_images_by_filepath
-    mock_os_path_join = mocker.patch('os.path.join')
-    mock_os_path_join.return_value = sentinel.raw_images_directory
+def test_get_rgb_images_by_filepath(mocker, mock_os_path_join):
+    mock_get_files_with_extension = mocker.patch.object(module, 'get_files_with_extension')
+    mock_get_files_with_extension.return_value = ['filepath1.jpeg', 'filepath2.jpeg']
+
+    mock_raw_open_as_rgb = mocker.patch.object(module.raw.open, 'as_rgb')
+    mock_raw_open_as_rgb.side_effect = lambda filepath: f'opened_{filepath}'
 
     actual = module.get_rgb_images_by_filepath(sentinel.local_sync_directory, sentinel.experiment_directory)
+    expected = {
+        'filepath1.jpeg': 'opened_filepath1.jpeg',
+        'filepath2.jpeg': 'opened_filepath2.jpeg'
+    }
 
-    assert actual == sentinel.rgb_images_by_filepath
-    mock__get_rgb_images_by_filepath.assert_called_with(sentinel.raw_images_directory)
+    assert actual == expected
