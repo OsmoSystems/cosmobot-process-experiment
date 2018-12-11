@@ -13,7 +13,7 @@ def mock_side_effects(mocker):
     mocker.patch.object(module, 'process_images').return_value = sentinel.image_summary_data
     mocker.patch.object(module, 'draw_ROIs_on_image').return_value = sentinel.rgb_image_with_ROI_definitions
     mocker.patch.object(module, '_save_summary_statistics_csv')
-    mocker.patch.object(module, '_get_rgb_images_by_filepath').return_value = sentinel.rgb_images_by_filepath
+    mocker.patch.object(module, 'get_rgb_images_by_filepath').return_value = sentinel.rgb_images_by_filepath
 
 
 @pytest.fixture

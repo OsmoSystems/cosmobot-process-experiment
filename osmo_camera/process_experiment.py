@@ -21,7 +21,7 @@ def _save_summary_statistics_csv(experiment_dir, image_summary_data):
     return csv_name
 
 
-def _get_rgb_images_by_filepath(raw_images_directory):
+def get_rgb_images_by_filepath(raw_images_directory):
     raw_image_paths = get_files_with_extension(raw_images_directory, '.jpeg')
     return {
         raw_image_path: raw.open.as_rgb(raw_image_path)
@@ -79,7 +79,7 @@ def process_experiment(
     )
 
     print('2. Open all JPEG+RAW images as RGB images...')
-    rgb_images_by_filepath = _get_rgb_images_by_filepath(raw_images_dir)
+    rgb_images_by_filepath = get_rgb_images_by_filepath(raw_images_dir)
 
     # Display the first image for reference
     first_rgb_image = _get_first_image(rgb_images_by_filepath)
