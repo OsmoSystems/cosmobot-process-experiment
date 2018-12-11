@@ -120,7 +120,7 @@ def test_get_rgb_images_by_filepath(mocker, mock_os_path_join):
     mock_raw_open_as_rgb = mocker.patch.object(module.raw.open, 'as_rgb')
     mock_raw_open_as_rgb.side_effect = lambda filepath: f'opened_{filepath}'
 
-    actual = module.get_rgb_images_by_filepath(sentinel.local_sync_directory, sentinel.experiment_directory)
+    actual = module.get_rgb_images_by_filepath(sentinel.local_synced_directory, sentinel.experiment_directory)
     expected = {
         'filepath1.jpeg': 'opened_filepath1.jpeg',
         'filepath2.jpeg': 'opened_filepath2.jpeg'
