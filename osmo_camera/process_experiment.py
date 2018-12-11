@@ -47,7 +47,7 @@ def process_experiment(
         5. Process images into summary statistics...
 
     Args:
-        experiment_dir: The name of the experiment directory in s3
+        experiment_directory: The name of the experiment directory in s3
         local_sync_directory_path: The path to the local directory where images will be synced and processed
         ROI_definitions: Optional. Pre-selected ROI_definitions: a map of {ROI_name: ROI_definition}
             Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI:
@@ -103,6 +103,6 @@ def process_experiment(
 
     print('5. Process images into summary statistics...')
     image_summary_data = process_images(rgb_images_by_filepath, ROI_definitions, raw_images_dir, save_ROIs)
-    _save_summary_statistics_csv(experiment_dir, image_summary_data)
+    _save_summary_statistics_csv(experiment_directory, image_summary_data)
 
     return image_summary_data, ROI_definitions
