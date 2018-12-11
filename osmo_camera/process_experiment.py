@@ -1,4 +1,5 @@
 from datetime import datetime
+import os
 
 from osmo_camera.s3 import sync_from_s3
 from osmo_camera.process_images import process_images
@@ -21,7 +22,22 @@ def _save_summary_statistics_csv(experiment_dir, image_summary_data):
     return csv_name
 
 
-def _get_rgb_images_by_filepath(raw_images_directory):
+def get_rgb_images_by_filepath(local_sync_directory_path, experiment_directory):
+    ''' Opens all JPEG+RAW images in the specified experiment directory and returns as a map of
+        {image_filepath: `RGB Image`}.
+
+        A convenience function intended to be used by technicians inside a jupyter notebook, which will
+        already have `local_sync_directory` and `experiment_directory` as variables.
+
+    Args:
+        local_sync_directory_path: The path to the local directory where images will be synced and processed
+        experiment_directory: The name of the experiment directory (the folder inside the local_sync_directory that you
+        want to open images from)
+
+    Return:
+        A map of {image_filepath: `RGB Image`}
+    '''
+    raw_images_directory = os.path.join(local_sync_directory_path, experiment_directory)
     raw_image_paths = get_files_with_extension(raw_images_directory, '.jpeg')
     return {
         raw_image_path: raw.open.as_rgb(raw_image_path)
@@ -79,7 +95,10 @@ def process_experiment(
     )
 
     print('2. Open all JPEG+RAW images as RGB images...')
-    rgb_images_by_filepath = _get_rgb_images_by_filepath(raw_images_dir)
+    rgb_images_by_filepath = get_rgb_images_by_filepath(
+        local_sync_directory_path,
+        experiment_dir,
+    )
 
     # Display the first image for reference
     first_rgb_image = _get_first_image(rgb_images_by_filepath)
