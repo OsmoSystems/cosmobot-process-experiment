@@ -30,7 +30,7 @@ def get_rgb_images_by_filepath(raw_images_directory):
 
 
 def process_experiment(
-    experiment_dir,
+    experiment_directory,
     local_sync_directory_path,
     ROI_definitions=[],
     sync_downsample_ratio=1,
@@ -71,7 +71,7 @@ def process_experiment(
     '''
     print(f'1. Sync images from s3 to local directory within {local_sync_directory_path}...')
     raw_images_dir = sync_from_s3(
-        experiment_dir,
+        experiment_directory,
         local_sync_directory_path=local_sync_directory_path,
         downsample_ratio=sync_downsample_ratio,
         start_time=sync_start_time,
