@@ -69,7 +69,7 @@ def save_ROI_crops(ROI_crops_dir, raw_image_path, rgb_ROIs_by_name):
         rgb.save.as_file(rgb_ROI, ROI_crop_path)
 
 
-def process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir=None):
+def process_ROIs(rgb_image, raw_image_path, exif_tags, ROI_definitions, ROI_crops_dir=None):
     ''' Process all the ROIs in a single .DNG image into summary statistics
 
     For each ROI:
@@ -92,8 +92,6 @@ def process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir=None)
     if ROI_crops_dir is not None:
         save_ROI_crops(ROI_crops_dir, raw_image_path, ROIs)
 
-    exif_tags = raw.metadata.get_exif_tags(raw_image_path)
-
     return [
         {
             'timestamp': exif_tags.capture_datetime,
@@ -110,6 +108,7 @@ def process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir=None)
 
 def correct_images(
     original_rgb_by_filepath,
+    exif_tags_by_filepath,
     ROI_definition_for_intensity_correction,
 ):
     ''' Correct all images from an experiment:
@@ -127,7 +126,10 @@ def correct_images(
     print('--------Correcting Images--------')
     print('1. Apply dark frame correction')
     dark_frame_corrected_rgb_by_filepath = {
-        image_path: dark_frame.apply_dark_frame_correction(image_rgb, np.zeros(image_rgb.shape))
+        image_path: dark_frame.apply_dark_frame_correction(
+            image_rgb,
+            exif_tags_by_filepath[image_path].exposure_seconds
+        )
         for image_path, image_rgb in original_rgb_by_filepath.items()
     }
 
@@ -175,13 +177,19 @@ def process_images(original_rgb_images_by_filepath, ROI_definitions, raw_images_
 
     dummy_intensity_correction_ROI = (0, 0, 0, 0)
 
+    exif_tags_by_filepath = {
+        raw_image_path: raw.metadata.get_exif_tags(raw_image_path)
+        for raw_image_path in original_rgb_images_by_filepath
+    }
+
     corrected_rgb_images = correct_images(
         original_rgb_images_by_filepath,
+        exif_tags_by_filepath,
         ROI_definition_for_intensity_correction=dummy_intensity_correction_ROI
     )
 
     processed_ROIs = [
-        process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir)
+        process_ROIs(rgb_image, raw_image_path, exif_tags_by_filepath[raw_image_path], ROI_definitions, ROI_crops_dir)
         for raw_image_path, rgb_image in corrected_rgb_images.items()
     ]
 
