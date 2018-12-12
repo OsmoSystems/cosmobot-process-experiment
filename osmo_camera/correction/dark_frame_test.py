@@ -7,7 +7,6 @@ exposure_seconds = 1.2
 
 def test_calculate_dark_signal():
     actual = module._calculate_dark_signal_in_dnr(exposure_seconds)
-    print(actual)
     expected = 0.0624794
     np.testing.assert_almost_equal(actual, expected)
 
@@ -20,7 +19,6 @@ def test_apply_dark_frame_correction():
     ])
 
     actual = module.apply_dark_frame_correction(input_rgb, exposure_seconds)
-    print(actual)
     expected = np.array([
         [10.93752051, 11.93752051, 12.93752051, 13.93752051],
         [14.93752051, 15.93752051, 16.93752051, 17.93752051],
