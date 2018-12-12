@@ -1,7 +1,9 @@
 from unittest.mock import sentinel
 
+import pytest
 import numpy as np
 
+from osmo_camera.raw import metadata
 from osmo_camera.raw.metadata import ExifTags
 from . import process_images as module
 
@@ -13,7 +15,12 @@ test_exif_tags = ExifTags(
 )
 
 
-def test_correct_images():
+@pytest.fixture
+def mock_get_exif_tags(mocker):
+    mocker.patch.object(metadata, 'get_exif_tags').return_value = test_exif_tags
+
+
+def test_correct_images(mock_get_exif_tags):
     original_rgb_by_filepath = {
         sentinel.rgb_image_path_1: np.array([
             [[1, 10, 100], [2, 20, 200]],
@@ -21,13 +28,8 @@ def test_correct_images():
         ])
     }
 
-    exif_tags_by_filepath = {
-        sentinel.rgb_image_path_1: test_exif_tags
-    }
-
     actual = module.correct_images(
         original_rgb_by_filepath,
-        exif_tags_by_filepath,
         ROI_definition_for_intensity_correction=sentinel.ROI_definition
     )
 
