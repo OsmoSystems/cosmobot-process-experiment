@@ -8,7 +8,7 @@ def _calculate_dark_signal_in_dnr(exposure_seconds):
         https://docs.google.com/document/d/1xIgZxrC1qYUnwEGWt8yXnvWluEj51jpyIqArMJlNhrs/edit#
 
     Args:
-        exposure_seconds: number of seconds for exposure retrieved from exif_tags in image
+        exposure_seconds: number of seconds taken to expose image
 
     Returns:
         A value representing the dark signal that is normalized from DN (0-1024) to DNR (0-1)
