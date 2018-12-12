@@ -1,4 +1,4 @@
-#  Constants to apply when calculating dark signal from final recommendation:
+#  Constants to apply when calculating dark signal from final recommendation (note: these are in DNR):
 #  https://docs.google.com/document/d/1xIgZxrC1qYUnwEGWt8yXnvWluEj51jpyIqArMJlNhrs/edit#
 EXPOSURE_SLOPE = 6.81240234375e-05
 DARK_OFFSET = 0.0623977451171875
