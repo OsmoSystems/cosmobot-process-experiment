@@ -1,18 +1,19 @@
 from ..constants import RAW_BIT_DEPTH
 
+#  Constants to apply when calculating dark signal from final recommendation:
+#  https://docs.google.com/document/d/1xIgZxrC1qYUnwEGWt8yXnvWluEj51jpyIqArMJlNhrs/edit#
 EXPOSURE_SLOPE = 0.069759
 DARK_OFFSET = 63.895291
 
 
 def _calculate_dark_signal_in_dnr(exposure_seconds):
-    ''' Calculate dark signal based on final recommendation:
-        https://docs.google.com/document/d/1xIgZxrC1qYUnwEGWt8yXnvWluEj51jpyIqArMJlNhrs/edit#
+    ''' Calculate the dark signal introduced over the length of an exposure
 
     Args:
         exposure_seconds: number of seconds taken to expose image
 
     Returns:
-        A value representing the dark signal that is normalized from DN (0-1024) to DNR (0-1)
+        A value representing the dark signal that is normalized
     '''
     return ((EXPOSURE_SLOPE * exposure_seconds) + DARK_OFFSET) / RAW_BIT_DEPTH
 
