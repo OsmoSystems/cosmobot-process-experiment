@@ -128,7 +128,7 @@ def correct_images(
     dark_frame_corrected_rgb_by_filepath = {
         image_path: dark_frame.apply_dark_frame_correction(
             image_rgb,
-            exif_tags_by_filepath[image_path].exposure_seconds
+            exif_tags_by_filepath[image_path].exposure_time
         )
         for image_path, image_rgb in original_rgb_by_filepath.items()
     }

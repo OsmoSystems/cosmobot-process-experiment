@@ -2,27 +2,43 @@ from unittest.mock import sentinel
 
 import numpy as np
 
+from osmo_camera.raw.metadata import ExifTags
 from . import process_images as module
+
+
+test_exif_tags = ExifTags(
+    capture_datetime=None,
+    iso=None,
+    exposure_time=1.2
+)
 
 
 def test_correct_images():
     original_rgb_by_filepath = {
-        sentinel.raw_path_1: np.array([
-            [[1, 10, 100], [2, 20, 200]],
-            [[3, 30, 300], [4, 40, 400]]
-        ]),
-        sentinel.raw_path_2: np.array([
+        sentinel.rgb_image_path_1: np.array([
             [[1, 10, 100], [2, 20, 200]],
             [[3, 30, 300], [4, 40, 400]]
         ])
     }
 
-    corrected_rgb_images = module.correct_images(
+    exif_tags_by_filepath = {
+        sentinel.rgb_image_path_1: test_exif_tags
+    }
+
+    actual = module.correct_images(
         original_rgb_by_filepath,
+        exif_tags_by_filepath,
         ROI_definition_for_intensity_correction=sentinel.ROI_definition
     )
 
-    assert corrected_rgb_images == original_rgb_by_filepath
+    expected = {
+        sentinel.rgb_image_path_1: np.array([
+            [[0.93752051, 9.93752051, 99.93752051], [1.93752051, 19.93752051, 199.93752051]],
+            [[2.93752051, 29.93752051, 299.93752051], [3.93752051, 39.93752051, 399.93752051]]
+        ])
+    }
+
+    np.testing.assert_array_almost_equal(actual[sentinel.rgb_image_path_1], expected[sentinel.rgb_image_path_1])
 
 
 def test_get_ROI_statistics():
