@@ -18,6 +18,15 @@ def _calculate_dark_signal_in_dnr(exposure_seconds):
 
 
 def apply_dark_frame_correction(input_rgb, exposure_seconds):
+    ''' Apply dark frame correction to an rgb image by subtracting a dark signal value
+
+    Args:
+        input_rgb: `RGB image` to correct
+        exposure_seconds: number of seconds taken to expose image
+
+    Returns:
+        A rgb image that is dark frame corrected
+    '''
     dark_signal = _calculate_dark_signal_in_dnr(exposure_seconds)
     dark_frame_corrected_rgb = input_rgb - dark_signal
     return dark_frame_corrected_rgb
