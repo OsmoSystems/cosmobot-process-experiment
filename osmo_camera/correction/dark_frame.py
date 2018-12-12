@@ -1,9 +1,7 @@
-from ..constants import RAW_BIT_DEPTH
-
 #  Constants to apply when calculating dark signal from final recommendation:
 #  https://docs.google.com/document/d/1xIgZxrC1qYUnwEGWt8yXnvWluEj51jpyIqArMJlNhrs/edit#
-EXPOSURE_SLOPE = 0.069759
-DARK_OFFSET = 63.895291
+EXPOSURE_SLOPE = 6.81240234375e-05
+DARK_OFFSET = 0.0623977451171875
 
 
 def _calculate_dark_signal_in_dnr(exposure_seconds):
@@ -15,7 +13,7 @@ def _calculate_dark_signal_in_dnr(exposure_seconds):
     Returns:
         A value representing the dark signal that is normalized
     '''
-    return ((EXPOSURE_SLOPE * exposure_seconds) + DARK_OFFSET) / RAW_BIT_DEPTH
+    return ((EXPOSURE_SLOPE * exposure_seconds) + DARK_OFFSET)
 
 
 def apply_dark_frame_correction(input_rgb, exposure_seconds):
