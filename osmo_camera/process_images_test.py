@@ -52,12 +52,18 @@ def test_get_ROI_statistics():
     actual = module._get_ROI_statistics(mock_ROI)
 
     expected = {
+        'r_msorm': 2.5,
+        'g_msorm': 25.0,
+        'b_msorm': 250,
         'r_cv': 1.118033988749895 / 2.5,
         'g_cv': 11.180339887498949 / 25.0,
         'b_cv': 111.80339887498948 / 250.0,
         'r_mean': 2.5,
         'g_mean': 25.0,
         'b_mean': 250.0,
+        'r_outlier_warning': False,
+        'g_outlier_warning': False,
+        'b_outlier_warning': False,
         'r_median': 2.5,
         'g_median': 25.0,
         'b_median': 250.0,
