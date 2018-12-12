@@ -26,13 +26,13 @@ def image_coefficient_of_variation(image):
 
 # Type annotation clears things up for Mypy
 roi_statistic_calculators: Dict[str, Callable] = {
+    'msorm': image_msorm,
     'mean': image_mean,
     'median': image_median,
+    'outlier_warning': image_outlier_warning,
     'min': image_min,
     'max': image_max,
     'stdev': image_stdev,
-    'MSORM': image_msorm,
-    'outlier_warning': image_outlier_warning,
     'cv': image_coefficient_of_variation,
     **{
         f'percentile_{percentile}': partial(np.percentile, q=percentile, axis=IMAGE_AXES)

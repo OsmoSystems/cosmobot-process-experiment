@@ -13,7 +13,8 @@ def _trim_data_to_stdev(sample, trim_stdev):
     Arguments:
         sample: 1-dimensional numpy array to be trimmed
         trim_stdev: number of standard deviations away from the median to keep
-            e.g. if 0, no data will be kept. If 2, anything within 2 standard deviations of the median will be kept
+            e.g. if 0, only values matching the median will be kept.
+                 If 2, anything within 2 standard deviations of the median will be kept
     Return:
         trimmed version of the sample with anything outside of `trim_stdev` standard deviations of the mean removed
     '''
@@ -41,7 +42,7 @@ def median_seeded_outlier_removed_mean(sample, trim_stdev=DEFAULT_TRIM_STDEV):
         the mean of the sample after outliers have been removed.
         Outliers are removed based on their distance from the median
     '''
-    if len(sample.shape) > 1:
+    if len(sample.shape) != 1:
         raise ValueError(
             f'median_seeded_outlier_removed_mean() only supports flat arrays. Sample has shape {sample}.'
         )
@@ -57,16 +58,16 @@ msorm = median_seeded_outlier_removed_mean
 
 
 def _validate_rgb_image_shape(rgb_image, image_name):
-    try:
-        num_channels = rgb_image.shape[2]
-    except IndexError:
+    shape = rgb_image.shape
+    if len(shape) != 3:
         raise ValueError(f'{image_name} is expected to have 3 dimensions but had shape {rgb_image.shape}')
 
-    expected_num_channels = len(COLOR_CHANNEL_INDICES)
-    if num_channels != expected_num_channels:
+    num_color_channels = rgb_image.shape[2]
+    expected_num_color_channels = len(COLOR_CHANNEL_INDICES)
+    if num_color_channels != expected_num_color_channels:
         raise ValueError(
-            f'{image_name} is expected to have {expected_num_channels} '
-            f'channels but had {num_channels}. (shape={rgb_image.shape})'
+            f'{image_name} is expected to have {expected_num_color_channels} '
+            f'channels but had {num_color_channels}. (shape={rgb_image.shape})'
         )
 
 

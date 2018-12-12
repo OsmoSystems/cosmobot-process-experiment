@@ -19,7 +19,8 @@ class TestTrimDataToStdev:
             2,
             [1] * 10 + [5, -5]
         ),
-        ('trim everything', [1, 2, 3, 4], 0, []),
+        ('trim everything when median not present', [1, 2, 3, 4], 0, []),
+        ('trim everything except the median', [0, 1, 2], 0, [1]),
     ])
     def test_various_cases(self, name, sample, trim_stdev, expected):
         np.testing.assert_array_equal(
@@ -35,19 +36,19 @@ class TestMsorm:
         actual = module.msorm(sample)
         expected = 5
 
-        np.testing.assert_almost_equal(actual, expected)
+        np.testing.assert_equal(actual, expected)
 
-    def test_msorm_trim_stdev_large_enough__includes_outliers(self):
+    def test_trim_stdev_large_enough__includes_outliers(self):
         sample = np.array([5] * 100 + [-50, 100])
 
-        actual = module.msorm(sample, 10)
+        actual = module.msorm(sample, trim_stdev=10)
 
         # Outliers in this sample are biased towards the high end;
         # msorm should be noticably bigger than it would be if we filtered more aggressively
         msorm_without_outliers = 5
         assert actual > msorm_without_outliers + 0.1
 
-    def test_msorm_on_non_flat_array__blows_up(self):
+    def test_non_flat_array__blows_up(self):
         sample = np.array([
             [1, 2, 3], [1, 2, 3]
         ])
@@ -55,13 +56,19 @@ class TestMsorm:
         with pytest.raises(ValueError, match='flat'):
             module.msorm(sample)
 
+    def test_zero_dimension_array__blows_up(self):
+        sample = np.ones(shape=())
 
-rgb_image = np.array([
+        with pytest.raises(ValueError, match='flat'):
+            module.msorm(sample)
+
+
+EXAMPLE_RGB_IMAGE = np.array([
     [[1, 2, 3],  [1, 2, 3]],
     [[1, 2, 3],  [1, 2, 3]],
 ])
 
-image_2_channels = np.array([
+EXAMPLE_IMAGE_2_CHANNELS = np.array([
     [[1, 2],  [1, 2]],
     [[1, 2],  [1, 2]],
 ])
@@ -69,15 +76,22 @@ image_2_channels = np.array([
 
 class TestImageMsorm:
     def test_returns_per_channel_stat(self):
-        actual = module.image_msorm(rgb_image)
+        actual = module.image_msorm(EXAMPLE_RGB_IMAGE)
         expected = np.array([1, 2, 3])
 
-        np.testing.assert_array_almost_equal(actual, expected)
+        np.testing.assert_equal(actual, expected)
 
     @pytest.mark.parametrize('name, image', [
         (
-            'wrong number of channels',
-            image_2_channels
+            'too few channels',
+            EXAMPLE_IMAGE_2_CHANNELS
+        ),
+        (
+            'too many channels',
+            np.array([
+                [[1, 2, 3, 4],  [1, 2, 3, 4]],
+                [[1, 2, 3, 4],  [1, 2, 3, 4]],
+            ])
         ),
         (
             'not an image',
@@ -91,27 +105,23 @@ class TestImageMsorm:
 
 class TestImageStackMsorm:
     def test_returns_per_channel_stat(self):
-        rgb_image = np.array([
-            [[1, 2, 3],  [1, 2, 3]],
-            [[1, 2, 3],  [1, 2, 3]],
-        ])
         rgb_image_stack = np.array([
-            rgb_image, rgb_image
+            EXAMPLE_RGB_IMAGE, EXAMPLE_RGB_IMAGE
         ])
 
         actual = module.image_stack_msorm(rgb_image_stack)
         expected = np.array([1, 2, 3])
 
-        np.testing.assert_array_almost_equal(actual, expected)
+        np.testing.assert_equal(actual, expected)
 
     @pytest.mark.parametrize('name, image', [
         (
             'wrong number of channels',
-            np.array([image_2_channels, image_2_channels])
+            np.array([EXAMPLE_IMAGE_2_CHANNELS, EXAMPLE_IMAGE_2_CHANNELS])
         ),
         (
             'not a stack',
-            rgb_image
+            EXAMPLE_RGB_IMAGE
         ),
     ])
     def test_blows_up_with_non_image_input(self, name, image):

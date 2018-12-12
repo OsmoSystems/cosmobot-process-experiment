@@ -8,7 +8,7 @@ from osmo_camera import raw, rgb
 from osmo_camera.correction import dark_frame, flat_field, intensity
 from osmo_camera.file_structure import create_output_directory
 from osmo_camera.select_ROI import get_ROIs_for_image
-from osmo_camera.stats import roi_statistic_calculators
+from osmo_camera.stats.main import roi_statistic_calculators
 
 
 def _get_ROI_statistics(ROI):
