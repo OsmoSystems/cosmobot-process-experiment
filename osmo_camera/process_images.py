@@ -1,7 +1,5 @@
 from itertools import chain
-from functools import partial
 import os
-from typing import Callable, Dict
 
 import numpy as np
 import pandas as pd
@@ -10,35 +8,13 @@ from osmo_camera import raw, rgb
 from osmo_camera.correction import dark_frame, flat_field, intensity
 from osmo_camera.file_structure import create_output_directory
 from osmo_camera.select_ROI import get_ROIs_for_image
-
-
-# Running numpy calculations against this axis aggregates over the image for each channel, as color channels are axis=2
-IMAGE_AXES = (0, 1)
-
-
-def _coefficient_of_variation(image):
-    return np.std(image, axis=IMAGE_AXES) / np.mean(image, axis=IMAGE_AXES)
-
-
-# Type annotation clears things up for Mypy
-ROI_STATISTIC_CALCULATORS: Dict[str, Callable] = {
-    'mean': partial(np.mean, axis=IMAGE_AXES),
-    'median': partial(np.median, axis=IMAGE_AXES),
-    'min': partial(np.amin, axis=IMAGE_AXES),
-    'max': partial(np.amax, axis=IMAGE_AXES),
-    'stdev': partial(np.std, axis=IMAGE_AXES),
-    'cv': _coefficient_of_variation,
-    **{
-        f'percentile_{percentile}': partial(np.percentile, q=percentile, axis=IMAGE_AXES)
-        for percentile in [99, 95, 90, 75, 50, 25]
-    }
-}
+from osmo_camera.stats.main import roi_statistic_calculators
 
 
 def _get_ROI_statistics(ROI):
     channel_stats = {
         stat_name: stat_calculator(ROI)
-        for stat_name, stat_calculator in ROI_STATISTIC_CALCULATORS.items()
+        for stat_name, stat_calculator in roi_statistic_calculators.items()
     }
 
     flattened_channel_stats = {
