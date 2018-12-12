@@ -1,6 +1,7 @@
 from picamraw import PiRawBayer, PiCameraVersion
 from ..constants import RAW_BIT_DEPTH
 
+
 def as_rgb(raw_image_path):
     ''' Extracts the raw bayer data from a JPEG+RAW file and converts it to an
         `RGB Image` (see definition in README).
