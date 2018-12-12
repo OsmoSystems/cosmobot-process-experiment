@@ -89,10 +89,10 @@ def process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir=None)
     '''
     ROIs = get_ROIs_for_image(rgb_image, ROI_definitions)
 
-    exif_tags = raw.metadata.get_exif_tags(raw_image_path)
-
     if ROI_crops_dir is not None:
         save_ROI_crops(ROI_crops_dir, raw_image_path, ROIs)
+
+    exif_tags = raw.metadata.get_exif_tags(raw_image_path)
 
     return [
         {
