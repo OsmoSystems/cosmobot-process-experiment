@@ -1,6 +1,7 @@
+from ..constants import RAW_BIT_DEPTH
+
 EXPOSURE_SLOPE = 0.069759
 DARK_OFFSET = 63.895291
-RAW_BIT_DEPTH = 2**10
 
 
 def _calculate_dark_signal_in_dnr(exposure_seconds):
