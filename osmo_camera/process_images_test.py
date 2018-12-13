@@ -30,7 +30,10 @@ def test_correct_images(mock_get_exif_tags):
 
     actual = module.correct_images(
         original_rgb_by_filepath,
-        ROI_definition_for_intensity_correction=sentinel.ROI_definition
+        ROI_definition_for_intensity_correction=sentinel.ROI_definition,
+        save_dark_frame_corrected_images=False,
+        save_flat_field_corrected_images=False,
+        save_intensity_corrected_images=False
     )
 
     expected = {

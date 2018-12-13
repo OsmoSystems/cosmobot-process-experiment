@@ -18,7 +18,7 @@ def test_apply_dark_frame_correction():
         [19, 20, 21, 22]
     ])
 
-    actual = module.apply_dark_frame_correction(input_rgb, exposure_seconds)
+    actual = module._apply_dark_frame_correction(input_rgb, exposure_seconds)
     expected = np.array([
         [10.93752051, 11.93752051, 12.93752051, 13.93752051],
         [14.93752051, 15.93752051, 16.93752051, 17.93752051],

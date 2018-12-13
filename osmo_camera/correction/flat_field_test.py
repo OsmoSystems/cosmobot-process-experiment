@@ -12,7 +12,7 @@ def test_apply_flat_field_correction():
         [90, 100, 110, 120]
     ])
 
-    actual = module.apply_flat_field_correction(
+    actual = module._apply_flat_field_correction(
         input_rgb,
         sentinel.dark_frame_rgb,
         sentinel.flat_field_rgb

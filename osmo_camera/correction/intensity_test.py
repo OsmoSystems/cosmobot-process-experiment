@@ -12,7 +12,7 @@ def test_apply_intensity_correction():
         [9, 10, 11, 12]
     ])
 
-    actual = module.apply_intensity_correction(
+    actual = module._apply_intensity_correction(
         input_rgb,
         ROI_definition_for_intensity_correction=sentinel.ROI_definition
     )

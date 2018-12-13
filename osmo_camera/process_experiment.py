@@ -53,7 +53,10 @@ def process_experiment(
     sync_start_time=None,
     sync_end_time=None,
     save_summary_images=False,
-    save_ROIs=False
+    save_ROIs=False,
+    save_dark_frame_corrected_images=False,
+    save_flat_field_corrected_images=False,
+    save_intensity_corrected_images=False
 ):
     ''' Process all images from an experiment:
         1. Sync raw images from s3
@@ -121,7 +124,15 @@ def process_experiment(
         generate_summary_images(rgb_images_by_filepath, ROI_definitions, raw_images_dir)
 
     print('5. Process images into summary statistics...')
-    image_summary_data = process_images(rgb_images_by_filepath, ROI_definitions, raw_images_dir, save_ROIs)
+    image_summary_data = process_images(
+        rgb_images_by_filepath,
+        ROI_definitions,
+        raw_images_dir,
+        save_dark_frame_corrected_images,
+        save_flat_field_corrected_images,
+        save_intensity_corrected_images,
+        save_ROIs
+    )
     _save_summary_statistics_csv(experiment_dir, image_summary_data)
 
     return image_summary_data, ROI_definitions
