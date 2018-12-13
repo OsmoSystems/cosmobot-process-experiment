@@ -1,7 +1,5 @@
 from osmo_camera import rgb
 
-filepath_suffix = "_dark_flat_intensity_adj"
-
 
 def _apply_intensity_correction(input_rgb, ROI_definition_for_intensity_correction):
     # TODO (https://app.asana.com/0/862697519982053/933995774091561): implement
@@ -23,6 +21,9 @@ def apply_intensity_correction_to_rgb_images(
 
     # TODO: save with each correction or batch save after all corrections are applied?
     if save_corrected_images:
-        rgb.save.save_rgb_images_by_filepath_with_suffix(intensity_corrected_rgb_by_filepath, filepath_suffix)
+        rgb.save.save_rgb_images_by_filepath_with_suffix(
+            intensity_corrected_rgb_by_filepath,
+            "_dark_flat_intensity_adj"
+        )
 
     return intensity_corrected_rgb_by_filepath

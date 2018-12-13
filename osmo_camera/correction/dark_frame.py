@@ -5,8 +5,6 @@ from osmo_camera import raw, rgb
 EXPOSURE_SLOPE = 6.81240234375e-05
 DARK_OFFSET = 0.0623977451171875
 
-filepath_suffix = "_dark_adj"
-
 
 def _calculate_dark_signal_in_dnr(exposure_seconds):
     ''' Calculate the dark signal introduced over the length of an exposure
@@ -45,6 +43,9 @@ def apply_dark_frame_correction_to_rgb_images(original_rgb_by_filepath, save_cor
     }
 
     if save_corrected_images:
-        rgb.save.save_rgb_images_by_filepath_with_suffix(dark_frame_corrected_rgb_by_filepath, filepath_suffix)
+        rgb.save.save_rgb_images_by_filepath_with_suffix(
+            dark_frame_corrected_rgb_by_filepath,
+            "_dark_adj"
+        )
 
     return dark_frame_corrected_rgb_by_filepath
