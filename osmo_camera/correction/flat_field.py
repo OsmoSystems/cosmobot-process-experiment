@@ -1,5 +1,4 @@
 import numpy as np
-from osmo_camera import rgb
 
 
 def _apply_flat_field_correction(dark_frame_corrected_rgb, dark_frame_rgb, flat_field_rgb):
@@ -7,7 +6,7 @@ def _apply_flat_field_correction(dark_frame_corrected_rgb, dark_frame_rgb, flat_
     return dark_frame_corrected_rgb
 
 
-def apply_flat_field_correction_to_rgb_images(dark_frame_corrected_rgb_by_filepath, save_corrected_images=False):
+def apply_flat_field_correction_to_rgb_images(dark_frame_corrected_rgb_by_filepath):
     flat_field_corrected_rgb_by_filepath = {
         image_path: _apply_flat_field_correction(
             dark_frame_corrected_rgb,
@@ -16,11 +15,5 @@ def apply_flat_field_correction_to_rgb_images(dark_frame_corrected_rgb_by_filepa
         )
         for image_path, dark_frame_corrected_rgb in dark_frame_corrected_rgb_by_filepath.items()
     }
-
-    if save_corrected_images:
-        rgb.save.save_rgb_images_by_filepath_with_suffix(
-            flat_field_corrected_rgb_by_filepath,
-            "_dark_flat_adj"
-        )
 
     return flat_field_corrected_rgb_by_filepath

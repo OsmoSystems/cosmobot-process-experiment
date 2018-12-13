@@ -1,4 +1,4 @@
-from osmo_camera import raw, rgb
+from osmo_camera import raw
 
 #  Constants to apply when calculating dark signal from final recommendation (note: these are in DNR):
 #  https://docs.google.com/document/d/1xIgZxrC1qYUnwEGWt8yXnvWluEj51jpyIqArMJlNhrs/edit#
@@ -33,7 +33,7 @@ def _apply_dark_frame_correction(input_rgb, exposure_seconds):
     return dark_frame_corrected_rgb
 
 
-def apply_dark_frame_correction_to_rgb_images(original_rgb_by_filepath, save_corrected_images=False):
+def apply_dark_frame_correction_to_rgb_images(original_rgb_by_filepath):
     dark_frame_corrected_rgb_by_filepath = {
         image_path: _apply_dark_frame_correction(
             image_rgb,
@@ -41,11 +41,5 @@ def apply_dark_frame_correction_to_rgb_images(original_rgb_by_filepath, save_cor
         )
         for image_path, image_rgb in original_rgb_by_filepath.items()
     }
-
-    if save_corrected_images:
-        rgb.save.save_rgb_images_by_filepath_with_suffix(
-            dark_frame_corrected_rgb_by_filepath,
-            "_dark_adj"
-        )
 
     return dark_frame_corrected_rgb_by_filepath

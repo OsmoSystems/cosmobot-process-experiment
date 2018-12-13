@@ -79,3 +79,7 @@ def filename_has_correct_datetime_format(filename):
 def append_suffix_to_filepath_before_extension(filepath, suffix):
     filepath_base, filepath_extension = os.path.splitext(filepath)
     return filepath_base + suffix + filepath_extension
+
+
+def file_exists_and_size_is_not_zero(image_path):
+    return os.path.isfile(image_path) and os.path.getsize(image_path) > 0
