@@ -103,7 +103,10 @@ def correct_images(
     print('--------Correcting Images--------')
     print('1. Apply dark frame correction')
     dark_frame_corrected_rgb_by_filepath = {
-        image_path: dark_frame.apply_dark_frame_correction(image_rgb, np.zeros(image_rgb.shape))
+        image_path: dark_frame.apply_dark_frame_correction(
+            image_rgb,
+            raw.metadata.get_exif_tags(image_path).exposure_time
+        )
         for image_path, image_rgb in original_rgb_by_filepath.items()
     }
 
