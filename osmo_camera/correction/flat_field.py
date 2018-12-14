@@ -6,14 +6,14 @@ def _apply_flat_field_correction(dark_frame_corrected_rgb, dark_frame_rgb, flat_
     return dark_frame_corrected_rgb
 
 
-def apply_flat_field_correction_to_rgb_images(dark_frame_corrected_rgb_by_filepath):
-    flat_field_corrected_rgb_by_filepath = {
+def apply_flat_field_correction_to_rgb_images(rgbs_by_filepath):
+    flat_field_corrected_rgbs_by_filepath = {
         image_path: _apply_flat_field_correction(
-            dark_frame_corrected_rgb,
+            image_rgb,
             dark_frame_rgb=np.zeros(dark_frame_corrected_rgb.shape),
             flat_field_rgb=np.ones(dark_frame_corrected_rgb.shape)
         )
-        for image_path, dark_frame_corrected_rgb in dark_frame_corrected_rgb_by_filepath.items()
+        for image_path, image_rgb in rgbs_by_filepath.items()
     }
 
-    return flat_field_corrected_rgb_by_filepath
+    return flat_field_corrected_rgbs_by_filepath
