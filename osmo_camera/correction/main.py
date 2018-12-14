@@ -7,11 +7,10 @@ def save_rgb_images_by_filepath_with_suffix(
     filepath_suffix
 ):
     for image_path, image_rgb in rgb_images_by_filepath.items():
-        if not file_structure.file_exists_and_size_is_not_zero(image_path):
-            rgb.save.as_file(
-                image_rgb,
-                file_structure.append_suffix_to_filepath_before_extension(image_path, filepath_suffix)
-            )
+        rgb.save.as_file(
+            image_rgb,
+            file_structure.append_suffix_to_filepath_before_extension(image_path, filepath_suffix)
+        )
 
 
 def correct_images(
