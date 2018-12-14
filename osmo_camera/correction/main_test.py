@@ -4,6 +4,7 @@ import pytest
 import numpy as np
 
 from osmo_camera.raw import metadata
+from osmo_camera import file_structure
 from osmo_camera.raw.metadata import ExifTags
 from . import main as module
 
@@ -15,11 +16,16 @@ test_exif_tags = ExifTags(
 
 
 @pytest.fixture
+def mock_file_exists_and_size_is_not_zero(mocker):
+    mocker.patch.object(file_structure, 'file_exists_and_size_is_not_zero').return_value = True
+
+
+@pytest.fixture
 def mock_get_exif_tags(mocker):
     mocker.patch.object(metadata, 'get_exif_tags').return_value = test_exif_tags
 
 
-def test_correct_images(mock_get_exif_tags):
+def test_correct_images(mock_get_exif_tags, mock_file_exists_and_size_is_not_zero):
     original_rgb_by_filepath = {
         sentinel.rgb_image_path_1: np.array([
             [[1, 10, 100], [2, 20, 200]],
