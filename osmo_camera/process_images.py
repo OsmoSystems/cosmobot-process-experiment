@@ -87,10 +87,10 @@ def process_images(
     original_rgb_images_by_filepath,
     ROI_definitions,
     raw_images_dir,
+    save_ROIs=False,
     save_dark_frame_corrected_images=False,
     save_flat_field_corrected_images=False,
-    save_intensity_corrected_images=False,
-    save_ROIs=False
+    save_intensity_corrected_images=False
 ):
     ''' Process all images in a given directory
 
@@ -116,9 +116,9 @@ def process_images(
     corrected_rgb_images = correct_images(
         original_rgb_images_by_filepath,
         dummy_intensity_correction_ROI,
-        save_dark_frame_corrected_images,
-        save_flat_field_corrected_images,
-        save_intensity_corrected_images
+        save_dark_frame_corrected_images=save_dark_frame_corrected_images,
+        save_flat_field_corrected_images=save_flat_field_corrected_images,
+        save_intensity_corrected_images=save_intensity_corrected_images
     )
 
     processed_ROIs = [
