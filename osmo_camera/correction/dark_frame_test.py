@@ -21,12 +21,6 @@ rgb_image_1 = np.array([
     [19, 20, 21, 22]
 ])
 
-rgb_image_2 = np.array([
-    [12, 13, 14, 15],
-    [16, 17, 18, 19],
-    [20, 21, 22, 23]
-])
-
 
 @pytest.fixture
 def mock_correct_images(mocker):
@@ -52,26 +46,15 @@ class TestDarkFrameCorrection:
 
         np.testing.assert_array_almost_equal(actual, expected)
 
-    def test_apply_dark_frame_correction_to_rgb_images(self, mock_correct_images):
+    def test_apply_dark_frame_correction_to_rgb_images(self, mocker):
+        mock__apply_dark_frame_correction = mocker.patch.object(module, '_apply_dark_frame_correction')
+        mock_get_exif_tags = mocker.patch.object(metadata, 'get_exif_tags')
+
         rgb_images = {
             sentinel.rgb_image_1: rgb_image_1,
-            sentinel.rgb_image_2: rgb_image_2
+            sentinel.rgb_image_2: rgb_image_1
         }
 
-        actual = module.apply_dark_frame_correction_to_rgb_images(rgb_images)
-
-        expected = {
-            sentinel.rgb_image_1: np.array([
-                [10.93752051, 11.93752051, 12.93752051, 13.93752051],
-                [14.93752051, 15.93752051, 16.93752051, 17.93752051],
-                [18.93752051, 19.93752051, 20.93752051, 21.93752051]
-            ]),
-            sentinel.rgb_image_2: np.array([
-                [11.937521, 12.937521, 13.937521, 14.937521],
-                [15.937521, 16.937521, 17.937521, 18.937521],
-                [19.937521, 20.937521, 21.937521, 22.937521]
-            ])
-        }
-
-        np.testing.assert_array_almost_equal(actual[sentinel.rgb_image_1], expected[sentinel.rgb_image_1])
-        np.testing.assert_array_almost_equal(actual[sentinel.rgb_image_2], expected[sentinel.rgb_image_2])
+        module.apply_dark_frame_correction_to_rgb_images(rgb_images)
+        assert mock__apply_dark_frame_correction.call_count == 2
+        assert mock_get_exif_tags.call_count == 2
