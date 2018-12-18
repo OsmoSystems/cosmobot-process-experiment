@@ -1,14 +1,13 @@
 from itertools import chain
 import os
 
-import numpy as np
 import pandas as pd
 
 from osmo_camera import raw, rgb
-from osmo_camera.correction import dark_frame, flat_field, intensity
 from osmo_camera.file_structure import create_output_directory
 from osmo_camera.select_ROI import get_ROIs_for_image
 from osmo_camera.stats.main import roi_statistic_calculators
+from osmo_camera.correction.main import correct_images
 
 
 def _get_ROI_statistics(ROI):
@@ -84,55 +83,15 @@ def process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir=None)
     ]
 
 
-def correct_images(
-    original_rgb_by_filepath,
-    ROI_definition_for_intensity_correction,
+def process_images(
+    original_rgb_images_by_filepath,
+    ROI_definitions,
+    raw_images_dir,
+    save_ROIs=False,
+    save_dark_frame_corrected_images=False,
+    save_flat_field_corrected_images=False,
+    save_intensity_corrected_images=False
 ):
-    ''' Correct all images from an experiment:
-        1. Apply dark frame correction
-        2. Apply flat field correction
-        3. Apply intensity correction
-
-    Args:
-        original_rgb_by_filepath: A map of {image_path: rgb_image}
-        ROI_definition_for_intensity_correction: ROI to average and use to correct intensity on `ROI_definitions`
-     Returns:
-        A dictionary of intensity corrected rgb images that is keyed by raw file path
-    '''
-
-    print('--------Correcting Images--------')
-    print('1. Apply dark frame correction')
-    dark_frame_corrected_rgb_by_filepath = {
-        image_path: dark_frame.apply_dark_frame_correction(
-            image_rgb,
-            raw.metadata.get_exif_tags(image_path).exposure_time
-        )
-        for image_path, image_rgb in original_rgb_by_filepath.items()
-    }
-
-    print('2. Apply flat field correction')
-    flat_field_corrected_rgb_by_filepath = {
-        image_path: flat_field.apply_flat_field_correction(
-            dark_frame_corrected_rgb,
-            dark_frame_rgb=np.zeros(dark_frame_corrected_rgb.shape),
-            flat_field_rgb=np.ones(dark_frame_corrected_rgb.shape)
-        )
-        for image_path, dark_frame_corrected_rgb in dark_frame_corrected_rgb_by_filepath.items()
-    }
-
-    print('3. Apply intensity correction')
-    intensity_corrected_rgb_by_filepath = {
-        image_path: intensity.apply_intensity_correction(
-            flat_field_corrected_rgb,
-            ROI_definition_for_intensity_correction
-        )
-        for image_path, flat_field_corrected_rgb in flat_field_corrected_rgb_by_filepath.items()
-    }
-
-    return intensity_corrected_rgb_by_filepath
-
-
-def process_images(original_rgb_images_by_filepath, ROI_definitions, raw_images_dir, save_ROIs=False):
     ''' Process all images in a given directory
 
     Args:
@@ -156,7 +115,10 @@ def process_images(original_rgb_images_by_filepath, ROI_definitions, raw_images_
 
     corrected_rgb_images = correct_images(
         original_rgb_images_by_filepath,
-        ROI_definition_for_intensity_correction=dummy_intensity_correction_ROI
+        dummy_intensity_correction_ROI,
+        save_dark_frame_corrected_images=save_dark_frame_corrected_images,
+        save_flat_field_corrected_images=save_flat_field_corrected_images,
+        save_intensity_corrected_images=save_intensity_corrected_images
     )
 
     processed_ROIs = [
