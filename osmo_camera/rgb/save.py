@@ -26,7 +26,7 @@ def as_uint16_tiff(rgb_image, output_path):
 
     Args:
         rgb_image: An `RGB image`
-        output_path: The full file path (including extension) to save the image as
+        output_path: The full file path (including extension, which must be .tiff) to save the image as
 
     Returns:
         None
