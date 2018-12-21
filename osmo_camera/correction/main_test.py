@@ -56,7 +56,7 @@ class TestCorrectImages:
             file_structure,
             'append_suffix_to_filepath_before_extension'
         )
-        mock_replace_extension_in_filepath = mocker.patch.object(file_structure, 'replace_extension_in_filepath')
+        mock_replace_extension_in_filepath = mocker.patch.object(file_structure, 'replace_extension')
 
         rgbs_by_filepath = {
             sentinel.rgb_image_path_1: np.array([
