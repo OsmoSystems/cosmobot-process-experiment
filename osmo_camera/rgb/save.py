@@ -2,6 +2,8 @@ import numpy as np
 from PIL import Image
 import tifffile
 
+from osmo_camera.constants import DNR_TO_16_BIT_DEPTH
+
 
 def as_file(rgb_image, output_path):
     ''' Save an RGB Image as a file. Note that this downsamples to an 8-bit image. Only tested with .png files
@@ -29,5 +31,5 @@ def as_uint16_tiff(rgb_image, output_path):
     Returns:
         None
     '''
-    rgb_image_as_uint_array = (rgb_image * (2 ** 16)).astype(np.uint16)
+    rgb_image_as_uint_array = (rgb_image * (DNR_TO_16_BIT_DEPTH)).astype(np.uint16)
     tifffile.imsave(output_path, rgb_image_as_uint_array)
