@@ -110,6 +110,6 @@ class TestAlteringFilepath:
         assert actual == expected
 
     def test_replace_extension(self):
-        actual = module.replace_extension('/dir/dir/image.jpeg', 'tiff')
+        actual = module.replace_extension('/dir/dir/image.jpeg', '.tiff')
         expected = '/dir/dir/image.tiff'
         assert actual == expected

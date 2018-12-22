@@ -83,4 +83,4 @@ def append_suffix_to_filepath_before_extension(filepath, suffix):
 
 def replace_extension(filepath, extension):
     filepath_root, _ = os.path.splitext(filepath)
-    return filepath_root + '.' + extension
+    return filepath_root + extension

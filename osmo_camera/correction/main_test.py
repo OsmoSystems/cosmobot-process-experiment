@@ -51,12 +51,12 @@ class TestCorrectImages:
         assert mock_save_rgb_images.call_count == 3
 
     def test_save_rgb_images_by_filepath_with_suffix(self, mocker):
-        mock_save_as_file = mocker.patch.object(save, 'as_uint16_tiff')
+        mock_save_as_uint16_tiff = mocker.patch.object(save, 'as_uint16_tiff')
         mock_append_suffix_to_filepath_before_extension = mocker.patch.object(
             file_structure,
             'append_suffix_to_filepath_before_extension'
         )
-        mock_replace_extension_in_filepath = mocker.patch.object(file_structure, 'replace_extension')
+        mock_replace_extension = mocker.patch.object(file_structure, 'replace_extension')
 
         rgbs_by_filepath = {
             sentinel.rgb_image_path_1: np.array([
@@ -71,6 +71,6 @@ class TestCorrectImages:
 
         module.save_rgb_images_by_filepath_with_suffix(rgbs_by_filepath, 'suffix')
 
-        assert mock_save_as_file.call_count == 2
+        assert mock_save_as_uint16_tiff.call_count == 2
         assert mock_append_suffix_to_filepath_before_extension.call_count == 2
-        assert mock_replace_extension_in_filepath.call_count == 2
+        assert mock_replace_extension.call_count == 2
