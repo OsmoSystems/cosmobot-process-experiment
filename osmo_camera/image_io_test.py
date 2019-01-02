@@ -14,7 +14,7 @@ def test_rgb_image_and_file_integration(tmp_path):
     absolute_tolerance = 2.32831e-10  # 1/2^32 (quantization error when saving to and reading from a 32 bit image)
 
     # tmp_path provides an object of type PosixPath, tifffile expects a file path as a string
-    tmp_filepath = str(tmp_path / "test.tiff")
+    tmp_filepath = str(tmp_path / 'test.tiff')
     rgb_module.save.as_uint32_tiff(actual_test_rgb_image, tmp_filepath)
 
     # read rgb_image from tmp tiff (should convert)
