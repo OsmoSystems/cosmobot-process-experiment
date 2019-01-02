@@ -19,7 +19,7 @@ from osmo_camera import rgb as rgb_module
         [[1.699999, 1.699999, 1.699999], [1.999999, 1.999999, 1.999999]]
     ])),
 ])
-def test_rgb_image_and_file_integration(tmp_path, name, test_rgb_image):
+def test_rgb_image_saved_to_tiff_file_and_loaded_retains_data(tmp_path, name, test_rgb_image):
     absolute_tolerance = 1.862645e-9  # 1/2^29 (quantization error when saving to and reading from an rgb image)
 
     # tmp_path provides an object of type PosixPath, tifffile expects a file path as a string
