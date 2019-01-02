@@ -4,9 +4,7 @@ def _apply_intensity_correction(input_rgb, ROI_definition_for_intensity_correcti
 
 
 def apply_intensity_correction_to_rgb_images(rgbs_by_filepath, ROI_definition_for_intensity_correction):
-    intensity_corrected_rgbs_by_filepath = {
-        image_path: _apply_intensity_correction(image_rgb, ROI_definition_for_intensity_correction)
-        for image_path, image_rgb in rgbs_by_filepath.items()
-    }
-
-    return intensity_corrected_rgbs_by_filepath
+    return rgbs_by_filepath.apply(
+        _apply_intensity_correction,
+        ROI_definition_for_intensity_correction=ROI_definition_for_intensity_correction
+    )

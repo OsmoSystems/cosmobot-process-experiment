@@ -1,7 +1,8 @@
 from unittest.mock import sentinel
 
-import pytest
 import numpy as np
+import pandas as pd
+import pytest
 
 from osmo_camera.raw import metadata
 from osmo_camera.raw.metadata import ExifTags
@@ -25,12 +26,12 @@ class TestCorrectImages:
     def test_correct_images(self, mocker, mock_correct_images):
         mock_save_rgb_images = mocker.patch.object(module, 'save_rgb_images_by_filepath_with_suffix')
 
-        rgbs_by_filepath = {
+        rgbs_by_filepath = pd.Series({
             sentinel.rgb_image_path_1: np.array([
                 [[1, 10, 100], [2, 20, 200]],
                 [[3, 30, 300], [4, 40, 400]]
             ])
-        }
+        })
 
         actual = module.correct_images(
             rgbs_by_filepath,
@@ -40,12 +41,12 @@ class TestCorrectImages:
             save_intensity_corrected_images=True
         )
 
-        expected = {
+        expected = pd.Series({
             sentinel.rgb_image_path_1: np.array([
                 [[0.93752051, 9.93752051, 99.93752051], [1.93752051, 19.93752051, 199.93752051]],
                 [[2.93752051, 29.93752051, 299.93752051], [3.93752051, 39.93752051, 399.93752051]]
             ])
-        }
+        })
 
         np.testing.assert_array_almost_equal(actual[sentinel.rgb_image_path_1], expected[sentinel.rgb_image_path_1])
         assert mock_save_rgb_images.call_count == 3
@@ -57,7 +58,7 @@ class TestCorrectImages:
             'append_suffix_to_filepath_before_extension'
         )
 
-        rgbs_by_filepath = {
+        rgbs_by_filepath = pd.Series({
             sentinel.rgb_image_path_1: np.array([
                 [[1, 10, 100], [2, 20, 200]],
                 [[3, 30, 300], [4, 40, 400]]
@@ -66,7 +67,7 @@ class TestCorrectImages:
                 [[1, 10, 100], [2, 20, 200]],
                 [[3, 30, 300], [4, 40, 400]]
             ])
-        }
+        })
 
         module.save_rgb_images_by_filepath_with_suffix(rgbs_by_filepath, 'suffix')
 

@@ -26,10 +26,10 @@ def correct_images(
         3. Apply intensity correction
 
     Args:
-        original_rgb_by_filepath: A map of {image_path: rgb_image}
+        original_rgb_by_filepath: A Series of RGB images indexed by raw file path
         ROI_definition_for_intensity_correction: ROI to average and use to correct intensity on `ROI_definitions`
      Returns:
-        A dictionary of intensity corrected rgb images that is keyed by raw file path
+        A Series of intensity corrected rgb images indexed by raw file path
     '''
 
     print('--------Correcting Images--------')

@@ -1,3 +1,5 @@
+import pandas as pd
+
 from osmo_camera import raw
 
 #  Constants to apply when calculating dark signal from final recommendation (note: these are in DNR):
@@ -34,12 +36,12 @@ def _apply_dark_frame_correction(input_rgb, exposure_seconds):
 
 
 def apply_dark_frame_correction_to_rgb_images(rgbs_by_filepath):
-    dark_frame_corrected_rgbs_by_filepath = {
+    dark_frame_corrected_rgbs_by_filepath = pd.Series({
         image_path: _apply_dark_frame_correction(
             image_rgb,
             raw.metadata.get_exif_tags(image_path).exposure_time
         )
         for image_path, image_rgb in rgbs_by_filepath.items()
-    }
+    })
 
     return dark_frame_corrected_rgbs_by_filepath
