@@ -1,10 +1,10 @@
 import numpy as np
 import tifffile
 
-from ..constants import DNR_TO_16_BIT_DEPTH
+from ..constants import DNR_TO_32_BIT_DEPTH
 
 
-def as_uint16_tiff(rgb_image, output_path):
+def as_uint32_tiff(rgb_image, output_path):
     ''' Save an RGB Image as a tiff file.
 
     Args:
@@ -14,5 +14,5 @@ def as_uint16_tiff(rgb_image, output_path):
     Returns:
         None
     '''
-    rgb_image_as_uint_array = (rgb_image * (DNR_TO_16_BIT_DEPTH)).astype(np.uint16)
+    rgb_image_as_uint_array = (rgb_image * (DNR_TO_32_BIT_DEPTH)).astype(np.uint32)
     tifffile.imsave(output_path, rgb_image_as_uint_array, compress=1)

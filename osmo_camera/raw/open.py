@@ -1,6 +1,6 @@
 import tifffile
 from picamraw import PiRawBayer, PiCameraVersion
-from ..constants import RAW_BIT_DEPTH, DNR_TO_16_BIT_DEPTH
+from ..constants import RAW_BIT_DEPTH, DNR_TO_32_BIT_DEPTH
 
 
 def as_rgb(raw_image_path):
@@ -25,7 +25,7 @@ def as_rgb(raw_image_path):
     return rgb_image
 
 
-def as_uint16_tiff_as_rgb(image_path):
+def as_uint32_tiff_as_rgb(image_path):
     ''' Opens and reads a 16 bit tiff file and returns
         an `RGB Image` (see definition in README).
 
@@ -36,5 +36,5 @@ def as_uint16_tiff_as_rgb(image_path):
         An `RGB Image`
     '''
     tiff_image = tifffile.imread(image_path)
-    rgb_image = tiff_image / DNR_TO_16_BIT_DEPTH
+    rgb_image = tiff_image / DNR_TO_32_BIT_DEPTH
     return rgb_image
