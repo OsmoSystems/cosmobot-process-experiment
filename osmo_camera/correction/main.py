@@ -7,7 +7,7 @@ def save_rgb_images_by_filepath_with_suffix(
     filepath_suffix
 ):
     for image_path, image_rgb in rgb_images_by_filepath.items():
-        rgb.save.as_uint32_tiff(
+        rgb.save.as_int32_tiff(
             image_rgb,
             file_structure.replace_extension(
                 file_structure.append_suffix_to_filepath_before_extension(image_path, filepath_suffix),

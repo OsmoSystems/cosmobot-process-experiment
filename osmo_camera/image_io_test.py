@@ -5,18 +5,27 @@ from osmo_camera import raw as raw_module
 from osmo_camera import rgb as rgb_module
 
 
-def test_rgb_image_and_file_integration(tmp_path):
-    actual_test_rgb_image = np.array([
+@pytest.mark.parametrize("name, test_rgb_image", [
+    ('0 to 1 DNR', np.array([
         [[0.0, 0.0, 0.0], [0.499999, 0.499999, 0.499999]],
         [[0.699999, 0.699999, 0.699999], [0.999999, 0.999999, 0.999999]]
-    ])
-
-    absolute_tolerance = 2.32831e-10  # 1/2^32 (quantization error when saving to and reading from a 32 bit image)
+    ])),
+    ('-1 to +1 DNR', np.array([
+        [[-0.999999, -0.999999, -0.999999], [-0.699999, -0.699999, -0.699999]],
+        [[0.699999, 0.699999, 0.699999], [0.999999, 0.999999, 0.999999]]
+    ])),
+    ('-2 to +2 DNR', np.array([
+        [[-1.999999, -1.999999, -1.999999], [-1.699999, -1.699999, -1.699999]],
+        [[1.699999, 1.699999, 1.699999], [1.999999, 1.999999, 1.999999]]
+    ])),
+])
+def test_rgb_image_and_file_integration(tmp_path, name, test_rgb_image):
+    absolute_tolerance = 1.862645e-9  # 1/2^29 (quantization error when saving to and reading from an rgb image)
 
     # tmp_path provides an object of type PosixPath, tifffile expects a file path as a string
     tmp_filepath = str(tmp_path / 'test.tiff')
-    rgb_module.save.as_uint32_tiff(actual_test_rgb_image, tmp_filepath)
+    rgb_module.save.as_int32_tiff(test_rgb_image, tmp_filepath)
 
     # read rgb_image from tmp tiff (should convert)
-    expected_tmp_tiff_as_rgb_image = raw_module.open.as_uint32_tiff_as_rgb(tmp_filepath)
-    np.testing.assert_allclose(actual_test_rgb_image, expected_tmp_tiff_as_rgb_image, atol=absolute_tolerance)
+    expected_tmp_tiff_as_rgb_image = raw_module.open.as_int32_tiff_as_rgb(tmp_filepath)
+    np.testing.assert_allclose(test_rgb_image, expected_tmp_tiff_as_rgb_image, atol=absolute_tolerance)
