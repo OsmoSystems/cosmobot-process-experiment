@@ -44,7 +44,7 @@ def save_ROI_crops(ROI_crops_dir, raw_image_path, rgb_ROIs_by_name):
 
 
 def process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir=None):
-    ''' Process all the ROIs in a single .DNG image into summary statistics
+    ''' Process all the ROIs in a single JPEG+RAW image into summary statistics
 
     For each ROI:
         1. Crop
@@ -131,9 +131,9 @@ def process_images(
     ).sort_values('timestamp').reset_index(drop=True)
 
     initial_column_order = ['ROI', 'image', 'exposure_seconds', 'iso']
-    reorded_columns = initial_column_order + [
+    reordered_columns = initial_column_order + [
         column for column in summary_statistics if column not in initial_column_order
     ]
-    summary_statistics = summary_statistics[reorded_columns]
+    summary_statistics = summary_statistics[reordered_columns]
 
     return summary_statistics
