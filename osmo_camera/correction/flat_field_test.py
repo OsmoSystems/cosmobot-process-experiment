@@ -13,7 +13,7 @@ rgb_image = np.array([
     [9, 10, 11, 12]
 ])
 
-rgb_images_pd_series = pd.Series({
+rgb_images_series = pd.Series({
     sentinel.rgb_image_1: rgb_image,
     sentinel.rgb_image_2: rgb_image
 })
@@ -21,11 +21,11 @@ rgb_images_pd_series = pd.Series({
 
 @pytest.fixture
 def mock_apply_dark_frame_correction_to_rgb_images(mocker):
-    mocker.patch.object(dark_frame, 'apply_dark_frame_correction_to_rgb_images').return_value = rgb_images_pd_series
+    mocker.patch.object(dark_frame, 'apply_dark_frame_correction_to_rgb_images').return_value = rgb_images_series
 
 
 def test_generate_flat_field(mock_apply_dark_frame_correction_to_rgb_images):
-    actual = module.generate_flat_field(rgb_images_pd_series)
+    actual = module.generate_flat_field(rgb_images_series)
     expected = np.array([
         [6.5, 3.25, 2.166667, 1.625],
         [1.3, 1.083333, 0.928571, 0.8125],
@@ -49,6 +49,5 @@ class TestFlatFieldCorrection:
         np.testing.assert_array_equal(actual, input_rgb)
 
     def test_apply_intensity_correction_to_rgb_images(self):
-        rgb_images = rgb_images_pd_series
-        actual = module.apply_flat_field_correction_to_rgb_images(rgb_images)
-        pd.testing.assert_series_equal(rgb_images, actual)
+        actual = module.apply_flat_field_correction_to_rgb_images(rgb_images_series)
+        pd.testing.assert_series_equal(rgb_images_series, actual)
