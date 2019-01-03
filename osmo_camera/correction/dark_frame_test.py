@@ -28,8 +28,12 @@ def mock_correct_images(mocker):
     mocker.patch.object(metadata, 'get_exif_tags').return_value = test_exif_tags
 
 
-class TestDarkFrameCorrection:
+class TestDarkFrameDiagnostics:
+    # TODO: tests for each failure case
+    pass
 
+
+class TestDarkFrameCorrection:
     def test_calculate_dark_signal(self):
         actual = module._calculate_dark_signal_in_dnr(exposure_seconds)
         expected = 0.0624794

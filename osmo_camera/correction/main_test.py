@@ -12,7 +12,7 @@ from . import main as module
 
 test_exif_tags = ExifTags(
     capture_datetime=None,
-    iso=None,
+    iso=100,
     exposure_time=1.2
 )
 
@@ -33,7 +33,7 @@ class TestCorrectImages:
             ])
         })
 
-        actual = module.correct_images(
+        actual_corrected_images, actual_diagnostics = module.correct_images(
             rgbs_by_filepath,
             ROI_definition_for_intensity_correction=sentinel.ROI_definition,
             save_dark_frame_corrected_images=True,
@@ -41,14 +41,17 @@ class TestCorrectImages:
             save_intensity_corrected_images=True
         )
 
-        expected = pd.Series({
+        expected_corrected_images = pd.Series({
             sentinel.rgb_image_path_1: np.array([
                 [[0.93752051, 9.93752051, 99.93752051], [1.93752051, 19.93752051, 199.93752051]],
                 [[2.93752051, 29.93752051, 299.93752051], [3.93752051, 39.93752051, 399.93752051]]
             ])
         })
 
-        np.testing.assert_array_almost_equal(actual[sentinel.rgb_image_path_1], expected[sentinel.rgb_image_path_1])
+        np.testing.assert_array_almost_equal(
+            actual_corrected_images[sentinel.rgb_image_path_1],
+            expected_corrected_images[sentinel.rgb_image_path_1]
+        )
         assert mock_save_rgb_images.call_count == 3
 
     def test_save_rgb_images_by_filepath_with_suffix(self, mocker):

@@ -12,6 +12,11 @@ rgb_image = np.array([
 ])
 
 
+class TestFlatFieldDiagnostics:
+    # TODO: tests for each failure case
+    pass
+
+
 class TestFlatFieldCorrection:
 
     def test_apply_flat_field_correction(self):

@@ -1,3 +1,24 @@
+import pandas as pd
+from scipy.stats import variation
+
+from osmo_camera.correction.diagnostics import warn_if_any_true
+
+
+def flat_field_diagnostics(before, after, image_path):
+    # TODO: unit tests
+    diagnostics = pd.Series({
+        # Mean CV across all color channels
+        'cv_before': variation(before).mean(),
+        'cv_after': variation(after).mean(),
+    })
+    possible_warnings = pd.Series({
+        # Logically, the flat field should remove some real first-order effect
+        # from the image so the Coefficient of Variation should decrease.
+        'cv_increased': diagnostics['cv_after'] > diagnostics['cv_before']
+    })
+
+    warn_if_any_true(possible_warnings)
+    return pd.concat([diagnostics, possible_warnings])
 
 
 def _apply_flat_field_correction(dark_frame_corrected_rgb, dark_frame_rgb, flat_field_rgb):

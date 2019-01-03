@@ -1,4 +1,6 @@
-from osmo_camera.correction import dark_frame, flat_field, intensity
+import pandas as pd
+
+from osmo_camera.correction import dark_frame, diagnostics, flat_field, intensity
 from osmo_camera import tiff, file_structure
 
 
@@ -31,14 +33,21 @@ def correct_images(
     Args:
         original_rgb_by_filepath: A Series of RGB images indexed by raw file path
         ROI_definition_for_intensity_correction: ROI to average and use to correct intensity on `ROI_definitions`
-     Returns:
-        A Series of intensity corrected rgb images indexed by raw file path
+    Returns:
+        2-tuple of:
+            A Series of intensity corrected rgb images indexed by raw file path
+            A DataFrame of diagnostic information indexed by raw file path
     '''
 
     print('--------Correcting Images--------')
     print('1. Apply dark frame correction')
     dark_frame_corrected_rgb_by_filepath = dark_frame.apply_dark_frame_correction_to_rgb_images(
         original_rgb_by_filepath
+    )
+    dark_frame_diagnostics = diagnostics.run_diagnostics(
+        original_rgb_by_filepath,
+        dark_frame_corrected_rgb_by_filepath,
+        dark_frame.dark_frame_diagnostics
     )
 
     if save_dark_frame_corrected_images:
@@ -48,6 +57,11 @@ def correct_images(
     print('2. Apply flat field correction, but not really')
     flat_field_corrected_rgb_by_filepath = flat_field.apply_flat_field_correction_to_rgb_images(
         dark_frame_corrected_rgb_by_filepath
+    )
+    flat_field_diagnostics = diagnostics.run_diagnostics(
+        dark_frame_corrected_rgb_by_filepath,
+        flat_field_corrected_rgb_by_filepath,
+        flat_field.flat_field_diagnostics
     )
 
     if save_flat_field_corrected_images:
@@ -59,9 +73,22 @@ def correct_images(
         flat_field_corrected_rgb_by_filepath,
         ROI_definition_for_intensity_correction
     )
+    intensity_correction_diagnostics = diagnostics.run_diagnostics(
+        flat_field_corrected_rgb_by_filepath,
+        intensity_corrected_rgb_by_filepath,
+        intensity.intensity_correction_diagnostics
+    )
 
     if save_intensity_corrected_images:
         print('Saving intensity corrected images')
         save_rgb_images_by_filepath_with_suffix(intensity_corrected_rgb_by_filepath, "_dark_flat_intensity_adj")
 
-    return intensity_corrected_rgb_by_filepath
+    all_diagnostics = pd.concat(
+        [
+            dark_frame_diagnostics.add_prefix('dark_frame_'),
+            flat_field_diagnostics.add_prefix('flat_field_'),
+            intensity_correction_diagnostics.add_prefix('intensity_adj_'),
+        ],
+        axis='columns'
+    )
+    return intensity_corrected_rgb_by_filepath, all_diagnostics
