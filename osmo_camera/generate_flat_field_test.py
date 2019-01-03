@@ -30,7 +30,4 @@ def test_generate_flat_field(mock_apply_dark_frame_correction_to_rgb_images):
         [[0.99637681, 1.01980198, 1.01872247], [1.01102941, 1.03, 1.03236607]]
     ])
 
-    print(actual)
-    print(expected)
-
     np.testing.assert_array_almost_equal(expected, actual)
