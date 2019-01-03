@@ -102,9 +102,14 @@ class TestFilenameHasFormat:
         assert module.filename_has_correct_datetime_format(filename) is truthiness
 
 
-def test_append_suffix_to_filepath_before_extension():
-    suffix = '_i_am_a_filepath_suffix'
-    actual = module.append_suffix_to_filepath_before_extension('/dir/dir/image.jpeg', suffix)
-    expected = '/dir/dir/image_i_am_a_filepath_suffix.jpeg'
+class TestAlteringFilepath:
 
-    assert actual == expected
+    def test_append_suffix_to_filepath_before_extension(self):
+        actual = module.append_suffix_to_filepath_before_extension('/dir/dir/image.jpeg', '_i_am_a_filepath_suffix')
+        expected = '/dir/dir/image_i_am_a_filepath_suffix.jpeg'
+        assert actual == expected
+
+    def test_replace_extension(self):
+        actual = module.replace_extension('/dir/dir/image.jpeg', '.tiff')
+        expected = '/dir/dir/image.tiff'
+        assert actual == expected
