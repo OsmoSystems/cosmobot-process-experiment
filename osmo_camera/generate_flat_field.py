@@ -18,7 +18,7 @@ def from_rgb_images(rgbs_by_filepath):
     # Average (image) of all dark frame adjusted images
     flat_field_mean_of_image_stack = dark_frame_adjusted_rgb_images.mean(axis=0)
 
-    # Average value of averaged image
+    # Average RGB value of averaged image
     flat_field_mean = flat_field_mean_of_image_stack.mean(axis=(0, 1))
 
     return flat_field_mean / flat_field_mean_of_image_stack
