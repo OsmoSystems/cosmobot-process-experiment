@@ -5,7 +5,7 @@ import numpy as np
 
 from osmo_camera.raw import metadata
 from osmo_camera.raw.metadata import ExifTags
-from osmo_camera.rgb import save
+from osmo_camera.tiff import save
 from osmo_camera import file_structure
 from . import main as module
 

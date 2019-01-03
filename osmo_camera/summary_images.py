@@ -1,7 +1,7 @@
 import math
 import os
 
-from osmo_camera import rgb
+from osmo_camera import tiff
 from osmo_camera.file_structure import create_output_directory
 from osmo_camera.select_ROI import draw_ROIs_on_image
 
@@ -37,7 +37,7 @@ def generate_summary_images(rgb_images_by_filepath, ROI_definitions, raw_images_
         filename_root, extension = os.path.splitext(os.path.basename(image_path))
         summary_image_path = os.path.join(summary_images_dir, f'{filename_root}.tiff')
 
-        rgb.save.as_int32_tiff(rgb_image_with_ROIs, summary_image_path)
+        tiff.save.as_int32_tiff(rgb_image_with_ROIs, summary_image_path)
 
         print(f'Summary images saved in: {summary_images_dir}\n')
         return summary_images_dir
