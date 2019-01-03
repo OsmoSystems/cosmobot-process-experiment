@@ -20,7 +20,7 @@ setup(
         'picamraw',
         'Pillow',
         'plotly >= 3, < 4',
-        'tifffile'
+        'tifffile == 2018.11.28'
     ],
     include_package_data=True
 )
