@@ -1,6 +1,8 @@
 from datetime import datetime
 import os
 
+import pandas as pd
+
 from osmo_camera.s3 import sync_from_s3
 from osmo_camera.process_images import process_images
 from osmo_camera.select_ROI import prompt_for_ROI_selection, draw_ROIs_on_image
@@ -10,7 +12,7 @@ from osmo_camera import raw, jupyter
 
 
 def _get_first_image(rgb_images_by_filepath):
-    first_filepath = sorted(rgb_images_by_filepath.keys())[0]  # Assumes images are prefixed with iso-ish datetimes
+    first_filepath = sorted(rgb_images_by_filepath.index)[0]  # Assumes images are prefixed with iso-ish datetimes
     return rgb_images_by_filepath[first_filepath]
 
 
@@ -35,14 +37,14 @@ def get_rgb_images_by_filepath(local_sync_directory_path, experiment_directory):
         want to open images from)
 
     Return:
-        A map of {image_filepath: `RGB Image`}
+        A pandas Series of {image_filepath: `RGB Image`}
     '''
     raw_images_directory = os.path.join(local_sync_directory_path, experiment_directory)
     raw_image_paths = get_files_with_extension(raw_images_directory, '.jpeg')
-    return {
+    return pd.Series({
         raw_image_path: raw.open.as_rgb(raw_image_path)
         for raw_image_path in raw_image_paths
-    }
+    })
 
 
 def process_experiment(

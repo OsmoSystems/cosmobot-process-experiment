@@ -1,11 +1,12 @@
-from unittest.mock import sentinel
-import pytest
 import numpy as np
+import pandas as pd
+import pytest
+from unittest.mock import sentinel
 
 import osmo_camera.correction.dark_frame as module
-
 from osmo_camera.raw import metadata
 from osmo_camera.raw.metadata import ExifTags
+
 
 exposure_seconds = 1.2
 
@@ -50,10 +51,10 @@ class TestDarkFrameCorrection:
         mock__apply_dark_frame_correction = mocker.patch.object(module, '_apply_dark_frame_correction')
         mock_get_exif_tags = mocker.patch.object(metadata, 'get_exif_tags')
 
-        rgb_images = {
+        rgb_images = pd.Series({
             sentinel.rgb_image_1: rgb_image_1,
             sentinel.rgb_image_2: rgb_image_1
-        }
+        })
 
         module.apply_dark_frame_correction_to_rgb_images(rgb_images)
         assert mock__apply_dark_frame_correction.call_count == 2

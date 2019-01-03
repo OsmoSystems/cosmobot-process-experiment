@@ -1,6 +1,7 @@
 from unittest.mock import sentinel
 
 import numpy as np
+import pandas as pd
 
 import osmo_camera.correction.intensity as module
 
@@ -23,14 +24,14 @@ class TestApplyIntensityCorrection:
         np.testing.assert_array_equal(actual, input_rgb)
 
     def test_apply_intensity_correction_to_rgb_images(self):
-        rgb_images = {
+        rgb_images = pd.Series({
             sentinel.rgb_image_1: rgb_image,
             sentinel.rgb_image_2: rgb_image
-        }
+        })
 
         actual = module.apply_intensity_correction_to_rgb_images(
             rgb_images,
             sentinel.ROI_definition
         )
 
-        assert rgb_images == actual
+        pd.testing.assert_series_equal(rgb_images, actual)

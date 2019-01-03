@@ -1,5 +1,6 @@
 from unittest.mock import sentinel, Mock
 
+import pandas as pd
 import pytest
 
 from . import process_experiment as module
@@ -102,12 +103,11 @@ class TestSaveSummaryStatisticsCsv:
 
 
 def test_get_first_image():
-    mock_rgb_images_by_filepath = {
+    mock_rgb_images_by_filepath = pd.Series({
         '2017-01-01-image': sentinel.image_2,
         '2018-01-01-image': sentinel.image_3,
         '2016-01-01-image': sentinel.image_1,
-
-    }
+    })
     actual = module._get_first_image(mock_rgb_images_by_filepath)
 
     assert actual == sentinel.image_1
@@ -121,9 +121,9 @@ def test_get_rgb_images_by_filepath(mocker, mock_os_path_join):
     mock_raw_open_as_rgb.side_effect = lambda filepath: f'opened_{filepath}'
 
     actual = module.get_rgb_images_by_filepath(sentinel.local_sync_directory, sentinel.experiment_directory)
-    expected = {
+    expected = pd.Series({
         'filepath1.jpeg': 'opened_filepath1.jpeg',
         'filepath2.jpeg': 'opened_filepath2.jpeg'
-    }
+    })
 
-    assert actual == expected
+    pd.testing.assert_series_equal(actual, expected)

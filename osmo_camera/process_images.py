@@ -1,4 +1,3 @@
-from itertools import chain
 import os
 
 import pandas as pd
@@ -69,8 +68,8 @@ def process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir=None)
 
     exif_tags = raw.metadata.get_exif_tags(raw_image_path)
 
-    return [
-        {
+    return pd.DataFrame([
+        pd.Series({
             'timestamp': exif_tags.capture_datetime,
             'iso': exif_tags.iso,
             'exposure_seconds': exif_tags.exposure_time,
@@ -78,9 +77,9 @@ def process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir=None)
             'ROI': ROI_name,
             'ROI definition': ROI_definitions[ROI_name],
             **_get_ROI_statistics(ROI)
-        }
+        })
         for ROI_name, ROI in ROIs.items()
-    ]
+    ])
 
 
 def process_images(
@@ -126,9 +125,9 @@ def process_images(
         for raw_image_path, rgb_image in corrected_rgb_images.items()
     ]
 
-    summary_statistics = pd.DataFrame(
-        # Flatten all ROI summaries for all images into a single 1D list
-        list(chain.from_iterable(processed_ROIs))
+    # One big flat DF with rows from each ROI from each image
+    summary_statistics = pd.concat(
+        processed_ROIs
     ).sort_values('timestamp').reset_index(drop=True)
 
     initial_column_order = ['ROI', 'image', 'exposure_seconds', 'iso']
