@@ -13,9 +13,9 @@ from osmo_camera import tiff
         [[-0.999999, -0.999999, -0.999999], [-0.699999, -0.699999, -0.699999]],
         [[0.699999, 0.699999, 0.699999], [0.999999, 0.999999, 0.999999]]
     ])),
-    ('-2 to +2 DNR', np.array([
-        [[-1.999999, -1.999999, -1.999999], [-1.699999, -1.699999, -1.699999]],
-        [[1.699999, 1.699999, 1.699999], [1.999999, 1.999999, 1.999999]]
+    ('-3 to +3 DNR', np.array([
+        [[-2.999999, -2.999999, -2.999999], [-2.699999, -2.699999, -2.699999]],
+        [[2.699999, 2.699999, 2.699999], [2.999999, 2.999999, 2.999999]]
     ])),
 ])
 def test_rgb_image_saved_to_tiff_file_and_loaded_retains_data(tmp_path, name, test_rgb_image):
@@ -23,7 +23,7 @@ def test_rgb_image_saved_to_tiff_file_and_loaded_retains_data(tmp_path, name, te
 
     # tmp_path provides an object of type PosixPath, tifffile expects a file path as a string
     tmp_filepath = str(tmp_path / 'test.tiff')
-    tiff.save.as_int32(test_rgb_image, tmp_filepath)
+    tiff.save.as_tiff(test_rgb_image, tmp_filepath)
 
     # read rgb_image from tmp tiff (should convert)
     expected_tmp_tiff_as_rgb_image = tiff.open.as_rgb(tmp_filepath)

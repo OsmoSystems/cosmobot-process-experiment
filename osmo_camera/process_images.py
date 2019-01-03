@@ -41,7 +41,7 @@ def save_ROI_crops(ROI_crops_dir, raw_image_path, rgb_ROIs_by_name):
     for ROI_name, rgb_ROI in rgb_ROIs_by_name.items():
         ROI_crop_filename = f'ROI {ROI_name} - {image_filename_root}.tiff'
         ROI_crop_path = os.path.join(ROI_crops_dir, ROI_crop_filename)
-        tiff.save.as_int32(rgb_ROI, ROI_crop_path)
+        tiff.save.as_tiff(rgb_ROI, ROI_crop_path)
 
 
 def process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir=None):

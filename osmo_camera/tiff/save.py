@@ -4,7 +4,7 @@ import tifffile
 from ..constants import DNR_TO_DN_BIT_DEPTH
 
 
-def as_int32(rgb_image, output_path):
+def as_tiff(rgb_image, output_path):
     ''' Save an RGB Image as a tiff file with signed 32 bit pixel values.
 
     Args:

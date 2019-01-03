@@ -51,7 +51,7 @@ class TestCorrectImages:
         assert mock_save_rgb_images.call_count == 3
 
     def test_save_rgb_images_by_filepath_with_suffix(self, mocker):
-        mock_save_as_int32 = mocker.patch.object(save, 'as_int32')
+        mock_save_as_tiff = mocker.patch.object(save, 'as_tiff')
         mock_append_suffix_to_filepath_before_extension = mocker.patch.object(
             file_structure,
             'append_suffix_to_filepath_before_extension'
@@ -71,6 +71,6 @@ class TestCorrectImages:
 
         module.save_rgb_images_by_filepath_with_suffix(rgbs_by_filepath, 'suffix')
 
-        assert mock_save_as_int32.call_count == 2
+        assert mock_save_as_tiff.call_count == 2
         assert mock_append_suffix_to_filepath_before_extension.call_count == 2
         assert mock_replace_extension.call_count == 2
