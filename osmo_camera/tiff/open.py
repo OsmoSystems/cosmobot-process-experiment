@@ -2,7 +2,7 @@ import tifffile
 from ..constants import DNR_TO_DN_BIT_DEPTH
 
 
-def as_int32_tiff_as_rgb(image_path):
+def as_rgb(image_path):
     ''' Opens and reads a 32 bit tiff file and returns
         an `RGB Image` (see definition in README).
 
