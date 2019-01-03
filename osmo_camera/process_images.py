@@ -2,7 +2,7 @@ import os
 
 import pandas as pd
 
-from osmo_camera import raw, rgb
+from osmo_camera import raw, tiff
 from osmo_camera.file_structure import create_output_directory
 from osmo_camera.select_ROI import get_ROIs_for_image
 from osmo_camera.stats.main import roi_statistic_calculators
@@ -38,9 +38,9 @@ def save_ROI_crops(ROI_crops_dir, raw_image_path, rgb_ROIs_by_name):
     # Construct ROI crop file name from root filename plus ROI name, plus .png extension
     image_filename_root, _ = os.path.splitext(os.path.basename(raw_image_path))
     for ROI_name, rgb_ROI in rgb_ROIs_by_name.items():
-        ROI_crop_filename = f'ROI {ROI_name} - {image_filename_root}.png'
+        ROI_crop_filename = f'ROI {ROI_name} - {image_filename_root}.tiff'
         ROI_crop_path = os.path.join(ROI_crops_dir, ROI_crop_filename)
-        rgb.save.as_file(rgb_ROI, ROI_crop_path)
+        tiff.save.as_tiff(rgb_ROI, ROI_crop_path)
 
 
 def process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir=None):
