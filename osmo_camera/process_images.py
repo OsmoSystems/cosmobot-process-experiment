@@ -131,9 +131,9 @@ def process_images(
     ).sort_values('timestamp').reset_index(drop=True)
 
     initial_column_order = ['ROI', 'image', 'exposure_seconds', 'iso']
-    reorded_columns = initial_column_order + [
+    reordered_columns = initial_column_order + [
         column for column in summary_statistics if column not in initial_column_order
     ]
-    summary_statistics = summary_statistics[reorded_columns]
+    summary_statistics = summary_statistics[reordered_columns]
 
     return summary_statistics
