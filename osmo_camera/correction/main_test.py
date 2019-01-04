@@ -54,7 +54,7 @@ class TestCorrectImages:
         )
         assert mock_save_rgb_images.call_count == 3
         # Spot check prefixing and presence of diagnostics
-        assert actual_diagnostics['dark_frame_min_value_increased'] is False
+        assert not actual_diagnostics['dark_frame_min_value_increased'].values[0]
 
     def test_save_rgb_images_by_filepath_with_suffix(self, mocker):
         mock_save_as_tiff = mocker.patch.object(save, 'as_tiff')

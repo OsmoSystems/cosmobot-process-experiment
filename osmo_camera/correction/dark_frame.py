@@ -31,13 +31,12 @@ def dark_frame_diagnostics(before, after, image_path):
     Warns:
         uses the Warnings API and CorrectionWarning if any red flags are present.
     '''
-    # TODO: unit tests
     exif = raw.metadata.get_exif_tags(image_path)
     exposure_time = exif.exposure_time
     iso = exif.iso
 
     diagnostics = pd.Series({
-        'min_value_before': before.mean(),
+        'min_value_before': before.min(),
         'min_value_after': after.min(),
         'mean_value_before': before.mean(),
         'mean_value_after': after.mean(),
@@ -53,8 +52,8 @@ def dark_frame_diagnostics(before, after, image_path):
             'exposure_out_of_training_range':
                 not (TRAINING_EXPOSURE_MIN <= exposure_time <= TRAINING_EXPOSURE_MAX),
             'iso_mismatch_with_training': iso != TRAINING_ISO,
-            'min_value_increased': (diagnostics.min_value_after - diagnostics.min_value_before) > 0,
-            'mean_value_increased': (diagnostics.mean_value_after - diagnostics.mean_value_before) > 0,
+            'min_value_increased': diagnostics.min_value_after > diagnostics.min_value_before,
+            'mean_value_increased': diagnostics.mean_value_after > diagnostics.mean_value_before,
             'too_many_negative_pixels_after':
                 diagnostics.negative_pixels_pct_after > EXPECTED_MAX_NEGATIVE_PIXELS_AFTER_DARKFRAME,
             'nan_values_present': diagnostics.nan_values_after,
@@ -64,7 +63,9 @@ def dark_frame_diagnostics(before, after, image_path):
 
     warn_if_any_true(potential_warnings)
 
-    return pd.concat([diagnostics, potential_warnings])
+    return pd.concat([
+        diagnostics.astype(np.object), potential_warnings
+    ])
 
 
 def _calculate_dark_signal_in_dnr(exposure_seconds):

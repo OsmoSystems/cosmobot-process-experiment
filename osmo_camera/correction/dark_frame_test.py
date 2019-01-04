@@ -1,7 +1,8 @@
+from unittest.mock import sentinel
+
 import numpy as np
 import pandas as pd
 import pytest
-from unittest.mock import sentinel
 
 import osmo_camera.correction.dark_frame as module
 from osmo_camera.raw import metadata
@@ -12,7 +13,7 @@ exposure_seconds = 1.2
 
 test_exif_tags = ExifTags(
     capture_datetime=None,
-    iso=None,
+    iso=100,
     exposure_time=exposure_seconds
 )
 
@@ -28,9 +29,110 @@ def mock_correct_images(mocker):
     mocker.patch.object(metadata, 'get_exif_tags').return_value = test_exif_tags
 
 
+mock_image_shape = (2, 2, 3)
+
+
 class TestDarkFrameDiagnostics:
-    # TODO: tests for each failure case
-    pass
+    mock_before_image = np.array([[[0, 1, 2], [3, 4, 5]]])
+
+    @pytest.mark.parametrize('expected_warnings_raised, after_image', [
+        (
+            [],  # All clear
+            mock_before_image - 0.00001
+        ),
+        (
+            ['min_value_increased', 'mean_value_increased'],
+            mock_before_image + 1
+        ),
+        (
+            ['too_many_negative_pixels_after'],
+            -mock_before_image
+        ),
+        (
+            ['nan_values_present'],
+            np.ones(mock_image_shape) * np.nan
+        )
+    ])
+    def test_non_exif_warning_cases(self, expected_warnings_raised, after_image, mocker, mock_correct_images):
+        mock_warn_if_any_true = mocker.patch.object(module, 'warn_if_any_true')
+
+        before = self.mock_before_image
+        after = after_image
+
+        module.dark_frame_diagnostics(before, after, mocker.sentinel.image_path)
+
+        actual_warning_series = mock_warn_if_any_true.call_args[0][0]
+
+        expected_warning_series = pd.Series({
+            'exposure_out_of_training_range': False,
+            'iso_mismatch_with_training': False,
+            'min_value_increased': False,
+            'mean_value_increased': False,
+            'too_many_negative_pixels_after': False,
+            'nan_values_present': False,
+        })
+        for warning_name in expected_warnings_raised:
+            expected_warning_series[warning_name] = True
+
+        pd.testing.assert_series_equal(
+            expected_warning_series, actual_warning_series
+        )
+
+    def test_warning_cases_from_exif(self, mocker):
+        mock_warn_if_any_true = mocker.patch.object(module, 'warn_if_any_true')
+
+        mocker.patch.object(module.raw.metadata, 'get_exif_tags').return_value = ExifTags(
+            capture_datetime=None,
+            iso=10000000000000,
+            exposure_time=9999999999999999999999999999
+        )
+
+        before = self.mock_before_image
+        after = before
+
+        module.dark_frame_diagnostics(before, after, mocker.sentinel.image_path)
+
+        actual_warning_series = mock_warn_if_any_true.call_args[0][0]
+
+        expected_warning_series = pd.Series({
+            'exposure_out_of_training_range': True,
+            'iso_mismatch_with_training': True,
+            'min_value_increased': False,
+            'mean_value_increased': False,
+            'too_many_negative_pixels_after': False,
+            'nan_values_present': False,
+        })
+
+        pd.testing.assert_series_equal(
+            expected_warning_series, actual_warning_series
+        )
+
+    def test_returns_reasonable_values(self, mock_correct_images):
+        actual = module.dark_frame_diagnostics(
+            self.mock_before_image,
+            self.mock_before_image - 0.001,
+            sentinel.image_path
+        )
+
+        expected = pd.Series({
+            'min_value_before': 0,
+            'min_value_after': -0.001,
+            'mean_value_before': 2.5,
+            'mean_value_after': 2.499,
+            'negative_pixels_pct_before': 0,
+            'negative_pixels_pct_after': 0.166667,
+            'nan_values_after': 0,
+            'iso': 100,
+            'exposure_time': 1.2,
+            'exposure_out_of_training_range': False,
+            'iso_mismatch_with_training': False,
+            'min_value_increased': False,
+            'mean_value_increased': False,
+            'too_many_negative_pixels_after': False,
+            'nan_values_present': False,
+        })
+
+        pd.testing.assert_series_equal(actual, expected)
 
 
 class TestDarkFrameCorrection:
