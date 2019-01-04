@@ -1,5 +1,5 @@
 import tifffile
-from ..constants import DNR_TO_DN_BIT_DEPTH
+from ..constants import DNR_TO_TIFF_FACTOR
 
 
 def as_rgb(image_path):
@@ -13,5 +13,5 @@ def as_rgb(image_path):
         An `RGB Image`
     '''
     tiff_image = tifffile.imread(image_path)
-    rgb_image = tiff_image / DNR_TO_DN_BIT_DEPTH
+    rgb_image = tiff_image / DNR_TO_TIFF_FACTOR
     return rgb_image
