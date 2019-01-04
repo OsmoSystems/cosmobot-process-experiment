@@ -11,6 +11,11 @@ rgb_image = np.array([
     [9, 10, 11, 12]
 ])
 
+rgb_image_series = pd.Series({
+    sentinel.rgb_image_1: rgb_image,
+    sentinel.rgb_image_2: rgb_image
+})
+
 
 class TestFlatFieldCorrection:
 
@@ -26,13 +31,5 @@ class TestFlatFieldCorrection:
         np.testing.assert_array_equal(actual, input_rgb)
 
     def test_apply_intensity_correction_to_rgb_images(self):
-        rgb_images = pd.Series({
-            sentinel.rgb_image_1: rgb_image,
-            sentinel.rgb_image_2: rgb_image
-        })
-
-        actual = module.apply_flat_field_correction_to_rgb_images(
-            rgb_images
-        )
-
-        pd.testing.assert_series_equal(rgb_images, actual)
+        actual = module.apply_flat_field_correction_to_rgb_images(rgb_image_series)
+        pd.testing.assert_series_equal(rgb_image_series, actual)
