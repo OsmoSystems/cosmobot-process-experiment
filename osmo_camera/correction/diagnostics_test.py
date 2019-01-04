@@ -1,6 +1,7 @@
 import warnings
 
 import pandas as pd
+import pytest
 
 import osmo_camera.correction.diagnostics as module
 
@@ -20,6 +21,10 @@ class TestWarnIfAnyTrue:
         assert 'bad_thing' in actual_warning_message
         assert 'worse_thing' in actual_warning_message
         assert 'total_disaster' not in actual_warning_message
+
+    def test_blows_up_on_non_boolean_series(self, mocker):
+        with pytest.raises(AssertionError):
+            module.warn_if_any_true(pd.Series({'that\'s not a knife': 'this is a knife'}))
 
     def test_no_warning_if_all_falsey(self, mocker):
         mock_warn = mocker.patch.object(module.warnings, 'warn')
@@ -86,8 +91,6 @@ class TestRunDiagnostics:
             # Be explicit here that the path is the index, not the column name
             orient='index'
         )
-        print(expected)
-        print(expected.columns)
 
         actual = module.run_diagnostics(
             image_series_before,
