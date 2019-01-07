@@ -37,6 +37,7 @@ def get_flat_field_diagnostics(before, after, image_path):
 
     warn_if_any_true(possible_warnings)
     return pd.concat([
+        # Use dtype "object" to allow numbers as well as booleans to be in the result
         diagnostics.astype(np.object),
         possible_warnings
     ])

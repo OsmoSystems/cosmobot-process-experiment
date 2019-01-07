@@ -65,7 +65,9 @@ def get_dark_frame_diagnostics(before, after, image_path):
     warn_if_any_true(potential_warnings)
 
     return pd.concat([
-        diagnostics.astype(np.object), potential_warnings
+        # Use dtype "object" to allow numbers as well as booleans to be in the result
+        diagnostics.astype(np.object),
+        potential_warnings
     ])
 
 
