@@ -6,7 +6,8 @@ import osmo_camera.tiff.save as module
 
 
 class TestGuardImageFitsIn32Bits():
-    test_image = np.zeros(shape=(2, 2, 3))
+    def setup_method(self):
+        self.test_image = np.zeros(shape=(2, 2, 3))
 
     @pytest.mark.parametrize('name, in_range_value', [
         ('zero', 0),
