@@ -35,7 +35,7 @@ def correct_images(
         ROI_definition_for_intensity_correction: ROI to average and use to correct intensity on `ROI_definitions`
     Returns:
         2-tuple of:
-            A Series of intensity corrected rgb images indexed by raw file path
+            A Series of corrected rgb images indexed by raw file path
             A DataFrame of diagnostic information indexed by raw file path
     '''
 
