@@ -3,9 +3,11 @@ import pandas as pd
 from osmo_camera.correction import dark_frame, diagnostics, flat_field, intensity
 from osmo_camera import tiff, file_structure
 
-DARK_FRAME_PREFIX = 'dark_frame'
-FLAT_FIELD_PREFIX = 'flat_field'
-INTENSITY_ADJ_PREFIX = 'intensity_adj'
+
+DARK_FRAME_PREFIX = 'dark_frame_'
+FLAT_FIELD_PREFIX = 'flat_field_'
+INTENSITY_ADJ_PREFIX = 'intensity_adj_'
+
 
 def save_rgb_images_by_filepath_with_suffix(
     rgb_images_by_filepath,
