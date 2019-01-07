@@ -23,7 +23,7 @@ class TestWarnIfAnyTrue:
         assert 'total_disaster' not in actual_warning_message
 
     def test_blows_up_on_non_boolean_series(self, mocker):
-        with pytest.raises(AssertionError):
+        with pytest.raises(ValueError):
             module.warn_if_any_true(pd.Series({'that\'s not a knife': 'this is a knife'}))
 
     def test_no_warning_if_all_falsey(self, mocker):
