@@ -39,5 +39,5 @@ def test_tiff_save_raises_if_image_out_of_range(tmp_path):
         [[1, 1, 1], [4.01, 4.01, 4.01]]
     ])
 
-    with pytest.raises(ValueError):
+    with pytest.raises(module.save.DataTruncationError):
         module.save.as_tiff(test_rgb_image, tmp_filepath)

@@ -8,7 +8,7 @@ import osmo_camera.tiff.save as module
 class TestGuardImageFitsIn32Bits():
     @pytest.mark.parametrize("name, in_range_value", [
         ("value within range", 1),
-        ("value near min", -4.1),
+        ("value near min", -4),
         ("value near max", 3.9999),
     ])
     def test_does_not_raise_if_in_range(self, name, in_range_value):
