@@ -3,6 +3,9 @@ import pandas as pd
 from osmo_camera.correction import dark_frame, diagnostics, flat_field, intensity
 from osmo_camera import tiff, file_structure
 
+DARK_FRAME_PREFIX = 'dark_frame'
+FLAT_FIELD_PREFIX = 'flat_field'
+INTENSITY_ADJ_PREFIX = 'intensity_adj'
 
 def save_rgb_images_by_filepath_with_suffix(
     rgb_images_by_filepath,
@@ -85,9 +88,9 @@ def correct_images(
 
     all_diagnostics = pd.concat(
         [
-            dark_frame_diagnostics.add_prefix('dark_frame_'),
-            flat_field_diagnostics.add_prefix('flat_field_'),
-            intensity_correction_diagnostics.add_prefix('intensity_adj_'),
+            dark_frame_diagnostics.add_prefix(DARK_FRAME_PREFIX),
+            flat_field_diagnostics.add_prefix(FLAT_FIELD_PREFIX),
+            intensity_correction_diagnostics.add_prefix(INTENSITY_ADJ_PREFIX),
         ],
         axis='columns'
     )
