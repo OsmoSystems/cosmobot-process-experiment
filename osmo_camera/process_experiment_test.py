@@ -11,7 +11,7 @@ def mock_side_effects(mocker):
     mocker.patch.object(module, 'sync_from_s3').return_value = sentinel.raw_images_dir
     mocker.patch.object(module, '_get_first_image').return_value = sentinel.first_rgb_image
     mocker.patch.object(module, 'jupyter')
-    mocker.patch.object(module, 'process_images').return_value = sentinel.roi_summary_data, sentinel.image_diagnostics
+    mocker.patch.object(module, 'process_images').return_value = (sentinel.roi_summary_data, sentinel.image_diagnostics)
     mocker.patch.object(module, 'draw_ROIs_on_image').return_value = sentinel.rgb_image_with_ROI_definitions
     mocker.patch.object(module, '_save_summary_statistics_csv')
     mocker.patch.object(module, 'get_rgb_images_by_filepath').return_value = sentinel.rgb_images_by_filepath

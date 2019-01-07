@@ -25,13 +25,12 @@ rgb_image_1 = np.array([
 
 
 @pytest.fixture
-def mock_correct_images(mocker):
+def mock_normal_exif_tags(mocker):
     mocker.patch.object(metadata, 'get_exif_tags').return_value = test_exif_tags
 
 
 class TestDarkFrameDiagnostics:
     mock_before_image = np.array([[[0, 1, 2], [3, 4, 5]]])
-    mock_image_shape = mock_before_image.shape
 
     @pytest.mark.parametrize('expected_warnings_raised, after_image', [
         (
@@ -48,10 +47,10 @@ class TestDarkFrameDiagnostics:
         ),
         (
             ['nan_values_present'],
-            np.ones(mock_image_shape) * np.nan
+            np.ones(mock_before_image.shape) * np.nan
         )
     ])
-    def test_non_exif_warning_cases(self, expected_warnings_raised, after_image, mocker, mock_correct_images):
+    def test_non_exif_warning_cases(self, expected_warnings_raised, after_image, mocker, mock_normal_exif_tags):
         mock_warn_if_any_true = mocker.patch.object(module, 'warn_if_any_true')
 
         before = self.mock_before_image
@@ -59,7 +58,7 @@ class TestDarkFrameDiagnostics:
 
         module.dark_frame_diagnostics(before, after, mocker.sentinel.image_path)
 
-        actual_warning_series = mock_warn_if_any_true.call_args[0][0]
+        actual_warning_series = mock_warn_if_any_true.call_args[0][0]  # Indexing: First arg in first call
 
         expected_warning_series = pd.Series({
             'exposure_out_of_training_range': False,
@@ -105,7 +104,7 @@ class TestDarkFrameDiagnostics:
             expected_warning_series, actual_warning_series
         )
 
-    def test_returns_reasonable_values(self, mock_correct_images):
+    def test_returns_reasonable_values(self, mock_normal_exif_tags):
         actual = module.dark_frame_diagnostics(
             self.mock_before_image,
             self.mock_before_image - 0.001,

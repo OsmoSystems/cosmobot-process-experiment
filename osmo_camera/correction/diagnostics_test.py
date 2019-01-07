@@ -76,9 +76,9 @@ class TestRunDiagnostics:
         ])
 
     def test_diagnostics_returned_as_df(self, mocker):
-        diagnostics = pd.Series({'this_one_thing_is_broken': True})
+        mock_diagnostics = pd.Series({'this_one_thing_is_broken': True})
         diagnostics_fn = mocker.Mock()
-        diagnostics_fn.return_value = diagnostics
+        diagnostics_fn.return_value = mock_diagnostics
         sentinel = mocker.sentinel
 
         image_series_before = pd.Series({sentinel.path_one: sentinel.image_one_before})
@@ -86,9 +86,9 @@ class TestRunDiagnostics:
 
         expected = pd.DataFrame.from_dict(
             {
-                sentinel.path_one: diagnostics
+                sentinel.path_one: mock_diagnostics
             },
-            # Be explicit here that the path is the index, not the column name
+            # file paths should end up as the dataframe index (default would make them column names)
             orient='index'
         )
 

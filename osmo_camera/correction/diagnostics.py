@@ -31,7 +31,7 @@ def warn_if_any_true(possible_warnings_series):
         f'possible warnings {possible_warnings_series} must be a boolean series'
     )
 
-    # Filter only to True values
+    # Filter only to True values (`possible_warnings_series` itself is a boolean series which can be used to filter)
     raised_warnings = possible_warnings_series[possible_warnings_series]
     if raised_warnings.any():
         warnings.warn(
