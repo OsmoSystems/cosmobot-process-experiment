@@ -4,13 +4,21 @@ import tifffile
 from ..constants import DNR_TO_TIFF_FACTOR
 
 
+class DataTruncationError(ValueError):
+    pass
+
+
 def _guard_image_fits_in_32_bits(scaled_rgb_image):
     ''' Guard that the values in the scaled image are all within the signed 32-bit range.
     '''
     int32_range = np.iinfo(np.int32)
 
     if scaled_rgb_image.min() < int32_range.min or scaled_rgb_image.max() > int32_range.max:
-        raise ValueError('Pixels in image are out of range')
+        raise DataTruncationError(
+            f'Pixels in image are out of range. '
+            f'Image range: [{scaled_rgb_image.min()}, {scaled_rgb_image.max()}]. '
+            f'Allowed range: [{int32_range.min}, {int32_range.max}]'
+        )
 
 
 def as_tiff(rgb_image, output_path):

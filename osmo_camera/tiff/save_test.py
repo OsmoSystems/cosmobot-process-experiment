@@ -1,21 +1,33 @@
 import numpy as np
 import pytest
 
+from osmo_camera.constants import DNR_TO_TIFF_FACTOR
 import osmo_camera.tiff.save as module
 
 
-class GuardImageFitsIn32Bits():
-    def test_does_not_raise_if_in_range(self):
+class TestGuardImageFitsIn32Bits():
+    @pytest.mark.parametrize("name, in_range_value", [
+        ("value within range", 1),
+        ("value near min", -4.1),
+        ("value near max", 3.9999),
+    ])
+    def test_does_not_raise_if_in_range(self, name, in_range_value):
         image = np.array([
-            [[-4, -4, -4], [-1, -1, -1]],
-            [[1, 1, 1], [3.999999, 3.999999, 3.999999]]
+            [[in_range_value * DNR_TO_TIFF_FACTOR, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0]]
         ])
         module._guard_image_fits_in_32_bits(image)
 
-    def test_raises_if_out_of_range(self):
+    @pytest.mark.parametrize("name, out_of_range_value", [
+        ("value just below min", -4.1),
+        ("value well below min", -10000),
+        ("value just above max", 4),
+        ("value well above max", 10000),
+    ])
+    def test_raises_if_out_of_range(self, name, out_of_range_value):
         image = np.array([
-            [[-4.01, -4.01, -4.01], [-1, -1, -1]],
-            [[1, 1, 1], [4.01, 4.01, 4.01]]
+            [[out_of_range_value * DNR_TO_TIFF_FACTOR, 0, 0], [0, 0, 0]],
+            [[0, 0, 0], [0, 0, 0]]
         ])
-        with pytest.raises(ValueError):
+        with pytest.raises(module.DataTruncationError):
             module._guard_image_fits_in_32_bits(image)
