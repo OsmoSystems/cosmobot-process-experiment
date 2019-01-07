@@ -9,7 +9,7 @@ def _guard_image_fits_in_32_bits(scaled_rgb_image):
     '''
     int32_range = np.iinfo(np.int32)
 
-    if scaled_rgb_image.min() < int32_range.min or scaled_rgb_image.min() > int32_range.max:
+    if scaled_rgb_image.min() < int32_range.min or scaled_rgb_image.max() > int32_range.max:
         raise ValueError('Pixels in image are out of range')
 
 
