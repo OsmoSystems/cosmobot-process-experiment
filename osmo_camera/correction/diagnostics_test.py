@@ -16,7 +16,7 @@ class TestWarnIfAnyTrue:
             'total_disaster': False,
         }))
 
-        actual_warning_message = mock_warn.call_args[0][0]
+        actual_warning_message = mock_warn.call_args[0][0]  # indexing: first argument from first call
 
         assert 'bad_thing' in actual_warning_message
         assert 'worse_thing' in actual_warning_message

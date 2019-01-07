@@ -37,7 +37,7 @@ def warn_if_any_true(possible_warnings_series):
         warnings.warn(
             f'Diagnostic warning flags: {raised_warnings.index.values}',
             category=CorrectionWarning,
-            stacklevel=2  # Raise on the caller's level, not this level
+            stacklevel=2  # Raise on the immediate caller's level, not this level
         )
 
 
@@ -63,5 +63,5 @@ def run_diagnostics(images_series_before, images_series_after, diagnostics_fn):
             )
             for raw_image_path in images_series_before.index
         },
-        orient='index'  # paths should be index, not columns
+        orient='index'  # file paths should end up as the dataframe index (default would make them column names)
     )

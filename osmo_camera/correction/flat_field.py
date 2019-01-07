@@ -7,7 +7,7 @@ from osmo_camera.correction.diagnostics import warn_if_any_true
 def flat_field_diagnostics(before, after, image_path):
     # TODO: unit tests
     diagnostics = pd.Series({
-        # Mean CV across all color channels
+        # Mean coefficient of variation across all color channels
         'cv_before': variation(before).mean(),
         'cv_after': variation(after).mean(),
     })

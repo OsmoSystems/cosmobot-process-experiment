@@ -29,11 +29,9 @@ def mock_correct_images(mocker):
     mocker.patch.object(metadata, 'get_exif_tags').return_value = test_exif_tags
 
 
-mock_image_shape = (2, 2, 3)
-
-
 class TestDarkFrameDiagnostics:
     mock_before_image = np.array([[[0, 1, 2], [3, 4, 5]]])
+    mock_image_shape = mock_before_image.shape
 
     @pytest.mark.parametrize('expected_warnings_raised, after_image', [
         (
