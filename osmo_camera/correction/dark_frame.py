@@ -15,7 +15,7 @@ TRAINING_EXPOSURE_MIN = 9e-6
 TRAINING_EXPOSURE_MAX = 6
 
 # Logically, a completely dark frame would have 50% of its pixels < 0 after dark frame subtraction
-# Much more than that would be a big red flag
+# Since we don't expect the frame to be completely dark, having more than 50% negative pixels would be a big red flag
 EXPECTED_MAX_NEGATIVE_PIXELS_AFTER_DARKFRAME = 0.51
 
 
