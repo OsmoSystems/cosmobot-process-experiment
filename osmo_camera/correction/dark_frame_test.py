@@ -56,7 +56,10 @@ class TestDarkFrameDiagnostics:
         before = self.mock_before_image
         after = after_image
 
-        module.dark_frame_diagnostics(before, after, mocker.sentinel.image_path)
+        # Numpy gets touchy when we throw around NaN values and such.
+        # Quiet it down using this context manager:
+        with np.errstate(invalid='ignore'):
+            module.get_dark_frame_diagnostics(before, after, mocker.sentinel.image_path)
 
         actual_warning_series = mock_warn_if_any_true.call_args[0][0]  # Indexing: First arg in first call
 
@@ -87,7 +90,7 @@ class TestDarkFrameDiagnostics:
         before = self.mock_before_image
         after = before
 
-        module.dark_frame_diagnostics(before, after, mocker.sentinel.image_path)
+        module.get_dark_frame_diagnostics(before, after, mocker.sentinel.image_path)
 
         actual_warning_series = mock_warn_if_any_true.call_args[0][0]
 
@@ -105,7 +108,7 @@ class TestDarkFrameDiagnostics:
         )
 
     def test_returns_reasonable_values(self, mock_normal_exif_tags):
-        actual = module.dark_frame_diagnostics(
+        actual = module.get_dark_frame_diagnostics(
             self.mock_before_image,
             self.mock_before_image - 0.001,
             sentinel.image_path

@@ -19,7 +19,7 @@ TRAINING_EXPOSURE_MAX = 6
 EXPECTED_MAX_NEGATIVE_PIXELS_AFTER_DARKFRAME = 0.51
 
 
-def dark_frame_diagnostics(before, after, image_path):
+def get_dark_frame_diagnostics(before, after, image_path):
     ''' Produce diagnostics and raise warnings based on a dark-frame corrected image
 
     Args:
@@ -58,6 +58,7 @@ def dark_frame_diagnostics(before, after, image_path):
                 diagnostics.negative_pixels_pct_after > EXPECTED_MAX_NEGATIVE_PIXELS_AFTER_DARKFRAME,
             'nan_values_present': diagnostics.nan_values_after,
         },
+        # Force these values to be true/false - numbers in here are confusing & make warn_if_any_true mad
         dtype=np.bool_
     )
 

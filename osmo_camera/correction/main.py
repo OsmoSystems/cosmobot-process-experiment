@@ -47,7 +47,7 @@ def correct_images(
     dark_frame_diagnostics = diagnostics.run_diagnostics(
         original_rgb_by_filepath,
         dark_frame_corrected_rgb_by_filepath,
-        dark_frame.dark_frame_diagnostics
+        dark_frame.get_dark_frame_diagnostics
     )
 
     if save_dark_frame_corrected_images:
@@ -61,7 +61,7 @@ def correct_images(
     flat_field_diagnostics = diagnostics.run_diagnostics(
         dark_frame_corrected_rgb_by_filepath,
         flat_field_corrected_rgb_by_filepath,
-        flat_field.flat_field_diagnostics
+        flat_field.get_flat_field_diagnostics
     )
 
     if save_flat_field_corrected_images:
@@ -76,7 +76,7 @@ def correct_images(
     intensity_correction_diagnostics = diagnostics.run_diagnostics(
         flat_field_corrected_rgb_by_filepath,
         intensity_corrected_rgb_by_filepath,
-        intensity.intensity_correction_diagnostics
+        intensity.get_intensity_correction_diagnostics
     )
 
     if save_intensity_corrected_images:

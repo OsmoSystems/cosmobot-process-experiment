@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def intensity_correction_diagnostics(before, after, image_path):
+def get_intensity_correction_diagnostics(before, after, image_path):
     # TODO (https://app.asana.com/0/862697519982053/933995774091561): implement
     return pd.Series({})
 

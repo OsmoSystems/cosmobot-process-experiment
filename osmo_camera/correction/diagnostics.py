@@ -1,7 +1,7 @@
-import warnings
-
-import pandas as pd
 import numpy as np
+import pandas as pd
+
+import warnings
 
 
 class CorrectionWarning(Warning):
