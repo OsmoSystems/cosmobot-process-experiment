@@ -57,7 +57,6 @@ def get_dark_frame_diagnostics(before, after, image_path):
             'too_many_negative_pixels_after':
                 diagnostics.negative_pixels_pct_after > EXPECTED_MAX_NEGATIVE_PIXELS_AFTER_DARKFRAME,
             'nan_values_present': diagnostics.nan_values_after,
-            'false_positive': True,
         },
         # Force these values to be true/false - numbers in here are confusing & make warn_if_any_true mad
         dtype=np.bool_
