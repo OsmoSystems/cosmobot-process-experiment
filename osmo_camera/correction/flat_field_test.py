@@ -47,7 +47,7 @@ class TestFlatFieldDiagnostics:
         # Numpy gets touchy when we throw around NaN values and such.
         # Quiet it down using this context manager:
         with np.errstate(invalid='ignore'):
-            diagnostics = module.get_flat_field_diagnostics(before, after, mocker.sentinel.image_path)
+            module.get_flat_field_diagnostics(before, after, mocker.sentinel.image_path)
 
         actual_warning_series = mock_warn_if_any_true.call_args[0][0]  # Indexing: First arg in first call
 
@@ -60,7 +60,6 @@ class TestFlatFieldDiagnostics:
         for warning_name in expected_warnings_raised:
             expected_warning_series[warning_name] = True
 
-        print(diagnostics)
         pd.testing.assert_series_equal(
             expected_warning_series, actual_warning_series
         )

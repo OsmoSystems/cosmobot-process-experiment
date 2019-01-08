@@ -7,7 +7,7 @@ from osmo_camera.correction.diagnostics import warn_if_any_true
 # CV seems to be subject to rounding errors - make sure an insignificant change isn't flagged as an increase
 MAX_CV_INCREASE = 0.000001
 
-# Flat field probably shouldn't multiply
+# Flat field probably shouldn't multiply the output by a huge amount or reduce it to a tiny smidgen
 EXPECTED_MAX_FLAT_FIELD_FACTOR = 5
 EXPECTED_MIN_FLAT_FIELD_FACTOR = 1 / EXPECTED_MAX_FLAT_FIELD_FACTOR
 
