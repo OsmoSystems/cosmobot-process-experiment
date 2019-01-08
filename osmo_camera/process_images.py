@@ -112,7 +112,7 @@ def process_images(
 
     dummy_intensity_correction_ROI = (0, 0, 0, 0)
 
-    corrected_rgb_images = correct_images(
+    corrected_rgb_images, image_diagnostics = correct_images(
         original_rgb_images_by_filepath,
         dummy_intensity_correction_ROI,
         save_dark_frame_corrected_images=save_dark_frame_corrected_images,
@@ -126,14 +126,14 @@ def process_images(
     ]
 
     # One big flat DF with rows from each ROI from each image
-    summary_statistics = pd.concat(
+    roi_statistics = pd.concat(
         processed_ROIs
     ).sort_values('timestamp').reset_index(drop=True)
 
     initial_column_order = ['ROI', 'image', 'exposure_seconds', 'iso']
     reordered_columns = initial_column_order + [
-        column for column in summary_statistics if column not in initial_column_order
+        column for column in roi_statistics if column not in initial_column_order
     ]
-    summary_statistics = summary_statistics[reordered_columns]
+    roi_statistics = roi_statistics[reordered_columns]
 
-    return summary_statistics
+    return roi_statistics, image_diagnostics

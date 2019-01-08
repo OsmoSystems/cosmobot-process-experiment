@@ -85,10 +85,13 @@ def process_experiment(
         save_ROIs: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of local_sync_directory_path
 
     Returns:
-        image_summary_data: A pandas DataFrame of summary statistics
+        roi_summary_data: pandas DataFrame of summary statistics of ROIs
+        image_diagnostics: pandas DataFrame of diagnostic information on images through the correction process
         ROI_definitions: The ROI definitions used in the processing
 
-        Saves the image_summary_data as a .csv in the directory where this function was called.
+    Side effects:
+        Saves the roi_summary_data as a .csv in the directory where this function was called.
+        Raises warnings if any of the image diagnostics are outside of normal ranges.
     '''
     print(f'1. Sync images from s3 to local directory within {local_sync_directory_path}...')
     raw_images_dir = sync_from_s3(
@@ -126,7 +129,7 @@ def process_experiment(
         generate_summary_images(rgb_images_by_filepath, ROI_definitions, raw_images_dir)
 
     print('5. Process images into summary statistics...')
-    image_summary_data = process_images(
+    roi_summary_data, image_diagnostics = process_images(
         rgb_images_by_filepath,
         ROI_definitions,
         raw_images_dir,
@@ -135,6 +138,6 @@ def process_experiment(
         save_flat_field_corrected_images=save_flat_field_corrected_images,
         save_intensity_corrected_images=save_intensity_corrected_images
     )
-    _save_summary_statistics_csv(experiment_dir, image_summary_data)
+    _save_summary_statistics_csv(experiment_dir, roi_summary_data)
 
-    return image_summary_data, ROI_definitions
+    return roi_summary_data, image_diagnostics, ROI_definitions
