@@ -50,6 +50,7 @@ def get_rgb_images_by_filepath(local_sync_directory_path, experiment_directory):
 def process_experiment(
     experiment_dir,
     local_sync_directory_path,
+    flat_field_filepath,  # TODO: should I allow this to be none, and not apply flat field correction?
     ROI_definitions=[],
     sync_downsample_ratio=1,
     sync_start_time=None,
@@ -70,6 +71,7 @@ def process_experiment(
     Args:
         experiment_dir: The name of the experiment directory in s3
         local_sync_directory_path: The path to the local directory where images will be synced and processed
+        flat_field_filepath: The path of the image to use for flat field correction. Must be a .npy file.
         ROI_definitions: Optional. Pre-selected ROI_definitions: a map of {ROI_name: ROI_definition}
             Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI:
                 (start_col, start_row, cols, rows)
@@ -82,7 +84,13 @@ def process_experiment(
         sync_end_time: Optional. If provided, no images after this datetime will by synced
         save_summary_images: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of
             local_sync_directory_path
-        save_ROIs: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of local_sync_directory_path
+        save_ROIs: Optional. If True, ROIs will be saved as .TIFFs in a new subdirectory of local_sync_directory_path
+        save_dark_frame_corrected_images: Optional. If True, dark-frame-corrected images will be saved as .TIFFs with a
+            `_dark_adj` suffix
+        save_flat_field_corrected_images: Optional. If True, flat-field-corrected images will be saved as .TIFFs with a
+            `_dark_flat_adj` suffix
+        save_intensity_corrected_images: Optional. If True, intensity-corrected images will be saved as .TIFFs with a
+            `_dark_flat_intensity_adj` suffix
 
     Returns:
         roi_summary_data: pandas DataFrame of summary statistics of ROIs

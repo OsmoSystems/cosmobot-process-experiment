@@ -43,14 +43,33 @@ def get_flat_field_diagnostics(before, after, image_path):
     ])
 
 
-def _apply_flat_field_correction(dark_frame_corrected_rgb, dark_frame_rgb, flat_field_rgb):
-    # TODO (https://app.asana.com/0/819671808102776/926723356906177): implement
-    return dark_frame_corrected_rgb
+def _apply_flat_field_correction(dark_frame_corrected_rgb, flat_field_rgb):
+    return dark_frame_corrected_rgb * flat_field_rgb
 
 
-def apply_flat_field_correction_to_rgb_images(rgbs_by_filepath):
+def open_flat_field_image(flat_field_filepath):
+    try:
+        return np.load(flat_field_filepath)
+    except OSError:  # Numpy raises an OSError when trying to open an invalid file type
+        raise ValueError(
+            f'Unable to load flat field image from path: {flat_field_filepath}.'
+            f'Path must be a .npy file and must be full path.'
+        )
+
+
+def apply_flat_field_correction_to_rgb_images(rgbs_by_filepath, flat_field_filepath):
+    ''' Apply dark frame correction to an rgb image by subtracting a dark signal value
+
+    Args:
+        input_rgb: `RGB image` to correct
+        exposure_seconds: number of seconds taken to expose image
+
+    Returns:
+        A rgb image that is dark frame corrected
+    '''
+    flat_field_rgb = open_flat_field_image(flat_field_filepath)
+
     return rgbs_by_filepath.apply(
         _apply_flat_field_correction,
-        dark_frame_rgb=None,
-        flat_field_rgb=None
+        flat_field_rgb=flat_field_rgb
     )
