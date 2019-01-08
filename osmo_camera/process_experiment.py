@@ -141,6 +141,7 @@ def process_experiment(
         rgb_images_by_filepath,
         ROI_definitions,
         raw_images_dir,
+        flat_field_filepath,
         save_ROIs=save_ROIs,
         save_dark_frame_corrected_images=save_dark_frame_corrected_images,
         save_flat_field_corrected_images=save_flat_field_corrected_images,
