@@ -8,16 +8,19 @@ class DataTruncationError(ValueError):
     pass
 
 
-def _guard_image_fits_in_32_bits(scaled_rgb_image):
-    ''' Guard that the values in the scaled image are all within the signed 32-bit range.
+def _guard_rgb_image_fits_in_padded_range(rgb_image):
+    ''' Guard that the values in the rgb image are all within the padding left over
+    after dividing the signed 32-bit range by the DNR_TO_TIFF_FACTOR.
     '''
     int32_range = np.iinfo(np.int32)
+    allowed_min = int32_range.min / DNR_TO_TIFF_FACTOR
+    allowed_max = int32_range.max / DNR_TO_TIFF_FACTOR
 
-    if scaled_rgb_image.min() < int32_range.min or scaled_rgb_image.max() > int32_range.max:
+    if rgb_image.min() < allowed_min or rgb_image.max() > allowed_max:
         raise DataTruncationError(
             f'Pixels in image are out of range. '
-            f'Image range: [{scaled_rgb_image.min()}, {scaled_rgb_image.max()}]. '
-            f'Allowed range: [{int32_range.min}, {int32_range.max}]'
+            f'Image range: [{rgb_image.min()}, {rgb_image.max()}]. '
+            f'Allowed range: [{allowed_min}, {allowed_max}]'
         )
 
 
@@ -31,9 +34,10 @@ def as_tiff(rgb_image, output_path):
     Returns:
         None
     '''
-    scaled_rgb_image = rgb_image * DNR_TO_TIFF_FACTOR
+    # Guard that the image will fit in 32 bits, after applying the DNR_TO_TIFF_FACTOR.
+    # Otherwise, coercing to np.int32 will cause it to wrap around
+    _guard_rgb_image_fits_in_padded_range(rgb_image)
 
-    # Guard that the image will fit in 32 bits. Otherwise, coercing to np.int32 will cause it to wrap around
-    _guard_image_fits_in_32_bits(scaled_rgb_image)
+    scaled_rgb_image = rgb_image * DNR_TO_TIFF_FACTOR
     rgb_image_as_uint_array = scaled_rgb_image.astype(np.int32)
     tifffile.imsave(output_path, rgb_image_as_uint_array, compress=1)
