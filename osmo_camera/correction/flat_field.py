@@ -53,7 +53,7 @@ def open_flat_field_image(flat_field_filepath):
     except OSError:  # Numpy raises an OSError when trying to open an invalid file type
         raise ValueError(
             f'Unable to load flat field image from path: {flat_field_filepath}.'
-            f'Path must be a .npy file and must be full path.'
+            f'Path must be the full path to a .npy file.'
         )
 
 
