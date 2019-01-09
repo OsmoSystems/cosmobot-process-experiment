@@ -128,7 +128,7 @@ class TestFlatFieldCorrection:
 
         np.testing.assert_array_almost_equal(actual, self.expected_flat_field_corrected_rgb)
 
-    def test_apply_intensity_correction_to_rgb_images(self, mocker):
+    def test_apply_flat_field_correction_to_rgb_images(self, mocker):
         mocker.patch.object(module, 'open_flat_field_image').return_value = self.flat_field_rgb
 
         rgb_image_series = pd.Series({
@@ -147,7 +147,7 @@ class TestFlatFieldCorrection:
         )
         pd.testing.assert_series_equal(actual, expected)
 
-    def test_apply_intensity_correction_to_rgb_images_raises_if_invalid_path(self):
+    def test_apply_flat_field_correction_to_rgb_images_raises_if_invalid_path(self):
         with pytest.raises(ValueError):
             module.apply_flat_field_correction_to_rgb_images(
                 sentinel.rgb_image_series,
