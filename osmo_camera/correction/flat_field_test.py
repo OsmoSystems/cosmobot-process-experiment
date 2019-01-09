@@ -145,7 +145,7 @@ class TestFlatFieldCorrection:
             rgb_image_series,
             sentinel.flat_field_filepath
         )
-        pd.testing.assert_series_equal(actual, expected, check_exact=False)
+        pd.testing.assert_series_equal(actual, expected)
 
     def test_apply_intensity_correction_to_rgb_images_raises_if_invalid_path(self):
         with pytest.raises(ValueError):

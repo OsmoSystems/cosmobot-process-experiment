@@ -68,8 +68,7 @@ class TestCorrectImages:
 
         pd.testing.assert_series_equal(
             actual_corrected_images,
-            expected_corrected_images,
-            check_exact=False
+            expected_corrected_images
         )
         assert mock_save_rgb_images.call_count == 3
         # Spot check prefixing and presence of diagnostics
