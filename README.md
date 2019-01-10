@@ -39,7 +39,7 @@ See this example jupyter notebook: "process_experiment - for Cosmobot experiment
 `process_experiment` returns a diagnostics DataFrame as one of its outputs.
 It also raises warnings if any of the diagnostic values are outside of expected ranges.
 
-The DataFrame is indexed by file path and each column is a particular diagnostic. Some diagnostics are numeric and others are booleans. Most boolean diagnostics are simply derived from the numeric diagnostics - checking whether they are in or outside of expected ranges.
+The DataFrame is indexed by file path and each column is a particular diagnostic. Some diagnostics are numeric and others are booleans. Most boolean diagnostics are simply derived from the numeric diagnostics by checking whether they are in or outside of expected ranges.
 
 
 ### Dark frame diagnostics
