@@ -28,7 +28,6 @@ def get_flat_field_diagnostics(before, after, image_path):
     '''
     flat_field_difference = np.abs(after / before)
     diagnostics = pd.Series({
-        # Coefficient of variation across all color channels
         'cv_before': variation(before, axis=None),
         'cv_after': variation(after, axis=None),
         'flat_field_factor_max': flat_field_difference.max(),
