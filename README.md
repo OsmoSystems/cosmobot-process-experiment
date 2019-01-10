@@ -41,9 +41,10 @@ It also raises warnings if any of the diagnostic values are outside of expected 
 
 The DataFrame is indexed by file path and each column is a particular diagnostic. Some diagnostics are numeric and others are booleans. Most boolean diagnostics are simply derived from the numeric diagnostics - checking whether they are in or outside of expected ranges.
 
+
 ### Dark frame diagnostics
 
-These diagnostics columns are prefixed with "`dark_frame_`" in the output DataFrame:
+These diagnostics columns are prefixed with "`dark_frame_`" in the output DataFrame (eg. one column name will be `dark_frame_min_value_before`):
 
 * `min_value_before`, `min_value_after`: minimum value of any color pixel before and after dark frame correction (in DNR, across all channels).
   * `min_value_after` should always be less than `min_value_before`. If not, `min_value_increased` will be `True` and a warning will be raised.
@@ -59,7 +60,7 @@ These diagnostics columns are prefixed with "`dark_frame_`" in the output DataFr
   * If this is outside of the range used to train the dark frame regression (0.000009s to 6s), `exposure_out_of_training_range` will be `True` and a warning will be raised.
 
 ### Flat field diagnostics
-These diagnostics columns are prefixed with "`flat_field_`" in the output DataFrame:
+These diagnostics columns are prefixed with "`flat_field_`" in the output DataFrame(eg. one column name will be `flat_field_cv_before`):
 
 * `cv_before`, `cv_after`: Coefficient of variation across all color channels, before and after flat field correction.
   * This should generally decrease with flat fielding. If it increases, `cv_increased` will be `True` and a warning will be raised.
