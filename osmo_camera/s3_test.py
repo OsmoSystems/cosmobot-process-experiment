@@ -23,7 +23,7 @@ def mock_get_images_info(mocker):
 
 @pytest.fixture
 def mock_list_camera_sensor_experiments_s3_bucket_contents(mocker):
-    # _list_camera_sensor_experiments_s3_bucket_contents uses boto to interact with s3; use this fixture to mock it.
+    # list_camera_sensor_experiments_s3_bucket_contents uses boto to interact with s3; use this fixture to mock it.
     # If you are trying to avoid side-effects at a high level, note that using this is redundant to using
     # mock_get_images_info()
     return mocker.patch.object(module, 'list_camera_sensor_experiments_s3_bucket_contents')

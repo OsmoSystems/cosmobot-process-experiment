@@ -9,7 +9,7 @@ from osmo_camera.stats.main import roi_statistic_calculators
 from osmo_camera.correction.main import correct_images
 
 
-def _get_ROI_statistics(ROI):
+def get_ROI_statistics(ROI):
     channel_stats = {
         stat_name: stat_calculator(ROI)
         for stat_name, stat_calculator in roi_statistic_calculators.items()
@@ -76,7 +76,7 @@ def process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir=None)
             'image': os.path.basename(raw_image_path),
             'ROI': ROI_name,
             'ROI definition': ROI_definitions[ROI_name],
-            **_get_ROI_statistics(ROI)
+            **get_ROI_statistics(ROI)
         })
         for ROI_name, ROI in ROIs.items()
     ])
