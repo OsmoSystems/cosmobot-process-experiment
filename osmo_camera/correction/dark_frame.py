@@ -71,7 +71,7 @@ def get_dark_frame_diagnostics(before, after, image_path):
     ])
 
 
-def _calculate_dark_signal_in_dnr(exposure_seconds):
+def calculate_dark_signal_in_dnr(exposure_seconds):
     ''' Calculate the dark signal introduced over the length of an exposure
 
     Args:
@@ -83,7 +83,7 @@ def _calculate_dark_signal_in_dnr(exposure_seconds):
     return ((EXPOSURE_SLOPE * exposure_seconds) + DARK_OFFSET)
 
 
-def _apply_dark_frame_correction(input_rgb, exposure_seconds):
+def apply_dark_frame_correction(input_rgb, exposure_seconds):
     ''' Apply dark frame correction to an rgb image by subtracting a dark signal value
 
     Args:
@@ -93,14 +93,14 @@ def _apply_dark_frame_correction(input_rgb, exposure_seconds):
     Returns:
         A rgb image that is dark frame corrected
     '''
-    dark_signal = _calculate_dark_signal_in_dnr(exposure_seconds)
+    dark_signal = calculate_dark_signal_in_dnr(exposure_seconds)
     dark_frame_corrected_rgb = input_rgb - dark_signal
     return dark_frame_corrected_rgb
 
 
 def apply_dark_frame_correction_to_rgb_images(rgbs_by_filepath):
     dark_frame_corrected_rgbs_by_filepath = pd.Series({
-        image_path: _apply_dark_frame_correction(
+        image_path: apply_dark_frame_correction(
             image_rgb,
             raw.metadata.get_exif_tags(image_path).exposure_time
         )
