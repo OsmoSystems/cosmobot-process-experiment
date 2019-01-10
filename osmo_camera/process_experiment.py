@@ -87,6 +87,7 @@ def process_experiment(
     Returns:
         roi_summary_data: pandas DataFrame of summary statistics of ROIs
         image_diagnostics: pandas DataFrame of diagnostic information on images through the correction process
+            Documentation of individual diagnostics and warnings is in README.md in the project root.
         ROI_definitions: The ROI definitions used in the processing
 
     Side effects:

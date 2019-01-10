@@ -13,9 +13,22 @@ EXPECTED_MIN_FLAT_FIELD_FACTOR = 1 / EXPECTED_MAX_FLAT_FIELD_FACTOR
 
 
 def get_flat_field_diagnostics(before, after, image_path):
+    ''' Produce diagnostics and raise warnings based on a flat-field-corrected image
+
+    Documentation of individual diagnostics and warnings is in README.md in the project root.
+
+    Args:
+        before: RGB image before flat field correction
+        after: RGB image after flat field correction
+        image_path: path to original raw image. Used to look up EXIF data
+    Returns:
+        pandas Series of diagnostics and "red flag" warnings.
+    Warns:
+        uses the Warnings API and CorrectionWarning if any red flags are present.
+    '''
     flat_field_difference = np.abs(after / before)
     diagnostics = pd.Series({
-        # Mean coefficient of variation across all color channels
+        # Coefficient of variation across all color channels
         'cv_before': variation(before, axis=None),
         'cv_after': variation(after, axis=None),
         'flat_field_factor_max': flat_field_difference.max(),
