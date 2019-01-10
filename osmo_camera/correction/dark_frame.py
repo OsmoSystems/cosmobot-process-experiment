@@ -20,7 +20,9 @@ EXPECTED_MAX_NEGATIVE_PIXELS_AFTER_DARKFRAME = 0.51
 
 
 def get_dark_frame_diagnostics(before, after, image_path):
-    ''' Produce diagnostics and raise warnings based on a dark-frame corrected image
+    ''' Produce diagnostics and raise warnings based on a dark-frame-corrected image
+
+    Documentation of individual diagnostics and warnings is in README.md in the project root.
 
     Args:
         before: RGB image before dark frame correction
