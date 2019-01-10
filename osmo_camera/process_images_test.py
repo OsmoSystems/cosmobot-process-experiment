@@ -9,7 +9,7 @@ def test_get_ROI_statistics():
         [[3, 30, 300], [4, 40, 400]]
     ])
 
-    actual = module._get_ROI_statistics(mock_ROI)
+    actual = module.get_ROI_statistics(mock_ROI)
 
     expected = {
         'r_msorm': 2.5,

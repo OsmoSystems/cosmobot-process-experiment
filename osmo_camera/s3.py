@@ -12,7 +12,7 @@ from . import file_structure
 CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME = 'camera-sensor-experiments'
 
 
-def _list_camera_sensor_experiments_s3_bucket_contents(directory_name: str = '') -> List[str]:
+def list_camera_sensor_experiments_s3_bucket_contents(directory_name: str = '') -> List[str]:
     ''' Get a list of all of the files in a logical directory off s3, within the camera sensor experiments bucket.
 
     Arguments:
@@ -81,7 +81,7 @@ def _get_images_info(experiment_directory: str) -> pd.DataFrame:
             filename: full filename with extension
     '''
     s3_prefix = f'{experiment_directory}/'
-    all_keys = _list_camera_sensor_experiments_s3_bucket_contents(s3_prefix)
+    all_keys = list_camera_sensor_experiments_s3_bucket_contents(s3_prefix)
     prefix_length = len(s3_prefix)
 
     jpeg_filenames = [
@@ -225,7 +225,7 @@ def list_experiments():
         The list will be a concatenated set of lists, with the items starting with a list of YYYY-MM-DD formated names
         that are ordered by descending date followed by the same ordering but with a list of YYYYMMDD formatted names.
     '''
-    experiment_directories = _list_camera_sensor_experiments_s3_bucket_contents('')
+    experiment_directories = list_camera_sensor_experiments_s3_bucket_contents('')
 
     experiment_names = [directory.rstrip('/') for directory in experiment_directories]
 

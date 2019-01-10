@@ -137,14 +137,14 @@ class TestDarkFrameDiagnostics:
 
 class TestDarkFrameCorrection:
     def test_calculate_dark_signal(self):
-        actual = module._calculate_dark_signal_in_dnr(exposure_seconds)
+        actual = module.calculate_dark_signal_in_dnr(exposure_seconds)
         expected = 0.0624794
         np.testing.assert_almost_equal(actual, expected)
 
     def test_apply_dark_frame_correction(self):
         input_rgb = rgb_image_1
 
-        actual = module._apply_dark_frame_correction(input_rgb, exposure_seconds)
+        actual = module.apply_dark_frame_correction(input_rgb, exposure_seconds)
         expected = np.array([
             [10.93752051, 11.93752051, 12.93752051, 13.93752051],
             [14.93752051, 15.93752051, 16.93752051, 17.93752051],
@@ -154,7 +154,7 @@ class TestDarkFrameCorrection:
         np.testing.assert_array_almost_equal(actual, expected)
 
     def test_apply_dark_frame_correction_to_rgb_images(self, mocker):
-        mock__apply_dark_frame_correction = mocker.patch.object(module, '_apply_dark_frame_correction')
+        mock_apply_dark_frame_correction = mocker.patch.object(module, 'apply_dark_frame_correction')
         mock_get_exif_tags = mocker.patch.object(metadata, 'get_exif_tags')
 
         rgb_images = pd.Series({
@@ -163,5 +163,5 @@ class TestDarkFrameCorrection:
         })
 
         module.apply_dark_frame_correction_to_rgb_images(rgb_images)
-        assert mock__apply_dark_frame_correction.call_count == 2
+        assert mock_apply_dark_frame_correction.call_count == 2
         assert mock_get_exif_tags.call_count == 2

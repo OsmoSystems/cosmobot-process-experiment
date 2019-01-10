@@ -16,17 +16,17 @@ def mock_check_call(mocker):
 
 @pytest.fixture
 def mock_get_images_info(mocker):
-    # _get_images_info uses boto to interact with s3 (through _list_camera_sensor_experiments_s3_bucket_contents);
+    # _get_images_info uses boto to interact with s3 (through list_camera_sensor_experiments_s3_bucket_contents);
     # use this fixture to mock it.
     return mocker.patch.object(module, '_get_images_info')
 
 
 @pytest.fixture
 def mock_list_camera_sensor_experiments_s3_bucket_contents(mocker):
-    # _list_camera_sensor_experiments_s3_bucket_contents uses boto to interact with s3; use this fixture to mock it.
+    # list_camera_sensor_experiments_s3_bucket_contents uses boto to interact with s3; use this fixture to mock it.
     # If you are trying to avoid side-effects at a high level, note that using this is redundant to using
     # mock_get_images_info()
-    return mocker.patch.object(module, '_list_camera_sensor_experiments_s3_bucket_contents')
+    return mocker.patch.object(module, 'list_camera_sensor_experiments_s3_bucket_contents')
 
 
 class TestSyncFromS3:
@@ -90,7 +90,7 @@ class TestGetImagesInfo:
         mock_list_camera_sensor_experiments_s3_bucket_contents.return_value = []
 
         # Experiment directory has no trailing slash; the slash should be added by
-        # _list_camera_sensor_experiments_s3_bucket_contents.
+        # list_camera_sensor_experiments_s3_bucket_contents.
         # If it's not added, we'll also get files from directories with longer names than the one we actually want
         module._get_images_info('my_experiment')
 
@@ -236,7 +236,7 @@ class TestFilterToTimeRange:
 
 class TestListExperiments:
     def test_returns_cleaned_sorted_directories(self, mocker):
-        mocker.patch.object(module, '_list_camera_sensor_experiments_s3_bucket_contents').return_value = [
+        mocker.patch.object(module, 'list_camera_sensor_experiments_s3_bucket_contents').return_value = [
             '2018-01-01--12-01-01_directory_1/',
             '2018-01-01--12-02-01_directory_2/',
         ]
