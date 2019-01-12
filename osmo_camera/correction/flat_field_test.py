@@ -88,20 +88,18 @@ class TestFlatFieldDiagnostics:
 
 
 class TestGuardFlatFieldShapeMatches:
-    mock_rgbs_by_filepath = pd.Series({
-        sentinel.image_path_1: np.ones(shape=(1, 2, 3)),
-        sentinel.image_path_2: np.ones(shape=(1, 2, 3))
-    })
-
     def test_raises_if_shape_does_not_match(self):
-        mock_flat_field_rgb = np.ones(shape=(4, 5, 6))
         with pytest.raises(ValueError):
-            module._guard_flat_field_shape_matches(self.mock_rgbs_by_filepath, mock_flat_field_rgb)
+            module._guard_flat_field_shape_matches(
+                np.ones(shape=(1, 2, 3)),
+                np.ones(shape=(4, 5, 6))
+            )
 
     def test_does_not_raise_if_shape_matches(self):
-        mock_flat_field_rgb = np.ones(shape=(1, 2, 3))
-
-        module._guard_flat_field_shape_matches(self.mock_rgbs_by_filepath, mock_flat_field_rgb)
+        module._guard_flat_field_shape_matches(
+            np.ones(shape=(1, 2, 3)),
+            np.ones(shape=(1, 2, 3))
+        )
 
 
 class TestFlatFieldCorrection:

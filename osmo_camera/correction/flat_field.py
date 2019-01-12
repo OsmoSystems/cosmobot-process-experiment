@@ -45,17 +45,16 @@ def get_flat_field_diagnostics(before, after, image_path):
     ])
 
 
-def _apply_flat_field_correction(dark_frame_corrected_rgb, flat_field_rgb):
-    return dark_frame_corrected_rgb * flat_field_rgb
-
-
-def _guard_flat_field_shape_matches(rgbs_by_filepath, flat_field_rgb):
-    expected_shape = rgbs_by_filepath[0].shape
-
-    if flat_field_rgb.shape != expected_shape:
+def _guard_flat_field_shape_matches(rgb_image, flat_field_rgb):
+    if flat_field_rgb.shape != rgb_image.shape:
         raise ValueError(
-            f'Flat field shape ({flat_field_rgb.shape}) does not match image shape ({expected_shape})'
+            f'Flat field shape ({flat_field_rgb.shape}) does not match image shape ({rgb_image.shape})'
         )
+
+
+def _apply_flat_field_correction(dark_frame_corrected_rgb, flat_field_rgb):
+    _guard_flat_field_shape_matches(dark_frame_corrected_rgb, flat_field_rgb)
+    return dark_frame_corrected_rgb * flat_field_rgb
 
 
 def open_flat_field_image(flat_field_filepath):
@@ -84,8 +83,6 @@ def apply_flat_field_correction_to_rgb_images(rgbs_by_filepath, flat_field_filep
         return rgbs_by_filepath
 
     flat_field_rgb = open_flat_field_image(flat_field_filepath)
-
-    _guard_flat_field_shape_matches(rgbs_by_filepath, flat_field_rgb)
 
     return rgbs_by_filepath.apply(
         _apply_flat_field_correction,
