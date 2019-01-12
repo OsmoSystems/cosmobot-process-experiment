@@ -86,6 +86,7 @@ def process_images(
     original_rgb_images_by_filepath,
     ROI_definitions,
     raw_images_dir,
+    flat_field_filepath,
     save_ROIs=False,
     save_dark_frame_corrected_images=False,
     save_flat_field_corrected_images=False,
@@ -98,7 +99,8 @@ def process_images(
         ROI_definitions: Definitions of Regions of Interest (ROIs) to summarize. A map of {ROI_name: ROI_definition}
         Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI: (start_col, start_row, cols, rows)
         raw_images_dir: The directory where the original raw images live
-        save_ROIs: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of raw_images_dir
+        flat_field_filepath: The path of the image to use for flat field correction. Must be a .npy file.
+        save_ROIs: Optional. If True, ROIs will be saved as .TIFFs in a new subdirectory of raw_images_dir
 
     Returns:
         An pandas DataFrame in which each row contains summary statistics for a single ROI in a single image
@@ -115,6 +117,7 @@ def process_images(
     corrected_rgb_images, image_diagnostics = correct_images(
         original_rgb_images_by_filepath,
         dummy_intensity_correction_ROI,
+        flat_field_filepath,
         save_dark_frame_corrected_images=save_dark_frame_corrected_images,
         save_flat_field_corrected_images=save_flat_field_corrected_images,
         save_intensity_corrected_images=save_intensity_corrected_images

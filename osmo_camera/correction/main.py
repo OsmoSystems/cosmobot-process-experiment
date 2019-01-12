@@ -26,6 +26,7 @@ def save_rgb_images_by_filepath_with_suffix(
 def correct_images(
     original_rgb_by_filepath,
     ROI_definition_for_intensity_correction,
+    flat_field_filepath,
     save_dark_frame_corrected_images,
     save_flat_field_corrected_images,
     save_intensity_corrected_images
@@ -59,9 +60,10 @@ def correct_images(
         print('Saving dark frame corrected images')
         save_rgb_images_by_filepath_with_suffix(dark_frame_corrected_rgb_by_filepath, "_dark_adj")
 
-    print('2. Apply flat field correction, but not really')
+    print('2. Apply flat field correction')
     flat_field_corrected_rgb_by_filepath = flat_field.apply_flat_field_correction_to_rgb_images(
-        dark_frame_corrected_rgb_by_filepath
+        dark_frame_corrected_rgb_by_filepath,
+        flat_field_filepath
     )
     flat_field_diagnostics = diagnostics.run_diagnostics(
         dark_frame_corrected_rgb_by_filepath,

@@ -8,6 +8,7 @@ from osmo_camera.raw import metadata
 from osmo_camera.raw.metadata import ExifTags
 from osmo_camera.tiff import save
 from osmo_camera import file_structure
+from . import flat_field
 from . import main as module
 
 test_exif_tags = ExifTags(
@@ -18,24 +19,40 @@ test_exif_tags = ExifTags(
 
 
 @pytest.fixture
-def mock_correct_images(mocker):
+def mock_exif_tags(mocker):
     mocker.patch.object(metadata, 'get_exif_tags').return_value = test_exif_tags
 
 
+@pytest.fixture
+def mock_open_flat_field_image(mocker):
+    return mocker.patch.object(flat_field, 'open_flat_field_image')
+
+
 class TestCorrectImages:
-    def test_correct_images(self, mocker, mock_correct_images):
+    def test_correct_images(self, mocker, mock_exif_tags, mock_open_flat_field_image):
         mock_save_rgb_images = mocker.patch.object(module, 'save_rgb_images_by_filepath_with_suffix')
 
+        # Approximate an actual flat field image
+        mock_open_flat_field_image.return_value = np.array([
+            [[3, 3, 3], [.9, 1, 2], [3, 3, 3]],
+            [[1, 2, .9], [.6, .6, .6], [.9, 2, 1]],
+            [[3, 3, 3], [2, .9, 1], [3, 3, 3]],
+        ])
+
+        # Approximate an actual vignetting effect
+        rgb_image = np.array([
+            [[0.2, 0.2, 0.2], [0.3, 0.3, 0.3], [0.2, 0.2, 0]],
+            [[0.4, 0.5, 0.6], [0.9, 1, 0.9], [0.6, 0.5, 0.4]],
+            [[0.2, 0.2, 0.2], [0.7, 0.7, 0.7], [0.2, 0.2, 0]],
+        ])
         rgbs_by_filepath = pd.Series({
-            sentinel.rgb_image_path_1: np.array([
-                [[1, 10, 100], [2, 20, 200]],
-                [[3, 30, 300], [4, 40, 400]]
-            ])
+            sentinel.rgb_image_path_1: rgb_image
         })
 
         actual_corrected_images, actual_diagnostics = module.correct_images(
             rgbs_by_filepath,
             ROI_definition_for_intensity_correction=sentinel.ROI_definition,
+            flat_field_filepath=sentinel.flat_field_filepath,
             save_dark_frame_corrected_images=True,
             save_flat_field_corrected_images=True,
             save_intensity_corrected_images=True
@@ -43,14 +60,15 @@ class TestCorrectImages:
 
         expected_corrected_images = pd.Series({
             sentinel.rgb_image_path_1: np.array([
-                [[0.93752051, 9.93752051, 99.93752051], [1.93752051, 19.93752051, 199.93752051]],
-                [[2.93752051, 29.93752051, 299.93752051], [3.93752051, 39.93752051, 399.93752051]]
+                [[0.412561, 0.412561, 0.412561], [0.213768, 0.237520, 0.475041], [0.412561, 0.412561, -0.187438]],
+                [[0.337520, 0.875041, 0.483768], [0.50251, 0.56251, 0.50251], [0.483768, 0.875041, 0.337520]],
+                [[0.412561, 0.412561, 0.412561], [1.275041, 0.573768, 0.637520], [0.412561, 0.412561, -0.187438]]
             ])
         })
 
-        np.testing.assert_array_almost_equal(
-            actual_corrected_images[sentinel.rgb_image_path_1],
-            expected_corrected_images[sentinel.rgb_image_path_1]
+        pd.testing.assert_series_equal(
+            actual_corrected_images,
+            expected_corrected_images
         )
         assert mock_save_rgb_images.call_count == 3
         # Spot check prefixing and presence of diagnostics

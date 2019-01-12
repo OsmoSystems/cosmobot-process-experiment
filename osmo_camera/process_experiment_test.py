@@ -37,6 +37,7 @@ class TestProcessExperiment:
         actual_roi_summary_data, actual_image_diagnostics, actual_ROI_definitions = module.process_experiment(
             sentinel.experiment_dir,
             sentinel.local_sync_path,
+            flat_field_filepath=sentinel.flat_field_filepath,
             ROI_definitions=sentinel.ROI_definitions,
         )
 
@@ -50,6 +51,7 @@ class TestProcessExperiment:
         actual_roi_summary_data, actual_image_diagnostics, actual_ROI_definitions = module.process_experiment(
             sentinel.experiment_dir,
             sentinel.local_sync_path,
+            flat_field_filepath=sentinel.flat_field_filepath,
             ROI_definitions=None,
         )
 
@@ -60,6 +62,7 @@ class TestProcessExperiment:
         actual_roi_summary_data, actual_image_diagnostics, actual_ROI_definitions = module.process_experiment(
             sentinel.experiment_dir,
             sentinel.local_sync_path,
+            flat_field_filepath=sentinel.flat_field_filepath,
             ROI_definitions=sentinel.ROI_definitions,
         )
 
@@ -70,6 +73,7 @@ class TestProcessExperiment:
         module.process_experiment(
             sentinel.experiment_dir,
             sentinel.local_sync_path,
+            flat_field_filepath=sentinel.flat_field_filepath,
             ROI_definitions=sentinel.ROI_definitions,
             save_summary_images=True,
         )
@@ -84,6 +88,7 @@ class TestProcessExperiment:
         module.process_experiment(
             sentinel.experiment_dir,
             sentinel.local_sync_path,
+            flat_field_filepath=sentinel.flat_field_filepath,
             ROI_definitions=sentinel.ROI_definitions,
         )
 

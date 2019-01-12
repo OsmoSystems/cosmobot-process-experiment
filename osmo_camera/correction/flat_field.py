@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 from scipy.stats import variation
@@ -55,14 +57,46 @@ def get_flat_field_diagnostics(before, after, image_path):
     ])
 
 
-def _apply_flat_field_correction(dark_frame_corrected_rgb, dark_frame_rgb, flat_field_rgb):
-    # TODO (https://app.asana.com/0/819671808102776/926723356906177): implement
-    return dark_frame_corrected_rgb
+def _guard_flat_field_shape_matches(rgb_image, flat_field_rgb):
+    if flat_field_rgb.shape != rgb_image.shape:
+        raise ValueError(
+            f'Flat field shape ({flat_field_rgb.shape}) does not match image shape ({rgb_image.shape})'
+        )
 
 
-def apply_flat_field_correction_to_rgb_images(rgbs_by_filepath):
+def _apply_flat_field_correction(dark_frame_corrected_rgb, flat_field_rgb):
+    _guard_flat_field_shape_matches(dark_frame_corrected_rgb, flat_field_rgb)
+    return dark_frame_corrected_rgb * flat_field_rgb
+
+
+def open_flat_field_image(flat_field_filepath):
+    try:
+        return np.load(flat_field_filepath)
+    except OSError:  # Numpy raises an OSError when trying to open an invalid file type
+        raise ValueError(
+            f'Unable to load flat field image from path: {flat_field_filepath}.'
+            f'Path must be the full path to a .npy file.'
+        )
+
+
+def apply_flat_field_correction_to_rgb_images(rgbs_by_filepath, flat_field_filepath):
+    ''' Apply flat field correction to a Series of RGB images
+
+    Args:
+        rgbs_by_filepath: A pandas Series of `RGB image`s to correct
+        flat_field_filepath: The full path of a .npy file to be used as the flat field image
+
+    Returns:
+        A Series of rgb images that have been flat-field corrected
+    '''
+
+    if flat_field_filepath is None:
+        warnings.warn('No `flat_field_filepath` provided. Flat field correction *not* applied')
+        return rgbs_by_filepath
+
+    flat_field_rgb = open_flat_field_image(flat_field_filepath)
+
     return rgbs_by_filepath.apply(
         _apply_flat_field_correction,
-        dark_frame_rgb=None,
-        flat_field_rgb=None
+        flat_field_rgb=flat_field_rgb
     )
