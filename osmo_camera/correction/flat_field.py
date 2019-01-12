@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 from scipy.stats import variation
@@ -47,6 +49,15 @@ def _apply_flat_field_correction(dark_frame_corrected_rgb, flat_field_rgb):
     return dark_frame_corrected_rgb * flat_field_rgb
 
 
+def _guard_flat_field_shape_matches(rgbs_by_filepath, flat_field_rgb):
+    expected_shape = rgbs_by_filepath[0].shape
+
+    if flat_field_rgb.shape != expected_shape:
+        raise ValueError(
+            f'Flat field shape ({flat_field_rgb.shape}) does not match image shape ({expected_shape})'
+        )
+
+
 def open_flat_field_image(flat_field_filepath):
     try:
         return np.load(flat_field_filepath)
@@ -67,7 +78,14 @@ def apply_flat_field_correction_to_rgb_images(rgbs_by_filepath, flat_field_filep
     Returns:
         A Series of rgb images that have been flat-field corrected
     '''
+
+    if flat_field_filepath is None:
+        warnings.warn('No `flat_field_filepath` provided. Flat field correction *not* applied')
+        return rgbs_by_filepath
+
     flat_field_rgb = open_flat_field_image(flat_field_filepath)
+
+    _guard_flat_field_shape_matches(rgbs_by_filepath, flat_field_rgb)
 
     return rgbs_by_filepath.apply(
         _apply_flat_field_correction,

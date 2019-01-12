@@ -24,16 +24,16 @@ def mock_exif_tags(mocker):
 
 
 @pytest.fixture
-def mock_flat_field(mocker):
+def mock_open_flat_field_image(mocker):
     return mocker.patch.object(flat_field, 'open_flat_field_image')
 
 
 class TestCorrectImages:
-    def test_correct_images(self, mocker, mock_exif_tags, mock_flat_field):
+    def test_correct_images(self, mocker, mock_exif_tags, mock_open_flat_field_image):
         mock_save_rgb_images = mocker.patch.object(module, 'save_rgb_images_by_filepath_with_suffix')
 
         # Approximate an actual flat field image
-        mock_flat_field.return_value = np.array([
+        mock_open_flat_field_image.return_value = np.array([
             [[3, 3, 3], [.9, 1, 2], [3, 3, 3]],
             [[1, 2, .9], [.6, .6, .6], [.9, 2, 1]],
             [[3, 3, 3], [2, .9, 1], [3, 3, 3]],

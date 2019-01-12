@@ -50,8 +50,8 @@ def get_rgb_images_by_filepath(local_sync_directory_path, experiment_directory):
 def process_experiment(
     experiment_dir,
     local_sync_directory_path,
-    flat_field_filepath,  # TODO: should I allow this to be none, and not apply flat field correction?
     ROI_definitions=[],
+    flat_field_filepath=None,
     sync_downsample_ratio=1,
     sync_start_time=None,
     sync_end_time=None,
