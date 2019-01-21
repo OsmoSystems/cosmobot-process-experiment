@@ -94,7 +94,7 @@ def _get_images_info(jpeg_filenames: List[str]) -> pd.DataFrame:
 def _get_non_image_filenames_and_images_info(
     experiment_directory: str
 ) -> Tuple[List, pd.DataFrame]:
-    ''' Organized DataFrame of of the .jpeg file contents of a directory in our bucket on s3.
+    ''' Organized DataFrame of of the .jpeg file contents of a directory in our bucket on s3, and the non .jpeg files.
 
     Arguments:
         experiment_directory: directory name for an experiment within our experiment results bucket on s3
@@ -141,7 +141,7 @@ def _get_capture_groups(variants: Sequence[str]) -> pd.Series:
     num_images = len(variants)
     num_variants = len(set(variants))
     if not num_images:
-        return pd.Series(dtype=object)
+        return pd.Series()
 
     # In case the last capture group isn't complete (due to the experiment ending early)
     # Make sure to round up for the number of capture groups
