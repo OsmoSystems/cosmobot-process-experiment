@@ -9,7 +9,7 @@ from osmo_camera.stats.main import roi_statistic_calculators
 from osmo_camera.correction.main import correct_images
 
 
-def _get_ROI_statistics(ROI):
+def get_ROI_statistics(ROI):
     channel_stats = {
         stat_name: stat_calculator(ROI)
         for stat_name, stat_calculator in roi_statistic_calculators.items()
@@ -76,7 +76,7 @@ def process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir=None)
             'image': os.path.basename(raw_image_path),
             'ROI': ROI_name,
             'ROI definition': ROI_definitions[ROI_name],
-            **_get_ROI_statistics(ROI)
+            **get_ROI_statistics(ROI)
         })
         for ROI_name, ROI in ROIs.items()
     ])
@@ -86,6 +86,7 @@ def process_images(
     original_rgb_images_by_filepath,
     ROI_definitions,
     raw_images_dir,
+    flat_field_filepath,
     save_ROIs=False,
     save_dark_frame_corrected_images=False,
     save_flat_field_corrected_images=False,
@@ -98,7 +99,8 @@ def process_images(
         ROI_definitions: Definitions of Regions of Interest (ROIs) to summarize. A map of {ROI_name: ROI_definition}
         Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI: (start_col, start_row, cols, rows)
         raw_images_dir: The directory where the original raw images live
-        save_ROIs: Optional. If True, ROIs will be saved as .PNGs in a new subdirectory of raw_images_dir
+        flat_field_filepath: The path of the image to use for flat field correction. Must be a .npy file.
+        save_ROIs: Optional. If True, ROIs will be saved as .TIFFs in a new subdirectory of raw_images_dir
 
     Returns:
         An pandas DataFrame in which each row contains summary statistics for a single ROI in a single image
@@ -112,9 +114,10 @@ def process_images(
 
     dummy_intensity_correction_ROI = (0, 0, 0, 0)
 
-    corrected_rgb_images = correct_images(
+    corrected_rgb_images, image_diagnostics = correct_images(
         original_rgb_images_by_filepath,
         dummy_intensity_correction_ROI,
+        flat_field_filepath,
         save_dark_frame_corrected_images=save_dark_frame_corrected_images,
         save_flat_field_corrected_images=save_flat_field_corrected_images,
         save_intensity_corrected_images=save_intensity_corrected_images
@@ -126,14 +129,14 @@ def process_images(
     ]
 
     # One big flat DF with rows from each ROI from each image
-    summary_statistics = pd.concat(
+    roi_statistics = pd.concat(
         processed_ROIs
     ).sort_values('timestamp').reset_index(drop=True)
 
     initial_column_order = ['ROI', 'image', 'exposure_seconds', 'iso']
     reordered_columns = initial_column_order + [
-        column for column in summary_statistics if column not in initial_column_order
+        column for column in roi_statistics if column not in initial_column_order
     ]
-    summary_statistics = summary_statistics[reordered_columns]
+    roi_statistics = roi_statistics[reordered_columns]
 
-    return summary_statistics
+    return roi_statistics, image_diagnostics
