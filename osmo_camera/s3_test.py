@@ -16,9 +16,9 @@ def mock_check_call(mocker):
 
 @pytest.fixture
 def mock_get_images_info(mocker):
-    # _get_images_info uses boto to interact with s3 (through _list_camera_sensor_experiments_s3_bucket_contents);
-    # use this fixture to mock it.
-    return mocker.patch.object(module, '_get_images_info')
+    # _get_non_image_filenames_and_images_info uses boto to interact with s3
+    # (through _list_camera_sensor_experiments_s3_bucket_contents); use this fixture to mock it.
+    return mocker.patch.object(module, '_get_non_image_filenames_and_images_info')
 
 
 @pytest.fixture
@@ -37,14 +37,17 @@ class TestSyncFromS3:
         mock_get_images_info
     ):
         ''' the method under test just calls a lot of sub-functions, so this is a smoke test only. '''
-        mock_get_images_info.return_value = pd.DataFrame([
-            {
-                'Timestamp': datetime.datetime(2018, 1, 2),
-                'capture_group': 0,
-                'variant': 'some_variant',
-                'filename': mocker.sentinel.filename
-            }
-        ])
+        mock_get_images_info.return_value = (
+            [],
+            pd.DataFrame([
+                {
+                    'Timestamp': datetime.datetime(2018, 1, 2),
+                    'capture_group': 0,
+                    'variant': 'some_variant',
+                    'filename': mocker.sentinel.filename
+                }
+            ])
+        )
         module.sync_from_s3(
             'experiment_directory',
             'local_sync_path',
@@ -84,6 +87,8 @@ class TestDownloadS3Files:
 
 
 class TestGetImagesInfo:
+    experiment_directory = 'yyyy-mm-dd-experiment_name'
+
     def test_calls_list_with_correctly_appended_slash_on_experiment_directory(
         self, mock_list_camera_sensor_experiments_s3_bucket_contents
     ):
@@ -92,16 +97,15 @@ class TestGetImagesInfo:
         # Experiment directory has no trailing slash; the slash should be added by
         # _list_camera_sensor_experiments_s3_bucket_contents.
         # If it's not added, we'll also get files from directories with longer names than the one we actually want
-        module._get_images_info('my_experiment')
+        module._get_non_image_filenames_and_images_info('my_experiment')
 
         mock_list_camera_sensor_experiments_s3_bucket_contents.assert_called_once_with('my_experiment/')
 
     def test_creates_appropriate_dataframe(self, mock_list_camera_sensor_experiments_s3_bucket_contents):
-        experiment_directory = 'yyyy-mm-dd-experiment_name'
         mock_list_camera_sensor_experiments_s3_bucket_contents.return_value = [
-            f'{experiment_directory}/2018-10-27--21-24-17_ss_31000_ISO_100.jpeg',
-            f'{experiment_directory}/2018-10-27--21-24-23_ss_1_ISO_100.jpeg',
-            f'{experiment_directory}/experiment_metadata.yml',
+            f'{self.experiment_directory}/2018-10-27--21-24-17_ss_31000_ISO_100.jpeg',
+            f'{self.experiment_directory}/2018-10-27--21-24-23_ss_1_ISO_100.jpeg',
+            f'{self.experiment_directory}/experiment_metadata.yml',
         ]
 
         expected_images_info = pd.DataFrame([
@@ -119,34 +123,78 @@ class TestGetImagesInfo:
             }
         ], columns=module._IMAGES_INFO_COLUMNS)
 
+        non_image_filenames, images_df = module._get_non_image_filenames_and_images_info(self.experiment_directory)
+
         pd.testing.assert_frame_equal(
-            module._get_images_info(experiment_directory),
+            images_df,
             expected_images_info
         )
 
-    def test_returns_empty_dataframe_if_no_files(self, mocker, mock_list_camera_sensor_experiments_s3_bucket_contents):
+    def test_returns_empty_dataframe_if_no_files(
+        self,
+        mocker,
+        mock_list_camera_sensor_experiments_s3_bucket_contents
+    ):
         mock_list_camera_sensor_experiments_s3_bucket_contents.return_value = []
 
+        non_image_filenames, images_df = module._get_non_image_filenames_and_images_info(
+            mocker.sentinel.experiment_directory
+        )
         pd.testing.assert_frame_equal(
-            module._get_images_info(mocker.sentinel.experiment_directory),
+            images_df,
             pd.DataFrame(columns=module._IMAGES_INFO_COLUMNS)
         )
 
+    @pytest.mark.parametrize('bucket_contents, expected_non_image_filenames', [
+        ([], []),
+        (
+            [f'{experiment_directory}/experiment_metadata.yml'],
+            ['experiment_metadata.yml']
+        ),
+        (
+            [
+                f'{experiment_directory}/2018-10-27--21-24-17_ss_31000_ISO_100.jpeg',
+                f'{experiment_directory}/experiment_metadata.yml'
+            ],
+            ['experiment_metadata.yml']
+        ),
+    ])
+    def test_returns_list_containing_non_jpeg_files(
+        self,
+        bucket_contents,
+        expected_non_image_filenames,
+        mock_list_camera_sensor_experiments_s3_bucket_contents
+    ):
+        mock_list_camera_sensor_experiments_s3_bucket_contents.return_value = bucket_contents
+
+        non_image_filenames, images_df = module._get_non_image_filenames_and_images_info(self.experiment_directory)
+
+        assert non_image_filenames == expected_non_image_filenames
+
 
 class TestGetCaptureGroups:
+    def test_no_images__capture_groups_are_empty(self):
+        variants = pd.Series()
+        expected_capture_groups = pd.Series(dtype=object)
+
+        pd.testing.assert_series_equal(
+            module._get_capture_groups(variants),
+            expected_capture_groups
+        )
+
     def test_single_variant__capture_groups_are_just_a_linear_series(self):
-        images_info = pd.Series([
+        variants = pd.Series([
             'abc', 'abc', 'abc', 'abc', 'abc',
         ])
         expected_capture_groups = pd.Series([0, 1, 2, 3, 4])
 
         pd.testing.assert_series_equal(
-            module._get_capture_groups(images_info),
+            module._get_capture_groups(variants),
             expected_capture_groups
         )
 
     def test_two_variants__capture_groups_match_up(self):
-        images_info = pd.Series([
+        variants = pd.Series([
             'abc', 'd', 'abc', 'd', 'abc', 'd', 'abc', 'd', 'abc', 'd',
         ])
         expected_capture_groups = pd.Series(
@@ -154,12 +202,12 @@ class TestGetCaptureGroups:
         )
 
         pd.testing.assert_series_equal(
-            module._get_capture_groups(images_info),
+            module._get_capture_groups(variants),
             expected_capture_groups
         )
 
     def test_missing_variants_at_end__creates_small_capture_group_at_end(self):
-        images_info = pd.Series([
+        variants = pd.Series([
             'abc', 'd', 'abc', 'd', 'abc',
         ])
         expected_capture_groups = pd.Series(
@@ -167,7 +215,7 @@ class TestGetCaptureGroups:
         )
 
         pd.testing.assert_series_equal(
-            module._get_capture_groups(images_info),
+            module._get_capture_groups(variants),
             expected_capture_groups
         )
 

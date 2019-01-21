@@ -1,7 +1,8 @@
 import datetime
 import os
+from itertools import filterfalse
 from subprocess import check_call
-from typing import Sequence, List, Optional
+from typing import Sequence, List, Optional, Tuple
 import boto
 import numpy as np
 import pandas as pd
@@ -61,6 +62,10 @@ _IMAGES_INFO_COLUMNS = [
 ]
 
 
+def _is_jpeg(filename):
+    return filename.endswith('.jpeg')
+
+
 def _get_timestamp_and_variant(filename):
     timestamp = file_structure.datetime_from_filename(filename)
     rest = filename[file_structure.FILENAME_TIMESTAMP_LENGTH:]
@@ -68,40 +73,53 @@ def _get_timestamp_and_variant(filename):
     return timestamp, variant
 
 
-def _get_images_info(experiment_directory: str) -> pd.DataFrame:
-    ''' Organized DataFrame of of the .jpeg file contents of a directory in our bucket on s3.
-
-    Arguments:
-        experiment_directory: directory name for an experiment within our experiment results bucket on s3
-    Returns:
-        a DataFrame containing one row for each .jpeg file in the experiment directory. Each row has a:
-            Timestamp: a datetime taken from the filename
-            variant: variant portion of the .jpeg filename
-            capture_group: a capture group index; see _get_capture_groups() for what that means
-            filename: full filename with extension
-    '''
-    s3_prefix = f'{experiment_directory}/'
-    all_keys = _list_camera_sensor_experiments_s3_bucket_contents(s3_prefix)
-    prefix_length = len(s3_prefix)
-
-    jpeg_filenames = [
-        key[prefix_length:]
-        for key in all_keys
-        if key.endswith('.jpeg')
-    ]
+def _get_images_info(jpeg_filenames: List[str]) -> pd.DataFrame:
+    # Handle zero-length case here to avoid having to do so in all the functions this calls
     if not jpeg_filenames:
-        # Early out to avoid zero-length errors
         return pd.DataFrame(columns=_IMAGES_INFO_COLUMNS)
 
     timestamps_and_variants = [_get_timestamp_and_variant(filename) for filename in jpeg_filenames]
+
     timestamps, variants = zip(*timestamps_and_variants)
 
-    return pd.DataFrame({
+    images_info = pd.DataFrame({
         'Timestamp': timestamps,
         'variant': variants,
         'filename': jpeg_filenames,
         'capture_group': _get_capture_groups(variants)
     }, columns=_IMAGES_INFO_COLUMNS)
+    return images_info
+
+
+def _get_non_image_filenames_and_images_info(
+    experiment_directory: str
+) -> Tuple[List, pd.DataFrame]:
+    ''' Organized DataFrame of of the .jpeg file contents of a directory in our bucket on s3.
+
+    Arguments:
+        experiment_directory: directory name for an experiment within our experiment results bucket on s3
+    Returns:
+        a tuple of 2 items:
+            all non-.jpeg filenames in the experiment directory
+            a DataFrame containing one row for each .jpeg file in the experiment directory. Each row has a:
+                Timestamp: a datetime taken from the filename
+                variant: variant portion of the .jpeg filename
+                capture_group: a capture group index; see _get_capture_groups() for what that means
+                filename: full filename with extension
+    '''
+    s3_prefix = f'{experiment_directory}/'
+    all_keys = _list_camera_sensor_experiments_s3_bucket_contents(s3_prefix)
+    prefix_length = len(s3_prefix)
+
+    filenames = [
+        key[prefix_length:]
+        for key in all_keys
+    ]
+
+    jpeg_filenames = list(filter(_is_jpeg, filenames))
+    non_jpeg_filenames = list(filterfalse(_is_jpeg, filenames))
+
+    return non_jpeg_filenames, _get_images_info(jpeg_filenames)
 
 
 def _get_capture_groups(variants: Sequence[str]) -> pd.Series:
@@ -122,6 +140,8 @@ def _get_capture_groups(variants: Sequence[str]) -> pd.Series:
     '''
     num_images = len(variants)
     num_variants = len(set(variants))
+    if not num_images:
+        return pd.Series(dtype=object)
 
     # In case the last capture group isn't complete (due to the experiment ending early)
     # Make sure to round up for the number of capture groups
@@ -184,7 +204,7 @@ def sync_from_s3(
     ''' Syncs raw images from s3 to a local tmp directory (can optionally be provided)
 
     Args:
-        experiment_dir: The name of the experiment directory in s3
+        experiment_directory: The name of the experiment directory in s3
         local_sync_directory_path: The full path of the local parent directory which contains experiment sync
             directories.
         downsample_ratio: Ratio to downsample images by -
@@ -200,10 +220,10 @@ def sync_from_s3(
 
     local_experiment_dir = os.path.join(local_sync_directory_path, experiment_directory)
 
-    images_info = _get_images_info(experiment_directory)
+    non_image_filenames, images_info = _get_non_image_filenames_and_images_info(experiment_directory)
     downsampled_image_info = _downsample(images_info, downsample_ratio)
     filtered_image_info = _filter_to_time_range(downsampled_image_info, start_time, end_time)
-    filenames_to_download = list(filtered_image_info['filename'].values)
+    filenames_to_download = non_image_filenames + list(filtered_image_info['filename'].values)
     _download_s3_files(experiment_directory, filenames_to_download, local_experiment_dir)
 
     return local_experiment_dir
