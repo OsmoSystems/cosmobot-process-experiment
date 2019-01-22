@@ -108,7 +108,7 @@ def _get_images_info(filenames: List[str]) -> pd.DataFrame:
     return images_info
 
 
-def _get_filenames_from_s3(experiment_directory):
+def _get_filenames_from_s3(experiment_directory: str) -> List[str]:
     s3_prefix = f'{experiment_directory}/'
     all_keys = list_camera_sensor_experiments_s3_bucket_contents(s3_prefix)
     prefix_length = len(s3_prefix)
