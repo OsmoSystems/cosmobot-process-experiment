@@ -15,17 +15,17 @@ def mock_check_call(mocker):
 
 
 @pytest.fixture
-def mock_get_images_info(mocker):
-    # _get_images_info uses boto to interact with s3 (through list_camera_sensor_experiments_s3_bucket_contents);
-    # use this fixture to mock it.
-    return mocker.patch.object(module, '_get_images_info')
+def mock_get_filenames_from_s3(mocker):
+    # _get_filenames_from_s3 uses boto to interact with s3
+    # (through _list_camera_sensor_experiments_s3_bucket_contents); use this fixture to mock it.
+    return mocker.patch.object(module, '_get_filenames_from_s3')
 
 
 @pytest.fixture
 def mock_list_camera_sensor_experiments_s3_bucket_contents(mocker):
     # list_camera_sensor_experiments_s3_bucket_contents uses boto to interact with s3; use this fixture to mock it.
     # If you are trying to avoid side-effects at a high level, note that using this is redundant to using
-    # mock_get_images_info()
+    # mock_get_filenames_from_s3()
     return mocker.patch.object(module, 'list_camera_sensor_experiments_s3_bucket_contents')
 
 
@@ -34,17 +34,13 @@ class TestSyncFromS3:
         self,
         mocker,
         mock_check_call,
-        mock_get_images_info
+        mock_get_filenames_from_s3
     ):
         ''' the method under test just calls a lot of sub-functions, so this is a smoke test only. '''
-        mock_get_images_info.return_value = pd.DataFrame([
-            {
-                'Timestamp': datetime.datetime(2018, 1, 2),
-                'capture_group': 0,
-                'variant': 'some_variant',
-                'filename': mocker.sentinel.filename
-            }
-        ])
+        filename = '2018-01-02--00-00-00_ss_31000_ISO_100.jpeg'
+        mock_get_filenames_from_s3.return_value = [
+            filename,
+        ]
         module.sync_from_s3(
             'experiment_directory',
             'local_sync_path',
@@ -60,7 +56,7 @@ class TestSyncFromS3:
         actual_s3_command = mock_check_call.call_args[0][0][0]
         assert 'aws s3 sync' in actual_s3_command
         assert 'local_sync_path/experiment_directory' in actual_s3_command
-        assert str(mocker.sentinel.filename) in actual_s3_command
+        assert filename in actual_s3_command
 
 
 class TestDownloadS3Files:
@@ -84,24 +80,11 @@ class TestDownloadS3Files:
 
 
 class TestGetImagesInfo:
-    def test_calls_list_with_correctly_appended_slash_on_experiment_directory(
-        self, mock_list_camera_sensor_experiments_s3_bucket_contents
-    ):
-        mock_list_camera_sensor_experiments_s3_bucket_contents.return_value = []
-
-        # Experiment directory has no trailing slash; the slash should be added by
-        # list_camera_sensor_experiments_s3_bucket_contents.
-        # If it's not added, we'll also get files from directories with longer names than the one we actually want
-        module._get_images_info('my_experiment')
-
-        mock_list_camera_sensor_experiments_s3_bucket_contents.assert_called_once_with('my_experiment/')
-
-    def test_creates_appropriate_dataframe(self, mock_list_camera_sensor_experiments_s3_bucket_contents):
-        experiment_directory = 'yyyy-mm-dd-experiment_name'
-        mock_list_camera_sensor_experiments_s3_bucket_contents.return_value = [
-            f'{experiment_directory}/2018-10-27--21-24-17_ss_31000_ISO_100.jpeg',
-            f'{experiment_directory}/2018-10-27--21-24-23_ss_1_ISO_100.jpeg',
-            f'{experiment_directory}/experiment_metadata.yml',
+    def test_creates_appropriate_dataframe_ignoring_non_jpeg_files(self):
+        image_filenames = [
+            '2018-10-27--21-24-17_ss_31000_ISO_100.jpeg',
+            '2018-10-27--21-24-23_ss_1_ISO_100.jpeg',
+            'ignored_file.md'
         ]
 
         expected_images_info = pd.DataFrame([
@@ -120,33 +103,87 @@ class TestGetImagesInfo:
         ], columns=module._IMAGES_INFO_COLUMNS)
 
         pd.testing.assert_frame_equal(
-            module._get_images_info(experiment_directory),
+            module._get_images_info(image_filenames),
             expected_images_info
         )
 
-    def test_returns_empty_dataframe_if_no_files(self, mocker, mock_list_camera_sensor_experiments_s3_bucket_contents):
-        mock_list_camera_sensor_experiments_s3_bucket_contents.return_value = []
-
+    def test_returns_empty_dataframe_if_no_files(self):
+        images_df = module._get_images_info([])
         pd.testing.assert_frame_equal(
-            module._get_images_info(mocker.sentinel.experiment_directory),
+            images_df,
             pd.DataFrame(columns=module._IMAGES_INFO_COLUMNS)
         )
 
 
+class TestGetFilenamesFromS3:
+    experiment_directory = 'yyyy-mm-dd-experiment_name'
+
+    def test_calls_list_with_correctly_appended_slash_on_experiment_directory(
+        self, mock_list_camera_sensor_experiments_s3_bucket_contents
+    ):
+        mock_list_camera_sensor_experiments_s3_bucket_contents.return_value = []
+
+        # Experiment directory has no trailing slash; the slash should be added by
+        # list_camera_sensor_experiments_s3_bucket_contents.
+        # If it's not added, we'll also get files from directories with longer names than the one we actually want
+        module._get_filenames_from_s3('my_experiment')
+
+        mock_list_camera_sensor_experiments_s3_bucket_contents.assert_called_once_with('my_experiment/')
+
+    @pytest.mark.parametrize('bucket_contents, expected_filenames', [
+        ([], []),
+        (
+            [
+                f'{experiment_directory}/2018-10-27--21-24-17_ss_31000_ISO_100.jpeg',
+                f'{experiment_directory}/experiment_metadata.yml'
+            ],
+            [
+                '2018-10-27--21-24-17_ss_31000_ISO_100.jpeg',
+                'experiment_metadata.yml',
+            ]
+        ),
+    ])
+    def test_returns_list_containing_all_filenames(
+        self,
+        bucket_contents,
+        expected_filenames,
+        mock_list_camera_sensor_experiments_s3_bucket_contents
+    ):
+        mock_list_camera_sensor_experiments_s3_bucket_contents.return_value = bucket_contents
+
+        actual_filenames = module._get_filenames_from_s3(self.experiment_directory)
+
+        assert actual_filenames == expected_filenames
+
+
+class TestGetNonImageFilenames:
+    def test_filters_to_non_image_filenames(self):
+        assert module._get_non_image_filenames(['not an image', 'image.jpeg']) == ['not an image']
+
+
 class TestGetCaptureGroups:
+    def test_no_images__capture_groups_are_empty(self):
+        variants = pd.Series()
+        expected_capture_groups = pd.Series()
+
+        pd.testing.assert_series_equal(
+            module._get_capture_groups(variants),
+            expected_capture_groups
+        )
+
     def test_single_variant__capture_groups_are_just_a_linear_series(self):
-        images_info = pd.Series([
+        variants = pd.Series([
             'abc', 'abc', 'abc', 'abc', 'abc',
         ])
         expected_capture_groups = pd.Series([0, 1, 2, 3, 4])
 
         pd.testing.assert_series_equal(
-            module._get_capture_groups(images_info),
+            module._get_capture_groups(variants),
             expected_capture_groups
         )
 
     def test_two_variants__capture_groups_match_up(self):
-        images_info = pd.Series([
+        variants = pd.Series([
             'abc', 'd', 'abc', 'd', 'abc', 'd', 'abc', 'd', 'abc', 'd',
         ])
         expected_capture_groups = pd.Series(
@@ -154,12 +191,12 @@ class TestGetCaptureGroups:
         )
 
         pd.testing.assert_series_equal(
-            module._get_capture_groups(images_info),
+            module._get_capture_groups(variants),
             expected_capture_groups
         )
 
     def test_missing_variants_at_end__creates_small_capture_group_at_end(self):
-        images_info = pd.Series([
+        variants = pd.Series([
             'abc', 'd', 'abc', 'd', 'abc',
         ])
         expected_capture_groups = pd.Series(
@@ -167,7 +204,7 @@ class TestGetCaptureGroups:
         )
 
         pd.testing.assert_series_equal(
-            module._get_capture_groups(images_info),
+            module._get_capture_groups(variants),
             expected_capture_groups
         )
 
@@ -253,7 +290,6 @@ UNORDERED_UNFILTERED_LIST_FOR_TESTS = [
 
 
 class TestFilterAndSortExperimentList:
-
     def test_returns_filtered_list_for_new_isodate_format(self):
         actual_filtered_list = module._experiment_list_by_isodate_format_date_desc(UNORDERED_UNFILTERED_LIST_FOR_TESTS)
         expected_filtered_list = [
