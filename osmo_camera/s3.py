@@ -78,7 +78,7 @@ def _get_timestamp_and_variant(filename: str):
 
 
 def _get_images_info(filenames: List[str]) -> pd.DataFrame:
-    ''' DataFrame with metadata from the .jpeg files in the provided file list.
+    ''' Create a DataFrame with metadata from the .jpeg files in the provided file list.
 
     Arguments:
         experiment_directory: directory name for an experiment within our experiment results bucket on s3
@@ -99,13 +99,12 @@ def _get_images_info(filenames: List[str]) -> pd.DataFrame:
 
     timestamps, variants = zip(*timestamps_and_variants)
 
-    images_info = pd.DataFrame({
+    return pd.DataFrame({
         'Timestamp': timestamps,
         'variant': variants,
         'filename': jpeg_filenames,
         'capture_group': _get_capture_groups(variants)
     }, columns=_IMAGES_INFO_COLUMNS)
-    return images_info
 
 
 def _get_filenames_from_s3(experiment_directory: str) -> List[str]:
