@@ -6,6 +6,7 @@ from osmo_camera import raw, tiff
 from osmo_camera.file_structure import create_output_directory
 from osmo_camera.select_ROI import get_ROIs_for_image
 from osmo_camera.stats.main import roi_statistic_calculators
+from osmo_camera.stats.exposure import warn_if_exposure_out_of_range
 from osmo_camera.correction.main import correct_images
 
 
@@ -113,6 +114,8 @@ def process_images(
         print('ROI crops saved in:', ROI_crops_dir)
 
     dummy_intensity_correction_ROI = (0, 0, 0, 0)
+
+    warn_if_exposure_out_of_range(original_rgb_images_by_filepath)
 
     corrected_rgb_images, image_diagnostics = correct_images(
         original_rgb_images_by_filepath,
