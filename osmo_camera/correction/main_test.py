@@ -72,9 +72,6 @@ class TestCorrectImages:
             ])
         })
 
-        with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-            print(actual_corrected_images)
-
         pd.testing.assert_series_equal(
             actual_corrected_images,
             expected_corrected_images
