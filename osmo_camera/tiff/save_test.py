@@ -11,17 +11,17 @@ class TestGuardImageFitsIn32Bits():
     @pytest.mark.parametrize('name, in_range_value', [
         ('zero', 0),
         ('value within range', 1),
-        ('value near min', -4),
-        ('value near max', 3.9999),
+        ('value near min', -64),
+        ('value near max', 63.9999),
     ])
     def test_does_not_raise_if_in_range(self, name, in_range_value):
         self.test_image[0][0][0] = in_range_value
         module._guard_rgb_image_fits_in_padded_range(self.test_image)
 
     @pytest.mark.parametrize('name, out_of_range_value', [
-        ('value just below min', -4.1),
+        ('value just below min', -64.1),
         ('value well below min', -10000),
-        ('value just above max', 4),
+        ('value just above max', 64),
         ('value well above max', 10000),
     ])
     def test_raises_if_out_of_range(self, name, out_of_range_value):
