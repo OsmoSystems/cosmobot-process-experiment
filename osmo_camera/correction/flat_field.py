@@ -66,7 +66,7 @@ def _guard_flat_field_shape_matches(rgb_image, flat_field_rgb):
 
 def _apply_flat_field_correction(dark_frame_corrected_rgb, flat_field_rgb):
     _guard_flat_field_shape_matches(dark_frame_corrected_rgb, flat_field_rgb)
-    return dark_frame_corrected_rgb / flat_field_rgb
+    return dark_frame_corrected_rgb * flat_field_rgb
 
 
 def open_flat_field_image(flat_field_filepath):

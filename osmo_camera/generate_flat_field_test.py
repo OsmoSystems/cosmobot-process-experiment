@@ -26,10 +26,10 @@ def mock_apply_dark_frame_correction_to_rgb_images(mocker):
 def test_generate_flat_field(mock_apply_dark_frame_correction_to_rgb_images):
     actual = module.from_rgb_images(rgb_image_series)
 
-    # The average RGB value of rgb_image is 0.2.  Expected calculated values are 0.1 / 0.2 = 0.5, 0.3 / 0.2 = 1.5
+    # rgb_image average RGB = 0.2.  Expected calculated values are 0.2 / 0.1 = 2.0, 0.2 / 0.3 = 0.666667
     expected = np.array([
-        [[0.5, 0.5, 0.5], [1.5, 1.5, 1.5]],
-        [[0.5, 0.5, 0.5], [1.5, 1.5, 1.5]]
+        [[2.0, 2.0, 2.0], [0.666667, 0.666667, 0.666667]],
+        [[2.0, 2.0, 2.0], [0.666667, 0.666667, 0.666667]]
     ])
 
     np.testing.assert_array_almost_equal(expected, actual)
