@@ -1,6 +1,6 @@
 import pandas as pd
 
-from osmo_camera.correction import dark_frame, diagnostics, flat_field, intensity
+from osmo_camera.correction import dark_frame, diagnostics, flat_field
 from osmo_camera import tiff, file_structure
 
 
@@ -76,15 +76,19 @@ def correct_images(
         save_rgb_images_by_filepath_with_suffix(flat_field_corrected_rgb_by_filepath, "_dark_flat_adj")
 
     print('3. Apply intensity correction, but not really')
-    intensity_corrected_rgb_by_filepath = intensity.apply_intensity_correction_to_rgb_images(
-        flat_field_corrected_rgb_by_filepath,
-        ROI_definition_for_intensity_correction
-    )
-    intensity_correction_diagnostics = diagnostics.run_diagnostics(
-        flat_field_corrected_rgb_by_filepath,
-        intensity_corrected_rgb_by_filepath,
-        intensity.get_intensity_correction_diagnostics
-    )
+    # For now, bypass all iteration to save time and memory
+    intensity_corrected_rgb_by_filepath = flat_field_corrected_rgb_by_filepath
+    intensity_correction_diagnostics = pd.DataFrame({})
+    # TODO (https://app.asana.com/0/862697519982053/933995774091561): actually implement
+    # intensity_corrected_rgb_by_filepath = intensity.apply_intensity_correction_to_rgb_images(
+    #     flat_field_corrected_rgb_by_filepath,
+    #     ROI_definition_for_intensity_correction
+    # )
+    # intensity_correction_diagnostics = diagnostics.run_diagnostics(
+    #     flat_field_corrected_rgb_by_filepath,
+    #     intensity_corrected_rgb_by_filepath,
+    #     intensity.get_intensity_correction_diagnostics
+    # )
 
     if save_intensity_corrected_images:
         print('Saving intensity corrected images')
