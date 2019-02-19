@@ -90,7 +90,6 @@ def process_images(
     save_ROIs=False,
     save_dark_frame_corrected_images=False,
     save_flat_field_corrected_images=False,
-    save_intensity_corrected_images=False
 ):
     ''' Process all images in a given directory
 
@@ -112,15 +111,11 @@ def process_images(
         ROI_crops_dir = create_output_directory(raw_images_dir, 'ROI crops')
         print('ROI crops saved in:', ROI_crops_dir)
 
-    dummy_intensity_correction_ROI = (0, 0, 0, 0)
-
     corrected_rgb_images, image_diagnostics = correct_images(
         original_rgb_images_by_filepath,
-        dummy_intensity_correction_ROI,
         flat_field_filepath,
         save_dark_frame_corrected_images=save_dark_frame_corrected_images,
         save_flat_field_corrected_images=save_flat_field_corrected_images,
-        save_intensity_corrected_images=save_intensity_corrected_images
     )
 
     processed_ROIs = [
