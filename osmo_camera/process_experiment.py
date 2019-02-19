@@ -59,7 +59,6 @@ def process_experiment(
     save_ROIs=False,
     save_dark_frame_corrected_images=False,
     save_flat_field_corrected_images=False,
-    save_intensity_corrected_images=False
 ):
     ''' Process all images from an experiment:
         1. Sync raw images from s3
@@ -89,8 +88,6 @@ def process_experiment(
             `_dark_adj` suffix
         save_flat_field_corrected_images: Optional. If True, flat-field-corrected images will be saved as .TIFFs with a
             `_dark_flat_adj` suffix
-        save_intensity_corrected_images: Optional. If True, intensity-corrected images will be saved as .TIFFs with a
-            `_dark_flat_intensity_adj` suffix
 
     Returns:
         roi_summary_data: pandas DataFrame of summary statistics of ROIs
@@ -146,7 +143,6 @@ def process_experiment(
         save_ROIs=save_ROIs,
         save_dark_frame_corrected_images=save_dark_frame_corrected_images,
         save_flat_field_corrected_images=save_flat_field_corrected_images,
-        save_intensity_corrected_images=save_intensity_corrected_images
     )
     _save_summary_statistics_csv(experiment_dir, roi_summary_data)
 

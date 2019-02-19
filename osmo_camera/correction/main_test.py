@@ -51,11 +51,9 @@ class TestCorrectImages:
 
         actual_corrected_images, actual_diagnostics = module.correct_images(
             rgbs_by_filepath,
-            ROI_definition_for_intensity_correction=sentinel.ROI_definition,
             flat_field_filepath=sentinel.flat_field_filepath,
             save_dark_frame_corrected_images=True,
             save_flat_field_corrected_images=True,
-            save_intensity_corrected_images=True
         )
 
         expected_corrected_images = pd.Series({
@@ -70,7 +68,7 @@ class TestCorrectImages:
             actual_corrected_images,
             expected_corrected_images
         )
-        assert mock_save_rgb_images.call_count == 3
+        assert mock_save_rgb_images.call_count == 2
         # Spot check prefixing and presence of diagnostics
         assert not actual_diagnostics['dark_frame_min_value_increased'].values[0]
 
