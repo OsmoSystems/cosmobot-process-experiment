@@ -9,10 +9,6 @@ from osmo_camera.correction.diagnostics import warn_if_any_true
 # CV seems to be subject to rounding errors - make sure an insignificant change isn't flagged as an increase
 MAX_CV_INCREASE = 0.000001
 
-# Flat field probably shouldn't multiply the output by a huge amount or reduce it to a tiny smidgen
-EXPECTED_MAX_FLAT_FIELD_FACTOR = 5
-EXPECTED_MIN_FLAT_FIELD_FACTOR = 1 / EXPECTED_MAX_FLAT_FIELD_FACTOR
-
 
 def get_flat_field_diagnostics(before, after, image_path):
     ''' Produce diagnostics and raise warnings based on a flat-field-corrected image
@@ -41,8 +37,6 @@ def get_flat_field_diagnostics(before, after, image_path):
             # Logically, the flat field should remove some real first-order effect
             # from the image so the Coefficient of Variation should decrease.
             'cv_increased': diagnostics['cv_after'] - diagnostics['cv_before'] > MAX_CV_INCREASE,
-            'flat_field_factor_too_large': diagnostics['flat_field_factor_max'] > EXPECTED_MAX_FLAT_FIELD_FACTOR,
-            'flat_field_factor_too_small': diagnostics['flat_field_factor_min'] < EXPECTED_MIN_FLAT_FIELD_FACTOR,
             'nan_values_present': diagnostics.nan_values_after,
         },
         # Force these values to be true/false - numbers in here are confusing & make warn_if_any_true mad

@@ -65,8 +65,6 @@ These diagnostics columns are prefixed with "`flat_field_`" in the output DataFr
 * `cv_before`, `cv_after`: Coefficient of variation across all color channels, before and after flat field correction.
   * This should generally decrease with flat fielding. If it increases, `cv_increased` will be `True` and a warning will be raised.
 * `flat_field_factor_max`, `flat_field_factor_min`: The minimum and maximum values of the flat field, which is defined as (image after flat field correction) / (image before flat field correction).
-  * If `flat_field_factor_min` < 1/5, `flat_field_factor_too_large` will be True and a warning will be raised.
-  * If `flat_field_factor_max` > 5, `flat_field_factor_too_small` will be True and a warning will be raised.
 * `nan_values_after`: number of NaN values in the image after flat field correction.
   * This should be zero; if not, `nan_values_present` will be `True` and a warning will be raised.
 
