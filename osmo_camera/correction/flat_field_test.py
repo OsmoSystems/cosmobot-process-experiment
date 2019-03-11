@@ -22,16 +22,8 @@ class TestFlatFieldDiagnostics:
             mock_before_image * 2
         ),
         (
-            ['cv_increased', 'flat_field_factor_too_large'],
+            ['cv_increased'],
             _replace_image_first_value(mock_before_image, 1000)
-        ),
-        (
-            ['flat_field_factor_too_large'],
-            mock_before_image * 100
-        ),
-        (
-            ['flat_field_factor_too_small'],
-            mock_before_image * 0.001
         ),
         (
             ['nan_values_present'],
@@ -53,8 +45,6 @@ class TestFlatFieldDiagnostics:
 
         expected_warning_series = pd.Series({
             'cv_increased': False,
-            'flat_field_factor_too_large': False,
-            'flat_field_factor_too_small': False,
             'nan_values_present': False,
         })
         for warning_name in expected_warnings_raised:
@@ -79,8 +69,6 @@ class TestFlatFieldDiagnostics:
             'flat_field_factor_min': 2,
             'nan_values_after': 0,
             'cv_increased': False,
-            'flat_field_factor_too_large': False,
-            'flat_field_factor_too_small': False,
             'nan_values_present': False,
         })
 
