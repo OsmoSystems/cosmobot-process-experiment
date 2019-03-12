@@ -36,7 +36,9 @@ def median_seeded_outlier_removed_mean(sample, trim_stdev=DEFAULT_TRIM_STDEV):
     ''' Calculate the Median-Seeded, Outlier-Removed Mean (~MSORM~) of a flat data sample
 
     Arguments:
-        sample: n-dimensional numpy array to find the central value of
+        sample: n-dimensional numpy array to find the central value of.
+            NOTE: if you are trying to get msorms of an image or a stack of images, you probably want
+            to use one of the other functions in this file.
         trim_stdev: number of standard deviations away from the median to keep
     Return:
         the mean of the sample after outliers have been removed.
