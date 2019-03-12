@@ -48,18 +48,13 @@ class TestMsorm:
         msorm_without_outliers = 5
         assert actual > msorm_without_outliers + 0.1
 
-    @pytest.mark.parametrize('shape', [
-        ((1, 102)),
-        ((2, 51)),
-        ((6, 17)),
-        ((17, 6)),
-        ((51, 2)),
-        ((102, 1))
+    @pytest.mark.parametrize('name,shape', [
+        ('1D', (100,)),
+        ('2D', (2, 50)),
+        ('lots of Ds', (1, 2, 3, 4, 5)),
     ])
-    def test_accepts_any_array_shape(self, shape):
-        sample = np.array([5] * 100 + [-50, 100])  # Flat array with 102 elements
-
-        non_flat_sample = sample.reshape(shape)
+    def test_accepts_any_array_shape(self, name, shape):
+        non_flat_sample = np.full(shape, fill_value=5)
 
         actual = module.msorm(non_flat_sample)
         expected = 5
