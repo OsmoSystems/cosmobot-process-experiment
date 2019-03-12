@@ -48,18 +48,29 @@ class TestMsorm:
         msorm_without_outliers = 5
         assert actual > msorm_without_outliers + 0.1
 
-    def test_non_flat_array__blows_up(self):
-        sample = np.array([
-            [1, 2, 3], [1, 2, 3]
-        ])
+    @pytest.mark.parametrize('shape', [
+        ((1, 102)),
+        ((2, 51)),
+        ((6, 17)),
+        ((17, 6)),
+        ((51, 2)),
+        ((102, 1))
+    ])
+    def test_accepts_any_array_shape(self, shape):
+        sample = np.array([5] * 100 + [-50, 100])  # Flat array with 102 elements
 
-        with pytest.raises(ValueError, match='flat'):
-            module.msorm(sample)
+        non_flat_sample = sample.reshape(shape)
 
-    def test_zero_dimension_array__blows_up(self):
-        sample = np.ones(shape=())
+        actual = module.msorm(non_flat_sample)
+        expected = 5
 
-        with pytest.raises(ValueError, match='flat'):
+        assert actual == expected
+
+    def test_zero_dimension_array_warns(self):
+        sample = np.array([])
+
+        # Underlying numpy code warns with RuntimeWarning when np.mean is called on empty array
+        with pytest.warns(RuntimeWarning, match='empty'):
             module.msorm(sample)
 
 
