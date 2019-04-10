@@ -11,7 +11,10 @@ def mock_side_effects(mocker):
     mocker.patch.object(module, 'sync_from_s3').return_value = sentinel.raw_images_dir
     mocker.patch.object(module, '_get_first_image').return_value = sentinel.first_rgb_image
     mocker.patch.object(module, 'jupyter')
-    mocker.patch.object(module, 'process_images').return_value = (sentinel.roi_summary_data, sentinel.image_diagnostics)
+    mocker.patch.object(module, 'process_images').return_value = (
+        pd.DataFrame([{'ROI summary data': sentinel.roi_summary_data}]),
+        pd.DataFrame([{'image diagnostics': sentinel.image_diagnostics}]),
+    )
     mocker.patch.object(module, 'draw_ROIs_on_image').return_value = sentinel.rgb_image_with_ROI_definitions
     mocker.patch.object(module, '_save_summary_statistics_csv')
     mocker.patch.object(module.raw.open, 'as_rgb').return_value = sentinel.opened_image_filepath
@@ -42,8 +45,10 @@ class TestProcessExperiment:
             ROI_definitions=sentinel.ROI_definitions,
         )
 
-        assert actual_roi_summary_data == sentinel.roi_summary_data
-        assert actual_image_diagnostics == sentinel.image_diagnostics
+        assert isinstance(actual_roi_summary_data, pd.DataFrame)
+        assert actual_roi_summary_data['ROI summary data'][0] == sentinel.roi_summary_data
+        assert isinstance(actual_image_diagnostics, pd.DataFrame)
+        assert actual_image_diagnostics['image diagnostics'][0] == sentinel.image_diagnostics
         assert actual_ROI_definitions == sentinel.ROI_definitions
 
     def test_prompts_ROI_if_not_provided(self, mock_side_effects, mock_prompt_for_ROI_selection):
