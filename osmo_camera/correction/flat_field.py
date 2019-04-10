@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 from scipy.stats import variation
@@ -81,6 +83,11 @@ def apply_flat_field_correction_to_rgb_images(rgbs_by_filepath, flat_field_filep
     Returns:
         A Series of rgb images that have been flat-field corrected
     '''
+
+    if flat_field_filepath is None:
+        warnings.warn('No `flat_field_filepath` provided. Flat field correction *not* applied')
+        return rgbs_by_filepath
+
     flat_field_rgb = open_flat_field_image(flat_field_filepath)
 
     return rgbs_by_filepath.apply(
