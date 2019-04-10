@@ -156,14 +156,3 @@ class TestFlatFieldCorrection:
                 sentinel.rgb_image_series,
                 flat_field_filepath='invalid.notnpy'
             )
-
-    def test_apply_flat_field_correction_to_rgb_images_no_ops_and_warns_if_missing_path(self, mocker):
-        mock_warn = mocker.patch.object(module.warnings, 'warn')
-
-        actual = module.apply_flat_field_correction_to_rgb_images(
-            sentinel.rgb_image_series,
-            flat_field_filepath=None
-        )
-
-        mock_warn.assert_called()
-        assert actual == sentinel.rgb_image_series

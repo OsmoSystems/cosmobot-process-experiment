@@ -96,3 +96,23 @@ class TestCorrectImages:
         assert mock_save_as_tiff.call_count == 2
         assert mock_append_suffix_to_filepath_before_extension.call_count == 2
         assert mock_replace_extension.call_count == 2
+
+    def test_warns_and_skips_flat_field_correction_if_missing_path(self, mocker, mock_open_flat_field_image):
+        mock_warn = mocker.patch.object(module.warnings, 'warn')
+        mock_flat_field = mocker.patch.object(module.flat_field, 'apply_flat_field_correction_to_rgb_images')
+        mock_save_rgb_images = mocker.patch.object(module, 'save_rgb_images_by_filepath_with_suffix')
+
+        rgbs_by_filepath = pd.Series({
+            sentinel.rgb_image_path_1: np.array([
+                [[0.2, 0.2, 0.2]],
+            ])
+        })
+
+        module.correct_images(
+            rgbs_by_filepath,
+            flat_field_filepath=sentinel.flat_field_filepath,
+            save_dark_frame_corrected_images=True,
+            save_flat_field_corrected_images=True,
+        )
+
+        mock_flat_field.assert_not_called()
