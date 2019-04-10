@@ -39,9 +39,6 @@ def correct_images(
             A Series of corrected rgb images indexed by raw file path
             A DataFrame of diagnostic information indexed by raw file path
     '''
-
-    print('--------Correcting Images--------')
-    print('1. Apply dark frame correction')
     dark_frame_corrected_rgb_by_filepath = dark_frame.apply_dark_frame_correction_to_rgb_images(
         original_rgb_by_filepath
     )
@@ -52,10 +49,8 @@ def correct_images(
     )
 
     if save_dark_frame_corrected_images:
-        print('Saving dark frame corrected images')
         save_rgb_images_by_filepath_with_suffix(dark_frame_corrected_rgb_by_filepath, "_dark_adj")
 
-    print('2. Apply flat field correction')
     flat_field_corrected_rgb_by_filepath = flat_field.apply_flat_field_correction_to_rgb_images(
         dark_frame_corrected_rgb_by_filepath,
         flat_field_filepath
@@ -67,7 +62,6 @@ def correct_images(
     )
 
     if save_flat_field_corrected_images:
-        print('Saving flat field corrected images')
         save_rgb_images_by_filepath_with_suffix(flat_field_corrected_rgb_by_filepath, "_dark_flat_adj")
 
     all_diagnostics = pd.concat(
