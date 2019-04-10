@@ -12,8 +12,8 @@ from osmo_camera import raw, jupyter
 
 
 def _get_first_image(rgb_images_by_filepath):
-    first_filepath = sorted(rgb_images_by_filepath.index)[0]  # Assumes images are prefixed with iso-ish datetimes
-    return rgb_images_by_filepath[first_filepath]
+    first_filepath = sorted(rgb_images_by_filepath)[0]  # Assumes images are prefixed with iso-ish datetimes
+    return raw.open.as_rgb(first_filepath)
 
 
 def _save_summary_statistics_csv(experiment_dir, image_summary_data):
@@ -24,7 +24,7 @@ def _save_summary_statistics_csv(experiment_dir, image_summary_data):
     return csv_name
 
 
-def get_rgb_images_by_filepath(local_sync_directory_path, experiment_directory):
+def get_rgb_image_paths_for_experiment(local_sync_directory_path, experiment_directory):
     ''' Opens all JPEG+RAW images in the specified experiment directory and returns as a map of
         {image_filepath: `RGB Image`}.
 
@@ -41,10 +41,39 @@ def get_rgb_images_by_filepath(local_sync_directory_path, experiment_directory):
     '''
     raw_images_directory = os.path.join(local_sync_directory_path, experiment_directory)
     raw_image_paths = get_files_with_extension(raw_images_directory, '.jpeg')
-    return pd.Series({
+    return pd.Series(raw_image_paths)
+
+
+def open_and_process_images(
+        experiment_dir,
+        raw_images_dir,
+        raw_image_paths,
+        ROI_definitions,
+        flat_field_filepath=None,
+        save_summary_images=False,
+        save_ROIs=False,
+        save_dark_frame_corrected_images=False,
+        save_flat_field_corrected_images=False,
+):
+    rgb_images_by_filepath = pd.Series({
         raw_image_path: raw.open.as_rgb(raw_image_path)
         for raw_image_path in raw_image_paths
     })
+    if save_summary_images:
+        generate_summary_images(rgb_images_by_filepath, ROI_definitions, raw_images_dir)
+
+    roi_summary_data, image_diagnostics = process_images(
+        rgb_images_by_filepath,
+        ROI_definitions,
+        raw_images_dir,
+        flat_field_filepath,
+        save_ROIs=save_ROIs,
+        save_dark_frame_corrected_images=save_dark_frame_corrected_images,
+        save_flat_field_corrected_images=save_flat_field_corrected_images,
+    )
+    _save_summary_statistics_csv(experiment_dir, roi_summary_data)
+
+    return roi_summary_data, image_diagnostics
 
 
 def process_experiment(
@@ -108,17 +137,12 @@ def process_experiment(
         end_time=sync_end_time,
     )
 
-    print('2. Open all JPEG+RAW images as RGB images...')
-    rgb_images_by_filepath = get_rgb_images_by_filepath(
-        local_sync_directory_path,
-        experiment_dir,
-    )
+    raw_image_paths = get_rgb_image_paths_for_experiment(local_sync_directory_path, experiment_dir)
 
     # Display the first image for reference
-    first_rgb_image = _get_first_image(rgb_images_by_filepath)
-    jupyter.show_image(first_rgb_image, title='Reference image', figsize=[7, 7])
+    first_rgb_image = _get_first_image(raw_image_paths)
 
-    print('3. Prompt for ROI selections (if not provided)...')
+    print('2. Prompt for ROI selections (if not provided)...')
     if not ROI_definitions:
         ROI_definitions = prompt_for_ROI_selection(first_rgb_image)
         print('ROI definitions:', ROI_definitions)
@@ -129,17 +153,16 @@ def process_experiment(
         figsize=[7, 7]
     )
 
-    saving_or_not = 'Save' if save_summary_images else 'Don\'t save'
-    print(f'4. {saving_or_not} summary images...')
-    if save_summary_images:
-        generate_summary_images(rgb_images_by_filepath, ROI_definitions, raw_images_dir)
+    saving_or_not = 'save' if save_summary_images else 'don\'t save'
 
-    print('5. Process images into summary statistics...')
-    roi_summary_data, image_diagnostics = process_images(
-        rgb_images_by_filepath,
-        ROI_definitions,
-        raw_images_dir,
-        flat_field_filepath,
+    print(f'5. Process images into summary statistics and {saving_or_not} summary images...')
+    roi_summary_data, image_diagnostics = open_and_process_images(
+        experiment_dir=experiment_dir,
+        raw_images_dir=raw_images_dir,
+        raw_image_paths=raw_image_paths,
+        ROI_definitions=ROI_definitions,
+        flat_field_filepath=flat_field_filepath,
+        save_summary_images=save_summary_images,
         save_ROIs=save_ROIs,
         save_dark_frame_corrected_images=save_dark_frame_corrected_images,
         save_flat_field_corrected_images=save_flat_field_corrected_images,
