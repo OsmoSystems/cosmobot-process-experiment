@@ -1,7 +1,9 @@
+import warnings
 from datetime import datetime
 import os
 
 import pandas as pd
+import tqdm
 
 from osmo_camera.s3 import sync_from_s3
 from osmo_camera.process_images import process_images
@@ -71,7 +73,6 @@ def open_and_process_images(
         save_dark_frame_corrected_images=save_dark_frame_corrected_images,
         save_flat_field_corrected_images=save_flat_field_corrected_images,
     )
-    _save_summary_statistics_csv(experiment_dir, roi_summary_data)
 
     return roi_summary_data, image_diagnostics
 
@@ -156,17 +157,24 @@ def process_experiment(
     saving_or_not = 'save' if save_summary_images else 'don\'t save'
 
     print(f'5. Process images into summary statistics and {saving_or_not} summary images...')
-    roi_summary_data, image_diagnostics = open_and_process_images(
-        experiment_dir=experiment_dir,
-        raw_images_dir=raw_images_dir,
-        raw_image_paths=raw_image_paths,
-        ROI_definitions=ROI_definitions,
-        flat_field_filepath=flat_field_filepath,
-        save_summary_images=save_summary_images,
-        save_ROIs=save_ROIs,
-        save_dark_frame_corrected_images=save_dark_frame_corrected_images,
-        save_flat_field_corrected_images=save_flat_field_corrected_images,
-    )
+    roi_summary_data = pd.DataFrame()
+    image_diagnostics = pd.DataFrame()
+
+    for raw_image_path in tqdm.tqdm_notebook(raw_image_paths):
+        roi_summary_data_for_file, image_diagnostics_for_file = open_and_process_images(
+            experiment_dir=experiment_dir,
+            raw_images_dir=raw_images_dir,
+            raw_image_paths=[raw_image_path],
+            ROI_definitions=ROI_definitions,
+            flat_field_filepath=flat_field_filepath,
+            save_summary_images=save_summary_images,
+            save_ROIs=save_ROIs,
+            save_dark_frame_corrected_images=save_dark_frame_corrected_images,
+            save_flat_field_corrected_images=save_flat_field_corrected_images,
+        )
+        roi_summary_data = pd.concat([roi_summary_data, roi_summary_data_for_file])
+        image_diagnostics = pd.concat([image_diagnostics, image_diagnostics_for_file])
+
     _save_summary_statistics_csv(experiment_dir, roi_summary_data)
 
     return roi_summary_data, image_diagnostics, ROI_definitions

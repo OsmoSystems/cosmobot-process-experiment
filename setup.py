@@ -21,7 +21,8 @@ setup(
         'Pillow',
         'plotly >= 3, < 4',
         'scipy',
-        'tifffile == 2018.11.28'
+        'tifffile == 2018.11.28',
+        'tqdm',
     ],
     include_package_data=True
 )
