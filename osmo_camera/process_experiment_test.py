@@ -9,7 +9,7 @@ from . import process_experiment as module
 @pytest.fixture
 def mock_side_effects(mocker):
     mocker.patch.object(module, 'sync_from_s3').return_value = sentinel.raw_images_dir
-    mocker.patch.object(module, '_get_first_image').return_value = sentinel.first_rgb_image
+    mocker.patch.object(module, '_open_first_image').return_value = sentinel.first_rgb_image
     mocker.patch.object(module, 'jupyter')
     mocker.patch.object(module, 'process_images').return_value = (
         pd.DataFrame([{'this is mock ROI summary data': sentinel.roi_summary_data}]),
