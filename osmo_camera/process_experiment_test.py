@@ -9,12 +9,16 @@ from . import process_experiment as module
 @pytest.fixture
 def mock_side_effects(mocker):
     mocker.patch.object(module, 'sync_from_s3').return_value = sentinel.raw_images_dir
-    mocker.patch.object(module, '_get_first_image').return_value = sentinel.first_rgb_image
+    mocker.patch.object(module, '_open_first_image').return_value = sentinel.first_rgb_image
     mocker.patch.object(module, 'jupyter')
-    mocker.patch.object(module, 'process_images').return_value = (sentinel.roi_summary_data, sentinel.image_diagnostics)
+    mocker.patch.object(module, 'process_images').return_value = (
+        pd.DataFrame([{'mock ROI statistic': sentinel.roi_summary_statistic}]),
+        pd.DataFrame([{'mock image diagnostic': sentinel.image_diagnostic}]),
+    )
     mocker.patch.object(module, 'draw_ROIs_on_image').return_value = sentinel.rgb_image_with_ROI_definitions
     mocker.patch.object(module, '_save_summary_statistics_csv')
-    mocker.patch.object(module, 'get_rgb_images_by_filepath').return_value = sentinel.rgb_images_by_filepath
+    mocker.patch.object(module.raw.open, 'as_rgb').return_value = sentinel.opened_image_filepath
+    mocker.patch.object(module, 'get_raw_image_paths_for_experiment').return_value = [sentinel.image_filepath]
 
 
 @pytest.fixture
@@ -41,8 +45,10 @@ class TestProcessExperiment:
             ROI_definitions=sentinel.ROI_definitions,
         )
 
-        assert actual_roi_summary_data == sentinel.roi_summary_data
-        assert actual_image_diagnostics == sentinel.image_diagnostics
+        assert isinstance(actual_roi_summary_data, pd.DataFrame)
+        assert actual_roi_summary_data['mock ROI statistic'][0] == sentinel.roi_summary_statistic
+        assert isinstance(actual_image_diagnostics, pd.DataFrame)
+        assert actual_image_diagnostics['mock image diagnostic'][0] == sentinel.image_diagnostic
         assert actual_ROI_definitions == sentinel.ROI_definitions
 
     def test_prompts_ROI_if_not_provided(self, mock_side_effects, mock_prompt_for_ROI_selection):
@@ -69,7 +75,7 @@ class TestProcessExperiment:
         mock_prompt_for_ROI_selection.assert_not_called()
         assert actual_ROI_definitions == sentinel.ROI_definitions
 
-    def test_saves_summary_images_if_flagged(self, mock_side_effects, mock_generate_summary_images):
+    def test_saves_summary_images_if_flagged(self, mocker, mock_side_effects, mock_generate_summary_images):
         module.process_experiment(
             sentinel.experiment_dir,
             sentinel.local_sync_path,
@@ -78,11 +84,21 @@ class TestProcessExperiment:
             save_summary_images=True,
         )
 
-        mock_generate_summary_images.assert_called_with(
-            sentinel.rgb_images_by_filepath,
+        expected_call_args = (
+            pd.Series({sentinel.image_filepath: sentinel.opened_image_filepath}),
             sentinel.ROI_definitions,
             sentinel.raw_images_dir
         )
+
+        # It would be nice to just use assert_called_with(*expected_call_args) here but one of the call args is a
+        # Series. Serieses don't like equality testing, so we have to go through a somewhat protracted process instead:
+        mock_generate_summary_images.assert_called()
+        # Grab the first call; then grab positional args (not keyword args)
+        call_args = mock_generate_summary_images.call_args_list[0][0]
+        pd.testing.assert_series_equal(
+            call_args[0], expected_call_args[0]
+        )
+        assert call_args[1:] == expected_call_args[1:]
 
     def test_doesnt_save_summary_images_if_not_flagged(self, mock_side_effects, mock_generate_summary_images):
         module.process_experiment(
@@ -108,28 +124,29 @@ class TestSaveSummaryStatisticsCsv:
         mock_to_csv.assert_called_with(expected_csv_name, index=False)
 
 
-def test_get_first_image():
-    mock_rgb_images_by_filepath = pd.Series({
-        '2017-01-01-image': sentinel.image_2,
-        '2018-01-01-image': sentinel.image_3,
-        '2016-01-01-image': sentinel.image_1,
-    })
-    actual = module._get_first_image(mock_rgb_images_by_filepath)
-
-    assert actual == sentinel.image_1
-
-
-def test_get_rgb_images_by_filepath(mocker, mock_os_path_join):
-    mock_get_files_with_extension = mocker.patch.object(module, 'get_files_with_extension')
-    mock_get_files_with_extension.return_value = ['filepath1.jpeg', 'filepath2.jpeg']
-
+def test_open_first_image(mocker):
+    first_image_filename = '2016-01-01-image'
+    mock_rgb_image_paths = pd.Series([
+        '2017-01-01-image',
+        '2018-01-01-image',
+        first_image_filename,
+    ])
     mock_raw_open_as_rgb = mocker.patch.object(module.raw.open, 'as_rgb')
     mock_raw_open_as_rgb.side_effect = lambda filepath: f'opened_{filepath}'
 
-    actual = module.get_rgb_images_by_filepath(sentinel.local_sync_directory, sentinel.experiment_directory)
-    expected = pd.Series({
-        'filepath1.jpeg': 'opened_filepath1.jpeg',
-        'filepath2.jpeg': 'opened_filepath2.jpeg'
-    })
+    actual = module._open_first_image(mock_rgb_image_paths)
+
+    assert actual == f'opened_{first_image_filename}'
+
+
+def test_get_raw_image_paths_for_experiment(mocker, mock_os_path_join):
+    mock_get_files_with_extension = mocker.patch.object(module, 'get_files_with_extension')
+    mock_get_files_with_extension.return_value = ['filepath1.jpeg', 'filepath2.jpeg']
+
+    actual = module.get_raw_image_paths_for_experiment(sentinel.local_sync_directory, sentinel.experiment_directory)
+    expected = pd.Series([
+        'filepath1.jpeg',
+        'filepath2.jpeg',
+    ])
 
     pd.testing.assert_series_equal(actual, expected)
