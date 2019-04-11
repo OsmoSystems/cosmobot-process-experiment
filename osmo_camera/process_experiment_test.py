@@ -12,8 +12,8 @@ def mock_side_effects(mocker):
     mocker.patch.object(module, '_open_first_image').return_value = sentinel.first_rgb_image
     mocker.patch.object(module, 'jupyter')
     mocker.patch.object(module, 'process_images').return_value = (
-        pd.DataFrame([{'this is mock ROI summary data': sentinel.roi_summary_data}]),
-        pd.DataFrame([{'this is mock image diagnostics': sentinel.image_diagnostics}]),
+        pd.DataFrame([{'mock ROI statistic': sentinel.roi_summary_statistic}]),
+        pd.DataFrame([{'mock image diagnostic': sentinel.image_diagnostic}]),
     )
     mocker.patch.object(module, 'draw_ROIs_on_image').return_value = sentinel.rgb_image_with_ROI_definitions
     mocker.patch.object(module, '_save_summary_statistics_csv')
@@ -46,9 +46,9 @@ class TestProcessExperiment:
         )
 
         assert isinstance(actual_roi_summary_data, pd.DataFrame)
-        assert actual_roi_summary_data['this is mock ROI summary data'][0] == sentinel.roi_summary_data
+        assert actual_roi_summary_data['mock ROI statistic'][0] == sentinel.roi_summary_statistic
         assert isinstance(actual_image_diagnostics, pd.DataFrame)
-        assert actual_image_diagnostics['this is mock image diagnostics'][0] == sentinel.image_diagnostics
+        assert actual_image_diagnostics['mock image diagnostic'][0] == sentinel.image_diagnostic
         assert actual_ROI_definitions == sentinel.ROI_definitions
 
     def test_prompts_ROI_if_not_provided(self, mock_side_effects, mock_prompt_for_ROI_selection):
