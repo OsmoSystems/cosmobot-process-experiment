@@ -176,8 +176,8 @@ def process_experiment(
 
     roi_summary_data_for_files, image_diagnostics_for_files = zip(*roi_summary_data_and_image_diagnostics_dfs_for_files)
 
-    roi_summary_data_for_all_files = pd.concat(roi_summary_data_for_files)
-    image_diagnostics_for_all_files = pd.concat(image_diagnostics_for_files)
+    roi_summary_data_for_all_files = pd.concat(roi_summary_data_for_files).reset_index(drop=True)
+    image_diagnostics_for_all_files = pd.concat(image_diagnostics_for_files).reset_index(drop=True)
 
     _save_summary_statistics_csv(experiment_dir, roi_summary_data_for_all_files)
 
