@@ -12,7 +12,7 @@ from osmo_camera.file_structure import iso_datetime_for_filename, get_files_with
 from osmo_camera import raw, jupyter
 
 
-def _get_first_image(raw_image_paths):
+def _open_first_image(raw_image_paths):
     first_filepath = sorted(raw_image_paths)[0]  # Assumes images are prefixed with iso-ish datetimes
     return raw.open.as_rgb(first_filepath)
 
@@ -140,7 +140,7 @@ def process_experiment(
     raw_image_paths = get_raw_image_paths_for_experiment(local_sync_directory_path, experiment_dir)
 
     # Display the first image for reference
-    first_rgb_image = _get_first_image(raw_image_paths)
+    first_rgb_image = _open_first_image(raw_image_paths)
 
     print('2. Prompt for ROI selections (if not provided)...')
     if not ROI_definitions:

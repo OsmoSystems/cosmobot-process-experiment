@@ -124,7 +124,7 @@ class TestSaveSummaryStatisticsCsv:
         mock_to_csv.assert_called_with(expected_csv_name, index=False)
 
 
-def test_get_first_image(mocker):
+def test_open_first_image(mocker):
     first_image_filename = '2016-01-01-image'
     mock_rgb_image_paths = pd.Series([
         '2017-01-01-image',
@@ -134,7 +134,7 @@ def test_get_first_image(mocker):
     mock_raw_open_as_rgb = mocker.patch.object(module.raw.open, 'as_rgb')
     mock_raw_open_as_rgb.side_effect = lambda filepath: f'opened_{filepath}'
 
-    actual = module._get_first_image(mock_rgb_image_paths)
+    actual = module._open_first_image(mock_rgb_image_paths)
 
     assert actual == f'opened_{first_image_filename}'
 
