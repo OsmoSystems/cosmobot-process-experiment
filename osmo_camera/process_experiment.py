@@ -170,6 +170,7 @@ def process_experiment(
             save_dark_frame_corrected_images=save_dark_frame_corrected_images,
             save_flat_field_corrected_images=save_flat_field_corrected_images,
         )
+        # tqdm_notebook is the tqdm progress bar version for use in jupyter notebooks
         for raw_image_path in tqdm.tqdm_notebook(raw_image_paths)
     ]
 
