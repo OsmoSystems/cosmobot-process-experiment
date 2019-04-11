@@ -12,8 +12,8 @@ from osmo_camera.file_structure import iso_datetime_for_filename, get_files_with
 from osmo_camera import raw, jupyter
 
 
-def _get_first_image(rgb_images_by_filepath):
-    first_filepath = sorted(rgb_images_by_filepath)[0]  # Assumes images are prefixed with iso-ish datetimes
+def _get_first_image(raw_image_paths):
+    first_filepath = sorted(raw_image_paths)[0]  # Assumes images are prefixed with iso-ish datetimes
     return raw.open.as_rgb(first_filepath)
 
 
@@ -25,7 +25,7 @@ def _save_summary_statistics_csv(experiment_dir, image_summary_data):
     return csv_name
 
 
-def get_rgb_image_paths_for_experiment(local_sync_directory_path, experiment_directory):
+def get_raw_image_paths_for_experiment(local_sync_directory_path, experiment_directory):
     ''' Opens all JPEG+RAW images in the specified experiment directory and returns as a map of
         {image_filepath: `RGB Image`}.
 
@@ -137,7 +137,7 @@ def process_experiment(
         end_time=sync_end_time,
     )
 
-    raw_image_paths = get_rgb_image_paths_for_experiment(local_sync_directory_path, experiment_dir)
+    raw_image_paths = get_raw_image_paths_for_experiment(local_sync_directory_path, experiment_dir)
 
     # Display the first image for reference
     first_rgb_image = _get_first_image(raw_image_paths)
@@ -155,15 +155,14 @@ def process_experiment(
 
     saving_or_not = 'save' if save_summary_images else 'don\'t save'
 
-    print(f'5. Process images into summary statistics and {saving_or_not} summary images...')
-    roi_summary_data = pd.DataFrame()
-    image_diagnostics = pd.DataFrame()
+    print(f'3. Process images into summary statistics and {saving_or_not} summary images...')
 
-    for raw_image_path in tqdm.tqdm_notebook(raw_image_paths):
-        roi_summary_data_for_file, image_diagnostics_for_file = open_and_process_images(
+    roi_summary_data_and_image_diagnostics_dfs_for_files = [
+        # Returns roi_summary_data df, image_diagnostics df -> resulting list will be a list of 2-tuples
+        open_and_process_images(
             experiment_dir=experiment_dir,
             raw_images_dir=raw_images_dir,
-            raw_image_paths=[raw_image_path],
+            raw_image_paths=[raw_image_path],  # Hack: Process in "batches" of 1 image to avoid big refactor.
             ROI_definitions=ROI_definitions,
             flat_field_filepath=flat_field_filepath,
             save_summary_images=save_summary_images,
@@ -171,9 +170,14 @@ def process_experiment(
             save_dark_frame_corrected_images=save_dark_frame_corrected_images,
             save_flat_field_corrected_images=save_flat_field_corrected_images,
         )
-        roi_summary_data = pd.concat([roi_summary_data, roi_summary_data_for_file])
-        image_diagnostics = pd.concat([image_diagnostics, image_diagnostics_for_file])
+        for raw_image_path in tqdm.tqdm_notebook(raw_image_paths)
+    ]
 
-    _save_summary_statistics_csv(experiment_dir, roi_summary_data)
+    roi_summary_data_for_files, image_diagnostics_for_files = zip(*roi_summary_data_and_image_diagnostics_dfs_for_files)
 
-    return roi_summary_data, image_diagnostics, ROI_definitions
+    roi_summary_data_for_all_files = pd.concat(roi_summary_data_for_files)
+    image_diagnostics_for_all_files = pd.concat(image_diagnostics_for_files)
+
+    _save_summary_statistics_csv(experiment_dir, roi_summary_data_for_all_files)
+
+    return roi_summary_data_for_all_files, image_diagnostics_for_all_files, ROI_definitions

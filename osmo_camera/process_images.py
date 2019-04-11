@@ -102,7 +102,9 @@ def process_images(
         save_ROIs: Optional. If True, ROIs will be saved as .TIFFs in a new subdirectory of raw_images_dir
 
     Returns:
-        An pandas DataFrame in which each row contains summary statistics for a single ROI in a single image
+        2 pandas DataFrames: roi_statistics, image_diagnostics
+            each row in roi_statistics contains summary statistics for a single ROI in a single image
+            each row in image_diagnostics contains diagnostics for an entire image
     '''
 
     # If ROI crops should be saved, create a directory for them

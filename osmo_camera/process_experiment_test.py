@@ -12,13 +12,13 @@ def mock_side_effects(mocker):
     mocker.patch.object(module, '_get_first_image').return_value = sentinel.first_rgb_image
     mocker.patch.object(module, 'jupyter')
     mocker.patch.object(module, 'process_images').return_value = (
-        pd.DataFrame([{'ROI summary data': sentinel.roi_summary_data}]),
-        pd.DataFrame([{'image diagnostics': sentinel.image_diagnostics}]),
+        pd.DataFrame([{'this is mock ROI summary data': sentinel.roi_summary_data}]),
+        pd.DataFrame([{'this is mock image diagnostics': sentinel.image_diagnostics}]),
     )
     mocker.patch.object(module, 'draw_ROIs_on_image').return_value = sentinel.rgb_image_with_ROI_definitions
     mocker.patch.object(module, '_save_summary_statistics_csv')
     mocker.patch.object(module.raw.open, 'as_rgb').return_value = sentinel.opened_image_filepath
-    mocker.patch.object(module, 'get_rgb_image_paths_for_experiment').return_value = [sentinel.image_filepath]
+    mocker.patch.object(module, 'get_raw_image_paths_for_experiment').return_value = [sentinel.image_filepath]
 
 
 @pytest.fixture
@@ -46,9 +46,9 @@ class TestProcessExperiment:
         )
 
         assert isinstance(actual_roi_summary_data, pd.DataFrame)
-        assert actual_roi_summary_data['ROI summary data'][0] == sentinel.roi_summary_data
+        assert actual_roi_summary_data['this is mock ROI summary data'][0] == sentinel.roi_summary_data
         assert isinstance(actual_image_diagnostics, pd.DataFrame)
-        assert actual_image_diagnostics['image diagnostics'][0] == sentinel.image_diagnostics
+        assert actual_image_diagnostics['this is mock image diagnostics'][0] == sentinel.image_diagnostics
         assert actual_ROI_definitions == sentinel.ROI_definitions
 
     def test_prompts_ROI_if_not_provided(self, mock_side_effects, mock_prompt_for_ROI_selection):
@@ -139,11 +139,11 @@ def test_get_first_image(mocker):
     assert actual == f'opened_{first_image_filename}'
 
 
-def test_get_rgb_image_paths_for_experiment(mocker, mock_os_path_join):
+def test_get_raw_image_paths_for_experiment(mocker, mock_os_path_join):
     mock_get_files_with_extension = mocker.patch.object(module, 'get_files_with_extension')
     mock_get_files_with_extension.return_value = ['filepath1.jpeg', 'filepath2.jpeg']
 
-    actual = module.get_rgb_image_paths_for_experiment(sentinel.local_sync_directory, sentinel.experiment_directory)
+    actual = module.get_raw_image_paths_for_experiment(sentinel.local_sync_directory, sentinel.experiment_directory)
     expected = pd.Series([
         'filepath1.jpeg',
         'filepath2.jpeg',
