@@ -1,3 +1,4 @@
+import warnings
 from unittest.mock import sentinel
 
 import numpy as np
@@ -147,13 +148,12 @@ class TestFlatFieldCorrection:
                 flat_field_filepath_or_none='invalid.notnpy'
             )
 
-    def test_load_flat_field_and_apply_correction_no_ops_and_warns_if_missing_path(self, mocker):
-        mock_warn = mocker.patch.object(module.warnings, 'warn')
+    def test_load_flat_field_and_apply_correction_no_ops_and_warns_if_missing_path(self):
+        with warnings.catch_warnings(record=True) as _warnings:
+            actual = module.load_flat_field_and_apply_correction(
+                sentinel.rgb_image_series,
+                flat_field_filepath_or_none=None
+            )
 
-        actual = module.load_flat_field_and_apply_correction(
-            sentinel.rgb_image_series,
-            flat_field_filepath_or_none=None
-        )
-
-        mock_warn.assert_called()
+        assert len(_warnings) == 1  # type: ignore
         assert actual == sentinel.rgb_image_series

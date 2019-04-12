@@ -87,6 +87,13 @@ def load_flat_field_and_apply_correction(
         dark_frame_corrected_rgb_image,
         flat_field_filepath_or_none: Union[str, None],
 ):
+    ''' Load a flat field imagea and apply flat field correction to an RGB image
+     Args:
+        dark_frame_corrected_rgb: A dark-frame-corrected RGB image
+        flat_field_filepath_or_none: flat field file path, or None to skip flat field correction
+     Returns:
+        rgb image that has been flat-field corrected, or the original if flat_field_filepath_or_none is None
+    '''
     if flat_field_filepath_or_none is None:
         warnings.warn('No `flat_field_filepath` provided. Flat field correction *not* applied')
         return dark_frame_corrected_rgb_image

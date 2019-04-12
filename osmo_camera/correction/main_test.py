@@ -27,7 +27,12 @@ def mock_open_flat_field_image(mocker):
 
 
 class TestCorrectImage:
-    def test_correct_image(self, mocker, mock_exif_tags, mock_open_flat_field_image):
+    def test_correct_image_corrects_images_with_dark_frame_and_flat_field_and_performs_diagnostics(
+            self,
+            mocker,
+            mock_exif_tags,
+            mock_open_flat_field_image
+    ):
         mock_save_rgb_images = mocker.patch.object(module, 'save_rgb_image_with_suffix')
 
         # Approximate an actual flat field image

@@ -31,9 +31,10 @@ def correct_image(
     save_dark_frame_corrected_image: bool,
     save_flat_field_corrected_image: bool,
 ) -> Tuple[np.ndarray, pd.Series]:
-    ''' Correct all images from an experiment:
+    ''' Correct an RGB image from an experiment:
         1. Apply dark frame correction
         2. Apply flat field correction
+    Also perform diagnostics on each step, raising warnings if key parameters are out of the expected range
 
     Args:
         original_rgb_image: RGB image to be processed

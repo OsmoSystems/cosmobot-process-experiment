@@ -94,7 +94,7 @@ def process_image(
     save_dark_frame_corrected_image: bool = False,
     save_flat_field_corrected_image: bool = False,
 ) -> Tuple[pd.DataFrame, pd.Series]:
-    ''' Process all images in a given directory
+    ''' Process an image by applying corrections and analyzing ROIs
 
     Args:
         original_rgb_image: RGB image to process
@@ -129,17 +129,18 @@ def process_image(
         save_flat_field_corrected_image=save_flat_field_corrected_image,
     )
 
-    processed_ROIs = process_ROIs(
+    roi_statistics = process_ROIs(
         corrected_rgb_image,
         original_image_filepath,
         ROI_definitions,
         ROI_crops_dir
     )
 
+    # Reorder columns to put the most commonly used ones up front
     initial_column_order = ['ROI', 'image', 'exposure_seconds', 'iso']
     reordered_columns = initial_column_order + [
-        column for column in processed_ROIs if column not in initial_column_order
+        column for column in roi_statistics if column not in initial_column_order
     ]
-    roi_statistics = processed_ROIs[reordered_columns]
+    roi_statistics_ordered = roi_statistics[reordered_columns]
 
-    return roi_statistics, image_diagnostics
+    return roi_statistics_ordered, image_diagnostics

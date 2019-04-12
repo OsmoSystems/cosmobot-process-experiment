@@ -48,7 +48,8 @@ def get_raw_image_paths_for_experiment(local_sync_directory_path, experiment_dir
 
 
 def _stack_dataframes(dataframes: List[pd.DataFrame]) -> pd.DataFrame:
-    ''' stack pandas DataFrames logically into a bigger DataFrame, resetting the index of the resulting DataFrame
+    ''' stack pandas DataFrames logically into a bigger DataFrame,
+    resets the index of the resulting DataFrame to duplicates in the index
     '''
     return pd.concat(dataframes).reset_index(drop=True)
 
@@ -150,8 +151,8 @@ def process_experiment(
     # stop showing after the first run.
     # catch_warnings gives us this fresh warning store.
     with warnings.catch_warnings():
+        # process_image returns roi_summary_data df, image_diagnostics df -> this will be a list of 2-tuples
         roi_summary_data_and_image_diagnostics_dfs_for_files = [
-            # Returns roi_summary_data df, image_diagnostics df -> resulting list will be a list of 2-tuples
             process_image(
                 original_rgb_image=raw.open.as_rgb(raw_image_path),
                 original_image_filepath=raw_image_path,

@@ -153,10 +153,11 @@ class TestDarkFrameCorrection:
 
         np.testing.assert_array_almost_equal(actual, expected)
 
-    def test_get_metadata_and_apply_dark_frame_correction(self, mocker):
+    def test_get_metadata_and_apply_dark_frame_correction_calls_appropriate_functions(self, mocker):
         mock_apply_dark_frame_correction = mocker.patch.object(module, 'apply_dark_frame_correction')
         mock_get_exif_tags = mocker.patch.object(metadata, 'get_exif_tags')
 
         module.get_metadata_and_apply_dark_frame_correction(rgb_image_1, sentinel.filename)
+
         mock_apply_dark_frame_correction.assert_called()
         mock_get_exif_tags.assert_called()
