@@ -135,7 +135,7 @@ class TestProcessExperiment:
 
         # Each call to process_image will attempt to raise a warning, but the warnings system
         # should handle it such that only the first of the identical warnings is raised
-        assert len(_warnings) == 1  # type: ignore
+        assert len(_warnings) == 1  # type: ignore  # mypy thinks this could be None but it's not
 
     def test_matching_diagnostic_warnings_once_per_process_experiment_run(self, mocker, mock_side_effects):
         mocker.patch.object(module, 'process_image').side_effect = _process_image_stub_with_warning
@@ -154,7 +154,7 @@ class TestProcessExperiment:
                 ROI_definitions=sentinel.ROI_definitions,
             )
 
-        assert len(_warnings) == 2  # type: ignore
+        assert len(_warnings) == 2  # type: ignore  # mypy thinks this could be None but it's not
 
 
 class TestSaveSummaryStatisticsCsv:

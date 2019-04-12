@@ -155,5 +155,5 @@ class TestFlatFieldCorrection:
                 flat_field_filepath_or_none=None
             )
 
-        assert len(_warnings) == 1  # type: ignore
+        assert len(_warnings) == 1  # type: ignore  # mypy thinks this could be None but it's not
         assert actual == sentinel.rgb_image_series
