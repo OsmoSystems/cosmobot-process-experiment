@@ -110,7 +110,8 @@ def process_image(
 
     Returns:
         2-tuple of: roi_statistics, image_diagnostics
-            each row in roi_statistics contains summary statistics for a single ROI in a single image
+            roi_statistics is a pd.DataFrame, each row of which contains summary statistics for a single ROI in a
+            single image.
             image_diagnostics is a pandas Series of diagnostics for an entire image; the name of this series is the
             image filename.
     '''

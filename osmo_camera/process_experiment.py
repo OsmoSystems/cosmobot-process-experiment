@@ -49,7 +49,7 @@ def get_raw_image_paths_for_experiment(local_sync_directory_path, experiment_dir
 
 def _stack_dataframes(dataframes: List[pd.DataFrame]) -> pd.DataFrame:
     ''' stack pandas DataFrames logically into a bigger DataFrame,
-    resets the index of the resulting DataFrame to duplicates in the index
+    resets the index of the resulting DataFrame to avoid duplicates in the index
     '''
     return pd.concat(dataframes).reset_index(drop=True)
 
@@ -57,7 +57,7 @@ def _stack_dataframes(dataframes: List[pd.DataFrame]) -> pd.DataFrame:
 def _stack_serieses(serieses: List[pd.Series]) -> pd.DataFrame:
     ''' stack pandas Series logically into a DataFrame
     Args:
-        serieses: interable of Pandas series
+        serieses: iterable of Pandas series
 
     Returns:
         pandas DataFrame with a row per series. If each Series has a Name, that will be its index label
@@ -80,8 +80,8 @@ def process_experiment(
 ):
     ''' Process all images from an experiment:
         1. Sync raw images from s3
-        2. Prompt for ROI selections if ROI_definitions not provided
-        5. Process images into summary statistics and save summary images
+        2. Prompt for ROI selections (using first image) if ROI_definitions not provided
+        3. Process images into summary statistics and save summary images
 
     Args:
         experiment_dir: The name of the experiment directory in s3

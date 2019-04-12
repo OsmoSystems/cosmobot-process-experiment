@@ -79,5 +79,6 @@ def correct_image(
             flat_field_diagnostics.add_prefix(FLAT_FIELD_PREFIX),
         ]
     )
+    # When the Series is stacked into a DataFrame, the name will become the row index.
     all_diagnostics.name = original_image_filepath
     return flat_field_corrected_rgb_image, all_diagnostics

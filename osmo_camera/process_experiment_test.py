@@ -199,7 +199,7 @@ def test_get_raw_image_paths_for_experiment(mocker, mock_os_path_join):
 
 
 class TestStackSeries:
-    def test_stack_series_stacks_appropriately_applying_names_to_index(self):
+    def test_stack_dataframes_stacks_appropriately_resetting_index(self):
         df1 = pd.DataFrame([
             {'a': 'b1', 'c': 'd1'},
         ])
@@ -223,7 +223,7 @@ class TestStackSeries:
 
 
 class TestStackSerieses:
-    def test_stack_seriesse_stacks_appropriately_applying_names_to_index(self):
+    def test_stack_serieses_stacks_appropriately_applying_names_to_index(self):
         ser1 = pd.Series({'a': 'b1', 'c': 'd1'})
         ser1.name = 'row 1'
         ser2 = pd.Series({'a': 'b2', 'c': 'd2'})

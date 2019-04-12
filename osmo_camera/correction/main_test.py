@@ -68,6 +68,8 @@ class TestCorrectImage:
         # Spot check prefixing and presence of diagnostics
         assert not actual_diagnostics['dark_frame_min_value_increased']
 
+
+class TestSaveImageWithSuffix:
     def test_save_rgb_image_with_suffix(self, mocker):
         mock_save_as_tiff = mocker.patch.object(save, 'as_tiff')
 
