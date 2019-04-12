@@ -1,3 +1,4 @@
+import warnings
 from unittest.mock import sentinel, Mock
 
 import pandas as pd
@@ -34,6 +35,14 @@ def mock_generate_summary_images(mocker):
 @pytest.fixture
 def mock_os_path_join(mocker):
     return mocker.patch('os.path.join')
+
+
+def _process_image_stub_with_warning(**kwargs):
+    warnings.warn('Diagnostic warning!!')
+    return (
+        pd.DataFrame([{'mock ROI statistic': sentinel.roi_summary_statistic}]),
+        pd.Series({'mock image diagnostic': sentinel.image_diagnostic}),
+    )
 
 
 class TestProcessExperiment:
@@ -104,6 +113,48 @@ class TestProcessExperiment:
         )
 
         mock_generate_summary_images.assert_not_called()
+
+    def test_matching_diagnostic_warnings_raised_only_once(self, mocker, mock_side_effects):
+        mock_process_image = mocker.patch.object(module, 'process_image')
+        mock_process_image.side_effect = _process_image_stub_with_warning
+        mocker.patch.object(module, 'get_raw_image_paths_for_experiment').return_value = [
+            sentinel.image_filepath_one,
+            sentinel.image_filepath_two,
+        ]
+
+        with warnings.catch_warnings(record=True) as _warnings:
+            module.process_experiment(
+                sentinel.experiment_dir,
+                sentinel.local_sync_path,
+                flat_field_filepath=sentinel.flat_field_filepath,
+                ROI_definitions=sentinel.ROI_definitions,
+            )
+
+        # meta-test to make sure we're actually getting two images processed here
+        assert mock_process_image.call_count == 2
+
+        # Each call to process_image will attempt to raise a warning, but the warnings system
+        # should handle it such that only the first of the identical warnings is raised
+        assert len(_warnings) == 1  # type: ignore
+
+    def test_matching_diagnostic_warnings_once_per_process_experiment_run(self, mocker, mock_side_effects):
+        mocker.patch.object(module, 'process_image').side_effect = _process_image_stub_with_warning
+
+        with warnings.catch_warnings(record=True) as _warnings:
+            module.process_experiment(
+                sentinel.experiment_dir,
+                sentinel.local_sync_path,
+                flat_field_filepath=sentinel.flat_field_filepath,
+                ROI_definitions=sentinel.ROI_definitions,
+            )
+            module.process_experiment(
+                sentinel.experiment_dir,
+                sentinel.local_sync_path,
+                flat_field_filepath=sentinel.flat_field_filepath,
+                ROI_definitions=sentinel.ROI_definitions,
+            )
+
+        assert len(_warnings) == 2  # type: ignore
 
 
 class TestSaveSummaryStatisticsCsv:

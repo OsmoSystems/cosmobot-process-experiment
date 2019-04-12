@@ -1,3 +1,4 @@
+import warnings
 from datetime import datetime
 import os
 from typing import List
@@ -78,10 +79,8 @@ def process_experiment(
 ):
     ''' Process all images from an experiment:
         1. Sync raw images from s3
-        2. Open JPEG+RAW files as RGB images
-        3. Select ROIs (if not provided)
-        4. (Optional) Save summary images
-        5. Process images into summary statistics...
+        2. Prompt for ROI selections if ROI_definitions not provided
+        5. Process images into summary statistics and save summary images
 
     Args:
         experiment_dir: The name of the experiment directory in s3
@@ -113,7 +112,8 @@ def process_experiment(
 
     Side effects:
         Saves the roi_summary_data as a .csv in the directory where this function was called.
-        Raises warnings if any of the image diagnostics are outside of normal ranges.
+        Raises warnings if any of the image diagnostics are outside of normal ranges. If multiple images have matching
+        diagnostic warnings, only one copy of a particular warning will be shown.
     '''
     print(f'1. Sync images from s3 to local directory within {local_sync_directory_path}...')
     raw_images_dir = sync_from_s3(
@@ -129,7 +129,7 @@ def process_experiment(
     # Display the first image for reference
     first_rgb_image = _open_first_image(raw_image_paths)
 
-    print('2. Prompt for ROI selections (if not provided)...')
+    print('2. Prompt for ROI selections if ROI_definitions not provided...')
     if not ROI_definitions:
         ROI_definitions = prompt_for_ROI_selection(first_rgb_image)
         print('ROI definitions:', ROI_definitions)
@@ -145,21 +145,26 @@ def process_experiment(
     if save_summary_images:
         generate_summary_images(raw_image_paths, ROI_definitions, raw_images_dir)
 
-    roi_summary_data_and_image_diagnostics_dfs_for_files = [
-        # Returns roi_summary_data df, image_diagnostics df -> resulting list will be a list of 2-tuples
-        process_image(
-            original_rgb_image=raw.open.as_rgb(raw_image_path),
-            original_image_filepath=raw_image_path,
-            raw_images_dir=raw_images_dir,
-            ROI_definitions=ROI_definitions,
-            flat_field_filepath_or_none=flat_field_filepath,
-            save_ROIs=save_ROIs,
-            save_dark_frame_corrected_image=save_dark_frame_corrected_images,
-            save_flat_field_corrected_image=save_flat_field_corrected_images,
-        )
-        # tqdm_notebook is the tqdm progress bar version for use in jupyter notebooks
-        for raw_image_path in tqdm.tqdm_notebook(raw_image_paths)
-    ]
+    # We want identical warnings to be shown only for the first image they occur on (the default),
+    # but we also want subsequent calls to process_experiment to start with a fresh warning store so that warnings don't
+    # stop showing after the first run.
+    # catch_warnings gives us this fresh warning store.
+    with warnings.catch_warnings():
+        roi_summary_data_and_image_diagnostics_dfs_for_files = [
+            # Returns roi_summary_data df, image_diagnostics df -> resulting list will be a list of 2-tuples
+            process_image(
+                original_rgb_image=raw.open.as_rgb(raw_image_path),
+                original_image_filepath=raw_image_path,
+                raw_images_dir=raw_images_dir,
+                ROI_definitions=ROI_definitions,
+                flat_field_filepath_or_none=flat_field_filepath,
+                save_ROIs=save_ROIs,
+                save_dark_frame_corrected_image=save_dark_frame_corrected_images,
+                save_flat_field_corrected_image=save_flat_field_corrected_images,
+            )
+            # tqdm_notebook is the tqdm progress bar version for use in jupyter notebooks
+            for raw_image_path in tqdm.tqdm_notebook(raw_image_paths)
+        ]
 
     roi_summary_data_for_files, image_diagnostics_for_files = zip(*roi_summary_data_and_image_diagnostics_dfs_for_files)
 
