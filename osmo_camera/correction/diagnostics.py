@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 
 import warnings
 
@@ -40,29 +39,3 @@ def warn_if_any_true(possible_warnings_series):
             category=CorrectionWarning,
             stacklevel=2  # Raise on the immediate caller's level, not this level
         )
-
-
-def run_diagnostics(images_series_before, images_series_after, diagnostics_fn):
-    ''' Run a diagnostics function on a pair of series of images
-    Note: the diagnostic function may raise warnings.
-
-    Args:
-        image_series_before: Series of images, before transformation
-        image_series_after: Series of images, after a particular transformation
-        diagnostics_fn: the diagnostics function designed to be paired with the transformation
-            This function should take RGB images "before" and "after" and the raw image path image_path.
-    Returns:
-        DataFrame with columns of diagnostic values
-
-    '''
-    return pd.DataFrame.from_dict(
-        {
-            raw_image_path: diagnostics_fn(
-                before=images_series_before[raw_image_path],
-                after=images_series_after[raw_image_path],
-                image_path=raw_image_path,
-            )
-            for raw_image_path in images_series_before.index
-        },
-        orient='index'  # file paths should end up as the dataframe index (default would make them column names)
-    )

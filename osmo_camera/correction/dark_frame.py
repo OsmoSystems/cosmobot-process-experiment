@@ -100,13 +100,8 @@ def apply_dark_frame_correction(input_rgb, exposure_seconds):
     return dark_frame_corrected_rgb
 
 
-def apply_dark_frame_correction_to_rgb_images(rgbs_by_filepath):
-    dark_frame_corrected_rgbs_by_filepath = pd.Series({
-        image_path: apply_dark_frame_correction(
-            image_rgb,
-            raw.metadata.get_exif_tags(image_path).exposure_time
-        )
-        for image_path, image_rgb in rgbs_by_filepath.items()
-    })
-
-    return dark_frame_corrected_rgbs_by_filepath
+def get_metadata_and_apply_dark_frame_correction(rgb_image, image_path):
+    return apply_dark_frame_correction(
+        rgb_image,
+        raw.metadata.get_exif_tags(image_path).exposure_time
+    )

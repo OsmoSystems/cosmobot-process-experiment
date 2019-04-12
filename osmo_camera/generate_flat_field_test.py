@@ -20,7 +20,7 @@ rgb_image_series = pd.Series({
 
 @pytest.fixture
 def mock_apply_dark_frame_correction_to_rgb_images(mocker):
-    mocker.patch.object(dark_frame, 'apply_dark_frame_correction_to_rgb_images').return_value = rgb_image_series
+    mocker.patch.object(dark_frame, 'get_metadata_and_apply_dark_frame_correction').return_value = rgb_image
 
 
 def test_generate_flat_field(mock_apply_dark_frame_correction_to_rgb_images):

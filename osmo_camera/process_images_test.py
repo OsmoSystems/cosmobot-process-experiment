@@ -1,6 +1,6 @@
 import numpy as np
 
-from . import process_images as module
+from . import process_image as module
 
 
 def test_get_ROI_statistics():

@@ -114,7 +114,7 @@ class TestFlatFieldCorrection:
     def test_apply_flat_field_correction_with_identity_returns_original_image(self):
         input_rgb = self.rgb_image
 
-        actual = module._apply_flat_field_correction(
+        actual = module.apply_flat_field_correction(
             input_rgb,
             flat_field_rgb=np.ones(shape=input_rgb.shape)
         )
@@ -124,45 +124,35 @@ class TestFlatFieldCorrection:
     def test_apply_flat_field_correction_multiplies(self):
         input_rgb = self.rgb_image
 
-        actual = module._apply_flat_field_correction(
+        actual = module.apply_flat_field_correction(
             input_rgb,
             self.flat_field_rgb
         )
 
         np.testing.assert_array_almost_equal(actual, self.expected_flat_field_corrected_rgb)
 
-    def test_apply_flat_field_correction_to_rgb_images(self, mocker):
+    def test_load_flat_field_and_apply_correction(self, mocker):
         mocker.patch.object(module, 'open_flat_field_image').return_value = self.flat_field_rgb
 
-        rgb_image_series = pd.Series({
-            sentinel.rgb_image_path_1: self.rgb_image,
-            sentinel.rgb_image_path_2: self.rgb_image
-        })
-
-        expected = pd.Series({
-            sentinel.rgb_image_path_1: self.expected_flat_field_corrected_rgb,
-            sentinel.rgb_image_path_2: self.expected_flat_field_corrected_rgb
-        })
-
-        actual = module.apply_flat_field_correction_to_rgb_images(
-            rgb_image_series,
+        actual = module.load_flat_field_and_apply_correction(
+            self.rgb_image,
             sentinel.flat_field_filepath
         )
-        pd.testing.assert_series_equal(actual, expected)
+        np.testing.assert_almost_equal(actual, self.expected_flat_field_corrected_rgb)
 
-    def test_apply_flat_field_correction_to_rgb_images_raises_if_invalid_path(self):
+    def test_load_flat_field_and_apply_correction_raises_if_invalid_path(self):
         with pytest.raises(ValueError):
-            module.apply_flat_field_correction_to_rgb_images(
+            module.load_flat_field_and_apply_correction(
                 sentinel.rgb_image_series,
-                flat_field_filepath='invalid.notnpy'
+                flat_field_filepath_or_none='invalid.notnpy'
             )
 
-    def test_apply_flat_field_correction_to_rgb_images_no_ops_and_warns_if_missing_path(self, mocker):
+    def test_load_flat_field_and_apply_correction_no_ops_and_warns_if_missing_path(self, mocker):
         mock_warn = mocker.patch.object(module.warnings, 'warn')
 
-        actual = module.apply_flat_field_correction_to_rgb_images(
+        actual = module.load_flat_field_and_apply_correction(
             sentinel.rgb_image_series,
-            flat_field_filepath=None
+            flat_field_filepath_or_none=None
         )
 
         mock_warn.assert_called()
