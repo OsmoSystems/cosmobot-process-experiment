@@ -1,3 +1,4 @@
+import warnings
 from unittest.mock import sentinel, Mock
 
 import pandas as pd
@@ -11,9 +12,9 @@ def mock_side_effects(mocker):
     mocker.patch.object(module, 'sync_from_s3').return_value = sentinel.raw_images_dir
     mocker.patch.object(module, '_open_first_image').return_value = sentinel.first_rgb_image
     mocker.patch.object(module, 'jupyter')
-    mocker.patch.object(module, 'process_images').return_value = (
+    mocker.patch.object(module, 'process_image').return_value = (
         pd.DataFrame([{'mock ROI statistic': sentinel.roi_summary_statistic}]),
-        pd.DataFrame([{'mock image diagnostic': sentinel.image_diagnostic}]),
+        pd.Series({'mock image diagnostic': sentinel.image_diagnostic}),
     )
     mocker.patch.object(module, 'draw_ROIs_on_image').return_value = sentinel.rgb_image_with_ROI_definitions
     mocker.patch.object(module, '_save_summary_statistics_csv')
@@ -36,6 +37,14 @@ def mock_os_path_join(mocker):
     return mocker.patch('os.path.join')
 
 
+def _process_image_stub_with_warning(**kwargs):
+    warnings.warn('Diagnostic warning!!')
+    return (
+        pd.DataFrame([{'mock ROI statistic': sentinel.roi_summary_statistic}]),
+        pd.Series({'mock image diagnostic': sentinel.image_diagnostic}),
+    )
+
+
 class TestProcessExperiment:
     def test_returns_image_summary_dataframes_and_ROI_definitions(self, mock_side_effects):
         actual_roi_summary_data, actual_image_diagnostics, actual_ROI_definitions = module.process_experiment(
@@ -45,10 +54,15 @@ class TestProcessExperiment:
             ROI_definitions=sentinel.ROI_definitions,
         )
 
-        assert isinstance(actual_roi_summary_data, pd.DataFrame)
-        assert actual_roi_summary_data['mock ROI statistic'][0] == sentinel.roi_summary_statistic
-        assert isinstance(actual_image_diagnostics, pd.DataFrame)
-        assert actual_image_diagnostics['mock image diagnostic'][0] == sentinel.image_diagnostic
+        expected_roi_summary_data = pd.DataFrame([
+            {'mock ROI statistic': sentinel.roi_summary_statistic}
+        ])
+        expected_image_diagnostics = pd.DataFrame([
+            {'mock image diagnostic': sentinel.image_diagnostic}
+        ])
+
+        pd.testing.assert_frame_equal(actual_roi_summary_data, expected_roi_summary_data)
+        pd.testing.assert_frame_equal(actual_image_diagnostics, expected_image_diagnostics)
         assert actual_ROI_definitions == sentinel.ROI_definitions
 
     def test_prompts_ROI_if_not_provided(self, mock_side_effects, mock_prompt_for_ROI_selection):
@@ -84,21 +98,11 @@ class TestProcessExperiment:
             save_summary_images=True,
         )
 
-        expected_call_args = (
-            pd.Series({sentinel.image_filepath: sentinel.opened_image_filepath}),
+        mock_generate_summary_images.assert_called_with(
+            [sentinel.image_filepath],
             sentinel.ROI_definitions,
             sentinel.raw_images_dir
         )
-
-        # It would be nice to just use assert_called_with(*expected_call_args) here but one of the call args is a
-        # Series. Serieses don't like equality testing, so we have to go through a somewhat protracted process instead:
-        mock_generate_summary_images.assert_called()
-        # Grab the first call; then grab positional args (not keyword args)
-        call_args = mock_generate_summary_images.call_args_list[0][0]
-        pd.testing.assert_series_equal(
-            call_args[0], expected_call_args[0]
-        )
-        assert call_args[1:] == expected_call_args[1:]
 
     def test_doesnt_save_summary_images_if_not_flagged(self, mock_side_effects, mock_generate_summary_images):
         module.process_experiment(
@@ -109,6 +113,48 @@ class TestProcessExperiment:
         )
 
         mock_generate_summary_images.assert_not_called()
+
+    def test_matching_diagnostic_warnings_raised_only_once(self, mocker, mock_side_effects):
+        mock_process_image = mocker.patch.object(module, 'process_image')
+        mock_process_image.side_effect = _process_image_stub_with_warning
+        mocker.patch.object(module, 'get_raw_image_paths_for_experiment').return_value = [
+            sentinel.image_filepath_one,
+            sentinel.image_filepath_two,
+        ]
+
+        with warnings.catch_warnings(record=True) as _warnings:
+            module.process_experiment(
+                sentinel.experiment_dir,
+                sentinel.local_sync_path,
+                flat_field_filepath=sentinel.flat_field_filepath,
+                ROI_definitions=sentinel.ROI_definitions,
+            )
+
+        # meta-test to make sure we're actually getting two images processed here
+        assert mock_process_image.call_count == 2
+
+        # Each call to process_image will attempt to raise a warning, but the warnings system
+        # should handle it such that only the first of the identical warnings is raised
+        assert len(_warnings) == 1  # type: ignore  # mypy thinks this could be None but it's not
+
+    def test_matching_diagnostic_warnings_once_per_process_experiment_run(self, mocker, mock_side_effects):
+        mocker.patch.object(module, 'process_image').side_effect = _process_image_stub_with_warning
+
+        with warnings.catch_warnings(record=True) as _warnings:
+            module.process_experiment(
+                sentinel.experiment_dir,
+                sentinel.local_sync_path,
+                flat_field_filepath=sentinel.flat_field_filepath,
+                ROI_definitions=sentinel.ROI_definitions,
+            )
+            module.process_experiment(
+                sentinel.experiment_dir,
+                sentinel.local_sync_path,
+                flat_field_filepath=sentinel.flat_field_filepath,
+                ROI_definitions=sentinel.ROI_definitions,
+            )
+
+        assert len(_warnings) == 2  # type: ignore  # mypy thinks this could be None but it's not
 
 
 class TestSaveSummaryStatisticsCsv:
@@ -150,3 +196,47 @@ def test_get_raw_image_paths_for_experiment(mocker, mock_os_path_join):
     ])
 
     pd.testing.assert_series_equal(actual, expected)
+
+
+class TestStackSeries:
+    def test_stack_dataframes_stacks_appropriately_resetting_index(self):
+        df1 = pd.DataFrame([
+            {'a': 'b1', 'c': 'd1'},
+        ])
+        df2 = pd.DataFrame([
+            {'a': 'b2', 'c': 'd2'},
+            {'a': 'b2', 'c': 'd3'},
+        ])
+
+        actual = module._stack_dataframes([df1, df2])
+
+        expected = pd.DataFrame(
+            [
+                {'a': 'b1', 'c': 'd1'},
+                {'a': 'b2', 'c': 'd2'},
+                {'a': 'b2', 'c': 'd3'},
+            ],
+            index=[0, 1, 2]
+        )
+
+        pd.testing.assert_frame_equal(actual, expected)
+
+
+class TestStackSerieses:
+    def test_stack_serieses_stacks_appropriately_applying_names_to_index(self):
+        ser1 = pd.Series({'a': 'b1', 'c': 'd1'})
+        ser1.name = 'row 1'
+        ser2 = pd.Series({'a': 'b2', 'c': 'd2'})
+        ser2.name = 'row 2'
+
+        actual = module._stack_serieses([ser1, ser2])
+
+        expected = pd.DataFrame(
+            [
+                {'a': 'b1', 'c': 'd1'},
+                {'a': 'b2', 'c': 'd2'},
+            ],
+            index=['row 1', 'row 2']
+        )
+
+        pd.testing.assert_frame_equal(actual, expected)

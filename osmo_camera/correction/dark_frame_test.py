@@ -153,15 +153,11 @@ class TestDarkFrameCorrection:
 
         np.testing.assert_array_almost_equal(actual, expected)
 
-    def test_apply_dark_frame_correction_to_rgb_images(self, mocker):
+    def test_get_metadata_and_apply_dark_frame_correction_calls_appropriate_functions(self, mocker):
         mock_apply_dark_frame_correction = mocker.patch.object(module, 'apply_dark_frame_correction')
         mock_get_exif_tags = mocker.patch.object(metadata, 'get_exif_tags')
 
-        rgb_images = pd.Series({
-            sentinel.rgb_image_1: rgb_image_1,
-            sentinel.rgb_image_2: rgb_image_1
-        })
+        module.get_metadata_and_apply_dark_frame_correction(rgb_image_1, sentinel.filename)
 
-        module.apply_dark_frame_correction_to_rgb_images(rgb_images)
-        assert mock_apply_dark_frame_correction.call_count == 2
-        assert mock_get_exif_tags.call_count == 2
+        mock_apply_dark_frame_correction.assert_called()
+        mock_get_exif_tags.assert_called()

@@ -1,4 +1,5 @@
 import warnings
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -58,7 +59,16 @@ def _guard_flat_field_shape_matches(rgb_image, flat_field_rgb):
         )
 
 
-def _apply_flat_field_correction(dark_frame_corrected_rgb, flat_field_rgb):
+def apply_flat_field_correction(dark_frame_corrected_rgb, flat_field_rgb):
+    ''' Apply flat field correction to an RGB image
+
+    Args:
+        dark_frame_corrected_rgb: A dark-frame-corrected RGB image
+        flat_field_rgb: flat field RGB image
+
+    Returns:
+        rgb image that has been flat-field corrected
+    '''
     _guard_flat_field_shape_matches(dark_frame_corrected_rgb, flat_field_rgb)
     return dark_frame_corrected_rgb * flat_field_rgb
 
@@ -73,24 +83,20 @@ def open_flat_field_image(flat_field_filepath):
         )
 
 
-def apply_flat_field_correction_to_rgb_images(rgbs_by_filepath, flat_field_filepath):
-    ''' Apply flat field correction to a Series of RGB images
-
-    Args:
-        rgbs_by_filepath: A pandas Series of `RGB image`s to correct
-        flat_field_filepath: The full path of a .npy file to be used as the flat field image
-
-    Returns:
-        A Series of rgb images that have been flat-field corrected
+def load_flat_field_and_apply_correction(
+        dark_frame_corrected_rgb_image,
+        flat_field_filepath_or_none: Union[str, None],
+):
+    ''' Load a flat field imagea and apply flat field correction to an RGB image
+     Args:
+        dark_frame_corrected_rgb: A dark-frame-corrected RGB image
+        flat_field_filepath_or_none: flat field file path, or None to skip flat field correction
+     Returns:
+        rgb image that has been flat-field corrected, or the original if flat_field_filepath_or_none is None
     '''
-
-    if flat_field_filepath is None:
+    if flat_field_filepath_or_none is None:
         warnings.warn('No `flat_field_filepath` provided. Flat field correction *not* applied')
-        return rgbs_by_filepath
+        return dark_frame_corrected_rgb_image
 
-    flat_field_rgb = open_flat_field_image(flat_field_filepath)
-
-    return rgbs_by_filepath.apply(
-        _apply_flat_field_correction,
-        flat_field_rgb=flat_field_rgb
-    )
+    flat_field_rgb = open_flat_field_image(flat_field_filepath_or_none)
+    return apply_flat_field_correction(dark_frame_corrected_rgb_image, flat_field_rgb)

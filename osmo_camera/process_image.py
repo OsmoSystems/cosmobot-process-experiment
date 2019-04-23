@@ -1,12 +1,14 @@
 import os
+from typing import Tuple, Dict, Union
 
 import pandas as pd
+import numpy as np
 
 from osmo_camera import raw, tiff
 from osmo_camera.file_structure import create_output_directory
 from osmo_camera.select_ROI import get_ROIs_for_image
 from osmo_camera.stats.main import roi_statistic_calculators
-from osmo_camera.correction.main import correct_images
+from osmo_camera.correction.main import correct_image
 
 
 def get_ROI_statistics(ROI):
@@ -82,29 +84,36 @@ def process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir=None)
     ])
 
 
-def process_images(
-    original_rgb_images_by_filepath,
-    ROI_definitions,
-    raw_images_dir,
-    flat_field_filepath,
-    save_ROIs=False,
-    save_dark_frame_corrected_images=False,
-    save_flat_field_corrected_images=False,
-):
-    ''' Process all images in a given directory
+def process_image(
+    original_rgb_image: np.ndarray,
+    original_image_filepath: str,
+    ROI_definitions: Dict[str, Tuple],
+    raw_images_dir: str,
+    flat_field_filepath_or_none: Union[str, None],
+    save_ROIs: bool = False,
+    save_dark_frame_corrected_image: bool = False,
+    save_flat_field_corrected_image: bool = False,
+) -> Tuple[pd.DataFrame, pd.Series]:
+    ''' Process an image by applying corrections and analyzing ROIs
 
     Args:
-        original_rgb_images_by_filepath: A map of {image_path: rgb_image}
+        original_rgb_image: RGB image to process
+        original_image_filepath: path to where the image is stored on disk
         ROI_definitions: Definitions of Regions of Interest (ROIs) to summarize. A map of {ROI_name: ROI_definition}
-        Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI: (start_col, start_row, cols, rows)
+            Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI:
+            (start_col, start_row, cols, rows)
         raw_images_dir: The directory where the original raw images live
-        flat_field_filepath: The path of the image to use for flat field correction. Must be a .npy file.
+        flat_field_filepath_or_none: The image to use for flat field correction, or None to skip flat field correction
         save_ROIs: Optional. If True, ROIs will be saved as .TIFFs in a new subdirectory of raw_images_dir
+        save_dark_frame_corrected_image: whether to save the dark frame corrected image to disk
+        save_flat_field_corrected_image: whether to save the flat field corrected image to disk
 
     Returns:
-        2 pandas DataFrames: roi_statistics, image_diagnostics
-            each row in roi_statistics contains summary statistics for a single ROI in a single image
-            each row in image_diagnostics contains diagnostics for an entire image
+        2-tuple of: roi_statistics, image_diagnostics
+            roi_statistics is a pd.DataFrame, each row of which contains summary statistics for a single ROI in a
+            single image.
+            image_diagnostics is a pandas Series of diagnostics for an entire image; the name of this series is the
+            image filename.
     '''
 
     # If ROI crops should be saved, create a directory for them
@@ -113,27 +122,26 @@ def process_images(
         ROI_crops_dir = create_output_directory(raw_images_dir, 'ROI crops')
         print('ROI crops saved in:', ROI_crops_dir)
 
-    corrected_rgb_images, image_diagnostics = correct_images(
-        original_rgb_images_by_filepath,
-        flat_field_filepath,
-        save_dark_frame_corrected_images=save_dark_frame_corrected_images,
-        save_flat_field_corrected_images=save_flat_field_corrected_images,
+    corrected_rgb_image, image_diagnostics = correct_image(
+        original_rgb_image,
+        original_image_filepath=original_image_filepath,
+        flat_field_filepath_or_none=flat_field_filepath_or_none,
+        save_dark_frame_corrected_image=save_dark_frame_corrected_image,
+        save_flat_field_corrected_image=save_flat_field_corrected_image,
     )
 
-    processed_ROIs = [
-        process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir)
-        for raw_image_path, rgb_image in corrected_rgb_images.items()
-    ]
+    roi_statistics = process_ROIs(
+        corrected_rgb_image,
+        original_image_filepath,
+        ROI_definitions,
+        ROI_crops_dir
+    )
 
-    # One big flat DF with rows from each ROI from each image
-    roi_statistics = pd.concat(
-        processed_ROIs
-    ).sort_values('timestamp').reset_index(drop=True)
-
+    # Reorder columns to put the most commonly used ones up front
     initial_column_order = ['ROI', 'image', 'exposure_seconds', 'iso']
     reordered_columns = initial_column_order + [
         column for column in roi_statistics if column not in initial_column_order
     ]
-    roi_statistics = roi_statistics[reordered_columns]
+    roi_statistics_ordered = roi_statistics[reordered_columns]
 
-    return roi_statistics, image_diagnostics
+    return roi_statistics_ordered, image_diagnostics

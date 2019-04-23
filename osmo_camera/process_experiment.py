@@ -1,11 +1,13 @@
+import warnings
 from datetime import datetime
 import os
+from typing import List
 
 import pandas as pd
 import tqdm
 
 from osmo_camera.s3 import sync_from_s3
-from osmo_camera.process_images import process_images
+from osmo_camera.process_image import process_image
 from osmo_camera.select_ROI import prompt_for_ROI_selection, draw_ROIs_on_image
 from osmo_camera.summary_images import generate_summary_images
 from osmo_camera.file_structure import iso_datetime_for_filename, get_files_with_extension
@@ -45,35 +47,22 @@ def get_raw_image_paths_for_experiment(local_sync_directory_path, experiment_dir
     return pd.Series(raw_image_paths)
 
 
-def open_and_process_images(
-        experiment_dir,
-        raw_images_dir,
-        raw_image_paths,
-        ROI_definitions,
-        flat_field_filepath=None,
-        save_summary_images=False,
-        save_ROIs=False,
-        save_dark_frame_corrected_images=False,
-        save_flat_field_corrected_images=False,
-):
-    rgb_images_by_filepath = pd.Series({
-        raw_image_path: raw.open.as_rgb(raw_image_path)
-        for raw_image_path in raw_image_paths
-    })
-    if save_summary_images:
-        generate_summary_images(rgb_images_by_filepath, ROI_definitions, raw_images_dir)
+def _stack_dataframes(dataframes: List[pd.DataFrame]) -> pd.DataFrame:
+    ''' stack pandas DataFrames logically into a bigger DataFrame,
+    resets the index of the resulting DataFrame to avoid duplicates in the index
+    '''
+    return pd.concat(dataframes).reset_index(drop=True)
 
-    roi_summary_data, image_diagnostics = process_images(
-        rgb_images_by_filepath,
-        ROI_definitions,
-        raw_images_dir,
-        flat_field_filepath,
-        save_ROIs=save_ROIs,
-        save_dark_frame_corrected_images=save_dark_frame_corrected_images,
-        save_flat_field_corrected_images=save_flat_field_corrected_images,
-    )
 
-    return roi_summary_data, image_diagnostics
+def _stack_serieses(serieses: List[pd.Series]) -> pd.DataFrame:
+    ''' stack pandas Series logically into a DataFrame
+    Args:
+        serieses: iterable of Pandas series
+
+    Returns:
+        pandas DataFrame with a row per series. If each Series has a Name, that will be its index label
+    '''
+    return pd.concat(serieses, axis='columns').T
 
 
 def process_experiment(
@@ -91,10 +80,8 @@ def process_experiment(
 ):
     ''' Process all images from an experiment:
         1. Sync raw images from s3
-        2. Open JPEG+RAW files as RGB images
-        3. Select ROIs (if not provided)
-        4. (Optional) Save summary images
-        5. Process images into summary statistics...
+        2. Prompt for ROI selections (using first image) if ROI_definitions not provided
+        3. Process images into summary statistics and save summary images
 
     Args:
         experiment_dir: The name of the experiment directory in s3
@@ -126,7 +113,8 @@ def process_experiment(
 
     Side effects:
         Saves the roi_summary_data as a .csv in the directory where this function was called.
-        Raises warnings if any of the image diagnostics are outside of normal ranges.
+        Raises warnings if any of the image diagnostics are outside of normal ranges. If multiple images have matching
+        diagnostic warnings, only one copy of a particular warning will be shown.
     '''
     print(f'1. Sync images from s3 to local directory within {local_sync_directory_path}...')
     raw_images_dir = sync_from_s3(
@@ -142,7 +130,7 @@ def process_experiment(
     # Display the first image for reference
     first_rgb_image = _open_first_image(raw_image_paths)
 
-    print('2. Prompt for ROI selections (if not provided)...')
+    print('2. Prompt for ROI selections if ROI_definitions not provided...')
     if not ROI_definitions:
         ROI_definitions = prompt_for_ROI_selection(first_rgb_image)
         print('ROI definitions:', ROI_definitions)
@@ -154,30 +142,35 @@ def process_experiment(
     )
 
     saving_or_not = 'save' if save_summary_images else 'don\'t save'
-
     print(f'3. Process images into summary statistics and {saving_or_not} summary images...')
+    if save_summary_images:
+        generate_summary_images(raw_image_paths, ROI_definitions, raw_images_dir)
 
-    roi_summary_data_and_image_diagnostics_dfs_for_files = [
-        # Returns roi_summary_data df, image_diagnostics df -> resulting list will be a list of 2-tuples
-        open_and_process_images(
-            experiment_dir=experiment_dir,
-            raw_images_dir=raw_images_dir,
-            raw_image_paths=[raw_image_path],  # Hack: Process in "batches" of 1 image to avoid big refactor.
-            ROI_definitions=ROI_definitions,
-            flat_field_filepath=flat_field_filepath,
-            save_summary_images=save_summary_images,
-            save_ROIs=save_ROIs,
-            save_dark_frame_corrected_images=save_dark_frame_corrected_images,
-            save_flat_field_corrected_images=save_flat_field_corrected_images,
-        )
-        # tqdm_notebook is the tqdm progress bar version for use in jupyter notebooks
-        for raw_image_path in tqdm.tqdm_notebook(raw_image_paths)
-    ]
+    # We want identical warnings to be shown only for the first image they occur on (the default),
+    # but we also want subsequent calls to process_experiment to start with a fresh warning store so that warnings don't
+    # stop showing after the first run.
+    # catch_warnings gives us this fresh warning store.
+    with warnings.catch_warnings():
+        # process_image returns roi_summary_data df, image_diagnostics df -> this will be a list of 2-tuples
+        roi_summary_data_and_image_diagnostics_dfs_for_files = [
+            process_image(
+                original_rgb_image=raw.open.as_rgb(raw_image_path),
+                original_image_filepath=raw_image_path,
+                raw_images_dir=raw_images_dir,
+                ROI_definitions=ROI_definitions,
+                flat_field_filepath_or_none=flat_field_filepath,
+                save_ROIs=save_ROIs,
+                save_dark_frame_corrected_image=save_dark_frame_corrected_images,
+                save_flat_field_corrected_image=save_flat_field_corrected_images,
+            )
+            # tqdm_notebook is the tqdm progress bar version for use in jupyter notebooks
+            for raw_image_path in tqdm.tqdm_notebook(raw_image_paths)
+        ]
 
     roi_summary_data_for_files, image_diagnostics_for_files = zip(*roi_summary_data_and_image_diagnostics_dfs_for_files)
 
-    roi_summary_data_for_all_files = pd.concat(roi_summary_data_for_files)
-    image_diagnostics_for_all_files = pd.concat(image_diagnostics_for_files)
+    roi_summary_data_for_all_files = _stack_dataframes(roi_summary_data_for_files)
+    image_diagnostics_for_all_files = _stack_serieses(image_diagnostics_for_files)
 
     _save_summary_statistics_csv(experiment_dir, roi_summary_data_for_all_files)
 
