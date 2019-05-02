@@ -105,6 +105,7 @@ def process_experiment(
             `_dark_adj` suffix
         save_flat_field_corrected_images: Optional. If True, flat-field-corrected images will be saved as .TIFFs with a
             `_dark_flat_adj` suffix
+        save_summary_csv: Optional. If True, summary statistics csv will be saved
 
     Returns:
         roi_summary_data: pandas DataFrame of summary statistics of ROIs
