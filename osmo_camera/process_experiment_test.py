@@ -7,8 +7,15 @@ import pytest
 from . import process_experiment as module
 
 
+def create_mock_save_summary_statistics_csv(mocker):
+    mock_save_summary_statistics_csv = mocker.patch.object(module, '_save_summary_statistics_csv')
+    mock_save_summary_statistics_csv.return_value = sentinel.csv_name
+    return mock_save_summary_statistics_csv
+
+
 @pytest.fixture
 def mock_side_effects(mocker):
+    create_mock_save_summary_statistics_csv(mocker)
     mocker.patch.object(module, 'sync_from_s3').return_value = sentinel.raw_images_dir
     mocker.patch.object(module, '_open_first_image').return_value = sentinel.first_rgb_image
     mocker.patch.object(module, 'jupyter')
@@ -17,7 +24,6 @@ def mock_side_effects(mocker):
         pd.Series({'mock image diagnostic': sentinel.image_diagnostic}),
     )
     mocker.patch.object(module, 'draw_ROIs_on_image').return_value = sentinel.rgb_image_with_ROI_definitions
-    mocker.patch.object(module, '_save_summary_statistics_csv')
     mocker.patch.object(module.raw.open, 'as_rgb').return_value = sentinel.opened_image_filepath
     mocker.patch.object(module, 'get_raw_image_paths_for_experiment').return_value = [sentinel.image_filepath]
 
@@ -30,6 +36,11 @@ def mock_prompt_for_ROI_selection(mocker):
 @pytest.fixture
 def mock_generate_summary_images(mocker):
     return mocker.patch.object(module, 'generate_summary_images')
+
+
+@pytest.fixture
+def mock_save_summary_statistics_csv(mocker):
+    return create_mock_save_summary_statistics_csv(mocker)
 
 
 @pytest.fixture
@@ -46,8 +57,8 @@ def _process_image_stub_with_warning(**kwargs):
 
 
 class TestProcessExperiment:
-    def test_returns_image_summary_dataframes_and_ROI_definitions(self, mock_side_effects):
-        actual_roi_summary_data, actual_image_diagnostics, actual_ROI_definitions = module.process_experiment(
+    def test_returns_image_summary_dataframes_ROI_definitions_and_csv_name(self, mock_side_effects):
+        actual_roi_summary_data, actual_image_diagnostics, actual_ROI_definitions, csv_name = module.process_experiment(
             sentinel.experiment_dir,
             sentinel.local_sync_path,
             flat_field_filepath=sentinel.flat_field_filepath,
@@ -64,11 +75,23 @@ class TestProcessExperiment:
         pd.testing.assert_frame_equal(actual_roi_summary_data, expected_roi_summary_data)
         pd.testing.assert_frame_equal(actual_image_diagnostics, expected_image_diagnostics)
         assert actual_ROI_definitions == sentinel.ROI_definitions
+        assert csv_name == sentinel.csv_name
+
+    def test_returns_empty_string_if_csv_not_saved(self, mock_side_effects):
+        actual_roi_summary_data, actual_image_diagnostics, actual_ROI_definitions, csv_name = module.process_experiment(
+            sentinel.experiment_dir,
+            sentinel.local_sync_path,
+            flat_field_filepath=sentinel.flat_field_filepath,
+            ROI_definitions=sentinel.ROI_definitions,
+            save_summary_csv=False,
+        )
+
+        assert csv_name == ""
 
     def test_prompts_ROI_if_not_provided(self, mock_side_effects, mock_prompt_for_ROI_selection):
         mock_prompt_for_ROI_selection.return_value = sentinel.prompted_ROI_definitions
 
-        actual_roi_summary_data, actual_image_diagnostics, actual_ROI_definitions = module.process_experiment(
+        actual_roi_summary_data, actual_image_diagnostics, actual_ROI_definitions, csv_name = module.process_experiment(
             sentinel.experiment_dir,
             sentinel.local_sync_path,
             flat_field_filepath=sentinel.flat_field_filepath,
@@ -79,7 +102,7 @@ class TestProcessExperiment:
         assert actual_ROI_definitions == sentinel.prompted_ROI_definitions
 
     def test_doesnt_prompt_ROI_if_provided(self, mock_side_effects, mock_prompt_for_ROI_selection):
-        actual_roi_summary_data, actual_image_diagnostics, actual_ROI_definitions = module.process_experiment(
+        actual_roi_summary_data, actual_image_diagnostics, actual_ROI_definitions, csv_name = module.process_experiment(
             sentinel.experiment_dir,
             sentinel.local_sync_path,
             flat_field_filepath=sentinel.flat_field_filepath,
@@ -114,8 +137,7 @@ class TestProcessExperiment:
 
         mock_generate_summary_images.assert_not_called()
 
-    def test_saves_summary_csv_by_default(self, mocker, mock_side_effects):
-        mock_save_summary_statistics_csv = mocker.patch.object(module, '_save_summary_statistics_csv')
+    def test_saves_summary_csv_by_default(self, mocker, mock_side_effects, mock_save_summary_statistics_csv):
         module.process_experiment(
             sentinel.experiment_dir,
             sentinel.local_sync_path,
@@ -125,8 +147,7 @@ class TestProcessExperiment:
 
         mock_save_summary_statistics_csv.assert_called()
 
-    def test_doesnt_save_summary_csv_if_flagged(self, mocker, mock_side_effects):
-        mock_save_summary_statistics_csv = mocker.patch.object(module, '_save_summary_statistics_csv')
+    def test_doesnt_save_summary_csv_if_flagged(self, mocker, mock_side_effects, mock_save_summary_statistics_csv):
         module.process_experiment(
             sentinel.experiment_dir,
             sentinel.local_sync_path,

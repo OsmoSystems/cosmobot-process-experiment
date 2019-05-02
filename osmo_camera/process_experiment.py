@@ -112,6 +112,7 @@ def process_experiment(
         image_diagnostics: pandas DataFrame of diagnostic information on images through the correction process
             Documentation of individual diagnostics and warnings is in README.md in the project root.
         ROI_definitions: The ROI definitions used in the processing
+        csv_name: string of the name of the summary statistics csv. Return empty string if save_summary_csv=False.
 
     Side effects:
         Saves the roi_summary_data as a .csv in the directory where this function was called.
@@ -174,7 +175,8 @@ def process_experiment(
     roi_summary_data_for_all_files = _stack_dataframes(roi_summary_data_for_files)
     image_diagnostics_for_all_files = _stack_serieses(image_diagnostics_for_files)
 
+    csv_name = ""
     if save_summary_csv:
-        _save_summary_statistics_csv(experiment_dir, roi_summary_data_for_all_files)
+        csv_name = _save_summary_statistics_csv(experiment_dir, roi_summary_data_for_all_files)
 
-    return roi_summary_data_for_all_files, image_diagnostics_for_all_files, ROI_definitions
+    return roi_summary_data_for_all_files, image_diagnostics_for_all_files, ROI_definitions, csv_name
