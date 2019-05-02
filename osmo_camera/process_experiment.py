@@ -77,6 +77,7 @@ def process_experiment(
     save_ROIs=False,
     save_dark_frame_corrected_images=False,
     save_flat_field_corrected_images=False,
+    save_summary_csv=True,
 ):
     ''' Process all images from an experiment:
         1. Sync raw images from s3
@@ -172,6 +173,7 @@ def process_experiment(
     roi_summary_data_for_all_files = _stack_dataframes(roi_summary_data_for_files)
     image_diagnostics_for_all_files = _stack_serieses(image_diagnostics_for_files)
 
-    _save_summary_statistics_csv(experiment_dir, roi_summary_data_for_all_files)
+    is save_summary_csv:
+        _save_summary_statistics_csv(experiment_dir, roi_summary_data_for_all_files)
 
     return roi_summary_data_for_all_files, image_diagnostics_for_all_files, ROI_definitions
