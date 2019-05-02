@@ -33,6 +33,33 @@ Set up credentials:
 ## Running
 See this example jupyter notebook: "process_experiment - for Cosmobot experiments.ipynb" in the Jupyter Snippets folder: https://drive.google.com/drive/folders/1A-Rlb-VYTwQ6Tl3sm12eR-cnmCHbj6UP
 
+## Testing
+Tests are run with [tox](https://tox.readthedocs.io/en/latest/). Tox will set up the full environment needed to run the tests, including installing dependencies.
+
+### Running tests
+Install tox
+```sh
+pip install tox
+```
+*Note:* You may need to install `tox-venv` as well if you run into issues with your python virtual environment.
+
+To run tests, cd to the base level of this directory and call
+```sh
+tox
+```
+
+### Running tests in docker
+*Note:* The current docker configuration only installs python 3.6.8.
+To run tests with docker, ensure you have both docker and docker-compose installed locally.
+Start the python container with
+```sh
+docker-compose up -d --no-recreate
+```
+Then get an interactive shell in the container with
+```sh
+docker-compose exec python bash
+```
+From there `cd` to /app and run tox as described above.
 
 ## Diagnostics
 
@@ -72,30 +99,3 @@ These diagnostics columns are prefixed with "`flat_field_`" in the output DataFr
 These diagnostics columns are prefixed with "`intensity_adj_`" in the output DataFrame:
 
 No diagnostics are currently implemented for intensity adjustment.
-
-## Testing
-Tests are run with [tox](https://tox.readthedocs.io/en/latest/). Tox will set up the full environment needed to run the tests, including installing dependencies.
-
-### Running tests
-In the base level of this directory install tox
-```sh
-pip install tox
-```
-*Note:* You may need to install `tox-venv` as well if you run into issues with your python virtual environment.
-
-To run tests, simply call
-```sh
-tox
-```
-
-### Running tests in docker
-To run tests with docker, ensure you have both docker and docker-compose installed locally.
-Start the python container with
-```sh
-docker-compose up -d --no-recreate
-```
-Then get an interactive shell in the container with
-```sh
-docker-compose exec python bash
-```
-From there `cd` to /app and run tox as described above.
