@@ -173,7 +173,7 @@ def process_experiment(
     roi_summary_data_for_all_files = _stack_dataframes(roi_summary_data_for_files)
     image_diagnostics_for_all_files = _stack_serieses(image_diagnostics_for_files)
 
-    is save_summary_csv:
+    if save_summary_csv:
         _save_summary_statistics_csv(experiment_dir, roi_summary_data_for_all_files)
 
     return roi_summary_data_for_all_files, image_diagnostics_for_all_files, ROI_definitions
