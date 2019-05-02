@@ -114,6 +114,17 @@ class TestProcessExperiment:
 
         mock_generate_summary_images.assert_not_called()
 
+    def test_saves_summary_csv_by_default(self, mocker, mock_side_effects):
+        mock_save_summary_statistics_csv = mocker.patch.object(module, '_save_summary_statistics_csv')
+        module.process_experiment(
+            sentinel.experiment_dir,
+            sentinel.local_sync_path,
+            flat_field_filepath=sentinel.flat_field_filepath,
+            ROI_definitions=sentinel.ROI_definitions,
+        )
+
+        mock_save_summary_statistics_csv.assert_called()
+
     def test_doesnt_save_summary_csv_if_flagged(self, mocker, mock_side_effects):
         mock_save_summary_statistics_csv = mocker.patch.object(module, '_save_summary_statistics_csv')
         module.process_experiment(
