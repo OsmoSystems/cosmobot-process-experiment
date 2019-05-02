@@ -19,9 +19,19 @@ def _open_first_image(raw_image_paths):
     return raw.open.as_rgb(first_filepath)
 
 
-def _save_summary_statistics_csv(experiment_dir, image_summary_data):
+def save_summary_statistics_csv(experiment_dir, roi_summary_data):
+    ''' Saves summary statistics as a csv file to the specified experiment directory and returns the output filename.
+
+    Args:
+        experiment_dir: The experiment directory to save the output csv to
+        roi_summary_data: The image summary data DataFrames to be exported to csv.
+        This data is returned by process_experiment.
+
+    Return:
+        A string with the filename of the saved csv file.
+    '''
     csv_name = f'{experiment_dir} - summary statistics (generated {iso_datetime_for_filename(datetime.now())}).csv'
-    image_summary_data.to_csv(csv_name, index=False)
+    roi_summary_data.to_csv(csv_name, index=False)
     print(f'Summary statistics saved as: {csv_name}\n')
 
     return csv_name
@@ -77,7 +87,6 @@ def process_experiment(
     save_ROIs=False,
     save_dark_frame_corrected_images=False,
     save_flat_field_corrected_images=False,
-    save_summary_csv=True,
 ):
     ''' Process all images from an experiment:
         1. Sync raw images from s3
@@ -105,7 +114,6 @@ def process_experiment(
             `_dark_adj` suffix
         save_flat_field_corrected_images: Optional. If True, flat-field-corrected images will be saved as .TIFFs with a
             `_dark_flat_adj` suffix
-        save_summary_csv: Optional. Default value is True. If False, summary statistics csv will not be saved
 
     Returns:
         roi_summary_data: pandas DataFrame of summary statistics of ROIs
@@ -173,8 +181,5 @@ def process_experiment(
 
     roi_summary_data_for_all_files = _stack_dataframes(roi_summary_data_for_files)
     image_diagnostics_for_all_files = _stack_serieses(image_diagnostics_for_files)
-
-    if save_summary_csv:
-        _save_summary_statistics_csv(experiment_dir, roi_summary_data_for_all_files)
 
     return roi_summary_data_for_all_files, image_diagnostics_for_all_files, ROI_definitions
