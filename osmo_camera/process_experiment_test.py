@@ -33,11 +33,6 @@ def mock_generate_summary_images(mocker):
 
 
 @pytest.fixture
-def mock_save_summary_statistics_csv(mocker):
-    return mocker.patch.object(module, '_save_summary_statistics_csv')
-
-
-@pytest.fixture
 def mock_os_path_join(mocker):
     return mocker.patch('os.path.join')
 
@@ -119,7 +114,8 @@ class TestProcessExperiment:
 
         mock_generate_summary_images.assert_not_called()
 
-    def test_doesnt_save_summary_csv_if_flagged(self, mock_side_effects, mock_save_summary_statistics_csv):
+    def test_doesnt_save_summary_csv_if_flagged(self, mocker, mock_side_effects):
+        mock_save_summary_statistics_csv = mocker.patch.object(module, '_save_summary_statistics_csv')
         module.process_experiment(
             sentinel.experiment_dir,
             sentinel.local_sync_path,
