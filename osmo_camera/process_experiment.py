@@ -77,6 +77,7 @@ def process_experiment(
     save_ROIs=False,
     save_dark_frame_corrected_images=False,
     save_flat_field_corrected_images=False,
+    save_summary_csv=True,
 ):
     ''' Process all images from an experiment:
         1. Sync raw images from s3
@@ -104,6 +105,7 @@ def process_experiment(
             `_dark_adj` suffix
         save_flat_field_corrected_images: Optional. If True, flat-field-corrected images will be saved as .TIFFs with a
             `_dark_flat_adj` suffix
+        save_summary_csv: Optional. Default value is True. If False, summary statistics csv will not be saved
 
     Returns:
         roi_summary_data: pandas DataFrame of summary statistics of ROIs
@@ -172,6 +174,7 @@ def process_experiment(
     roi_summary_data_for_all_files = _stack_dataframes(roi_summary_data_for_files)
     image_diagnostics_for_all_files = _stack_serieses(image_diagnostics_for_files)
 
-    _save_summary_statistics_csv(experiment_dir, roi_summary_data_for_all_files)
+    if save_summary_csv:
+        _save_summary_statistics_csv(experiment_dir, roi_summary_data_for_all_files)
 
     return roi_summary_data_for_all_files, image_diagnostics_for_all_files, ROI_definitions
