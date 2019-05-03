@@ -72,14 +72,6 @@ SPOT_CHECK_TEST_CASES = [
     (0, 5000, 22928.109841),
 ]
 
-SPOT_CHECK_DEFAULT_CONSTANTS = dict(
-    thermistor_B=module.BETA_PR103J2_DATASHEET,
-    thermistor_R0=module.R0_PR103J2_DATASHEET,
-    voltage_divider_Vin=module.RASPBERRY_PI_VOLTAGE,
-    adc_Vmax=module.ADS1115_MAX_VOLTAGE_AT_GAIN_1,
-    adc_bit_depth=module.ADS1115_BIT_DEPTH
-)
-
 
 @pytest.mark.parametrize('temperature, resistor, expected_digital_count', SPOT_CHECK_TEST_CASES)
 def test_spot_check_digital_count_given_temperature(temperature, resistor, expected_digital_count):
@@ -92,7 +84,6 @@ def test_spot_check_temperature_given_digital_count(expected_temperature, resist
     actual = module.temperature_given_digital_count(
         digital_count,
         voltage_divider_resistor=resistor,
-        **SPOT_CHECK_DEFAULT_CONSTANTS
     )
     assert pytest.approx(actual, abs=0.01) == expected_temperature
 
@@ -104,7 +95,6 @@ def test_digital_count_given_temperature_round_trip():
     round_trip_temperatures = module.temperature_given_digital_count(
         digital_counts,
         voltage_divider_resistor=resistor,
-        **SPOT_CHECK_DEFAULT_CONSTANTS
     )
 
     pd.testing.assert_series_equal(temperatures, round_trip_temperatures)
