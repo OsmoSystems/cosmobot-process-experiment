@@ -1,10 +1,14 @@
 import warnings
-from unittest.mock import sentinel, Mock
+from unittest.mock import sentinel
 
 import pandas as pd
 import pytest
+import os
 
 from . import process_experiment as module
+
+# Needed for `testdir` fixture
+pytest_plugins = "pytester"
 
 
 @pytest.fixture
@@ -157,16 +161,18 @@ class TestProcessExperiment:
 
 
 class TestSaveSummaryStatisticsCsv:
-    def test_names_csv_with_current_iso_ish_datetime(self, mocker):
+    def test_names_csv_with_current_iso_ish_datetime(self, testdir, mocker):
         mocker.patch.object(module, 'iso_datetime_for_filename').return_value = '<iso_ish_datetime>'
 
-        mock_to_csv = Mock()
-        mock_image_summary_data = Mock(to_csv=mock_to_csv)
+        mock_image_summary_data = pd.DataFrame([
+            {'mock ROI statistic': sentinel.roi_summary_statistic}
+        ])
         module.save_summary_statistics_csv('20180101-120101_experiment_dir', mock_image_summary_data)
-
         expected_csv_name = '20180101-120101_experiment_dir - summary statistics (generated <iso_ish_datetime>).csv'
 
-        mock_to_csv.assert_called_with(expected_csv_name, index=False)
+        assert os.path.isfile(expected_csv_name)
+
+        testdir.finalize()
 
 
 def test_open_first_image(mocker):
