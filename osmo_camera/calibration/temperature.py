@@ -5,7 +5,7 @@ import numpy as np
 # Adafruit 4-Channel ADC Breakouts https://drive.google.com/open?id=1VpoROFyzoGa0YAAWzQccNExRHWgEfLj2
 ADS1115_MAX_VOLTAGE_AT_GAIN_1 = 4.096
 ADS1115_BIT_DEPTH = 16
-RASPBERRY_PI_VOLTAGE = 3.3
+RASPBERRY_PI_VOLTAGE_3_3 = 3.3
 
 
 def _celcius_to_kelvin(temperature_c):
@@ -18,8 +18,8 @@ def _kelvin_to_celcius(temperature_k):
 
 # PR103J2 thermistor datasheet:
 # https://drive.google.com/open?id=1XYhgVEmt2UQYlyh7GxlQNlW7ZMkUmiaH
-T0_CELCIUS = 25
-T0_KELVIN = _celcius_to_kelvin(T0_CELCIUS)
+T_0_CELCIUS = 25
+T_0_KELVIN = _celcius_to_kelvin(T_0_CELCIUS)
 R0_PR103J2_DATASHEET = 10000  # Resistance at T0
 BETA_PR103J2_DATASHEET = 3892
 
@@ -33,14 +33,14 @@ def thermistor_resistance_given_temperature(temperature_c, beta=BETA_PR103J2_DAT
         beta: Optional (defaults to BETA_PR103J2_DATASHEET). Thermistor "Beta parameter"
         r0: Optional (defaults to R0_PR103J2_DATASHEET). Thermistor resistance at T0
     '''
-    Rinf = r0 * np.exp(-beta / T0_KELVIN)
+    Rinf = r0 * np.exp(-beta / T_0_KELVIN)
 
     temperature_k = _celcius_to_kelvin(temperature_c)
 
     return Rinf * np.exp(beta / temperature_k)
 
 
-def voltage_divider_vout_given_resistances(r2, r1, v_in=RASPBERRY_PI_VOLTAGE):
+def voltage_divider_vout_given_resistances(r2, r1, v_in=RASPBERRY_PI_VOLTAGE_3_3):
     ''' Calculate v_out given voltage divider resistors, r1 and r2, and v_in, where the divider is set up:
         |---v_in
         |
@@ -55,7 +55,7 @@ def voltage_divider_vout_given_resistances(r2, r1, v_in=RASPBERRY_PI_VOLTAGE):
     Args:
         r2: Resistance (in ohms) of r2 in a voltage divider
         r1: Resistance (in ohms) of r1 in a voltage divider
-        v_in: Optional (defaults to RASPBERRY_PI_VOLTAGE). The input voltage to the voltage divider.
+        v_in: Optional (defaults to RASPBERRY_PI_VOLTAGE_3_3). The input voltage to the voltage divider.
 
     Returns:
         v_out: Output voltage of the voltage divider
@@ -71,7 +71,7 @@ def digital_count_given_voltage(analog_in, v_max=ADS1115_MAX_VOLTAGE_AT_GAIN_1, 
         v_max: Optional (defaults to ADS1115_MAX_VOLTAGE_AT_GAIN_1). Reference max voltage of the ADC
         bit_depth: Optional (defaults ADS1115_BIT_DEPTH). The bit depth of the ADC.
     '''
-    max_count = 2**(bit_depth-1) - 1
+    max_count = 2 ** (bit_depth - 1) - 1  # The ADC returns a signed int, so use (bit_depth - 1)
 
     # Intentionally don't round to an int here, to make simulated math more consistent later
     return (analog_in / v_max) * max_count
@@ -82,7 +82,7 @@ def digital_count_given_temperature(
     voltage_divider_resistor,
     thermistor_beta=BETA_PR103J2_DATASHEET,
     thermistor_r0=R0_PR103J2_DATASHEET,
-    voltage_divider_v_in=RASPBERRY_PI_VOLTAGE,
+    voltage_divider_v_in=RASPBERRY_PI_VOLTAGE_3_3,
     adc_v_max=ADS1115_MAX_VOLTAGE_AT_GAIN_1,
     adc_bit_depth=ADS1115_BIT_DEPTH
 ):
@@ -105,7 +105,7 @@ def digital_count_given_temperature(
         voltage_divider_resistor: Resistance of the r1 resistor in the voltage divider
         thermistor_beta: Optional (defaults to BETA_PR103J2_DATASHEET). Thermistor "Beta parameter".
         thermistor_r0: Optional (defaults to R0_PR103J2_DATASHEET). Thermistor resistance at T0.
-        voltage_divider_v_in: Optional (defaults to RASPBERRY_PI_VOLTAGE). The input voltage to the voltage divider.
+        voltage_divider_v_in: Optional (defaults to RASPBERRY_PI_VOLTAGE_3_3). The input voltage to the voltage divider.
         adc_v_max: Optional (defaults to ADS1115_MAX_VOLTAGE_AT_GAIN_1). Reference max voltage of the ADC.
         adc_bit_depth: Optional (defaults to ADS1115_BIT_DEPTH). The bit depth of the ADC.
 
@@ -127,7 +127,7 @@ def temperature_given_digital_count(
     voltage_divider_resistor,
     thermistor_beta=BETA_PR103J2_DATASHEET,
     thermistor_r0=R0_PR103J2_DATASHEET,
-    voltage_divider_v_in=RASPBERRY_PI_VOLTAGE,
+    voltage_divider_v_in=RASPBERRY_PI_VOLTAGE_3_3,
     adc_v_max=ADS1115_MAX_VOLTAGE_AT_GAIN_1,
     adc_bit_depth=ADS1115_BIT_DEPTH
 ):
@@ -151,7 +151,7 @@ def temperature_given_digital_count(
         voltage_divider_resistor: Resistance of the r1 resistor in the voltage divider
         thermistor_beta: Optional (defaults to BETA_PR103J2_DATASHEET). Thermistor "Beta parameter".
         thermistor_r0: Optional (defaults to R0_PR103J2_DATASHEET). Thermistor resistance at T0.
-        voltage_divider_v_in: Optional (defaults to RASPBERRY_PI_VOLTAGE). The input voltage to the voltage divider.
+        voltage_divider_v_in: Optional (defaults to RASPBERRY_PI_VOLTAGE_3_3). The input voltage to the voltage divider.
         adc_v_max: Optional (defaults to ADS1115_MAX_VOLTAGE_AT_GAIN_1). Reference max voltage of the ADC.
         adc_bit_depth: Optional (defaults to ADS1115_BIT_DEPTH). The bit depth of the ADC.
 
@@ -159,7 +159,7 @@ def temperature_given_digital_count(
         temperature: Calculated temperature in Celcius
     '''
     # This function was artisenally reversed from the digital_count_given_temperature function using pencil and paper
-    numerator = (voltage_divider_resistor) / ((thermistor_r0 * np.exp(-thermistor_beta / T0_KELVIN)))
+    numerator = (voltage_divider_resistor) / ((thermistor_r0 * np.exp(-thermistor_beta / T_0_KELVIN)))
     denominator = ((2 ** (adc_bit_depth - 1) - 1) * voltage_divider_v_in) / (digital_count * adc_v_max) - 1
     temperature_k = thermistor_beta / np.log(numerator / denominator)
     temperature_c = _kelvin_to_celcius(temperature_k)

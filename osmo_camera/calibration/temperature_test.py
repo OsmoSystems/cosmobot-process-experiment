@@ -15,7 +15,7 @@ PR103J2_temperature_vs_resistance_path = pkg_resources.resource_filename(
 
 class TestThermistorResistanceGivenTemperature:
     def test_returns_R0_at_T0(self):
-        actual = module.thermistor_resistance_given_temperature(temperature_c=module.T0_CELCIUS)
+        actual = module.thermistor_resistance_given_temperature(temperature_c=module.T_0_CELCIUS)
 
         assert actual == module.R0_PR103J2_DATASHEET
 
@@ -39,7 +39,7 @@ class TestVoltageDividerVoutGivenResistances:
 
     def test_defaults_to_raspberry_pi_voltage(self):
         actual_Vout = module.voltage_divider_vout_given_resistances(r2=1, r1=1)
-        assert actual_Vout == module.RASPBERRY_PI_VOLTAGE / 2
+        assert actual_Vout == module.RASPBERRY_PI_VOLTAGE_3_3 / 2
 
 
 class TestDigitalCountGivenVoltage:
