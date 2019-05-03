@@ -17,7 +17,6 @@ def mock_side_effects(mocker):
         pd.Series({'mock image diagnostic': sentinel.image_diagnostic}),
     )
     mocker.patch.object(module, 'draw_ROIs_on_image').return_value = sentinel.rgb_image_with_ROI_definitions
-    mocker.patch.object(module, '_save_summary_statistics_csv')
     mocker.patch.object(module.raw.open, 'as_rgb').return_value = sentinel.opened_image_filepath
     mocker.patch.object(module, 'get_raw_image_paths_for_experiment').return_value = [sentinel.image_filepath]
 
@@ -114,29 +113,6 @@ class TestProcessExperiment:
 
         mock_generate_summary_images.assert_not_called()
 
-    def test_saves_summary_csv_by_default(self, mocker, mock_side_effects):
-        mock_save_summary_statistics_csv = mocker.patch.object(module, '_save_summary_statistics_csv')
-        module.process_experiment(
-            sentinel.experiment_dir,
-            sentinel.local_sync_path,
-            flat_field_filepath=sentinel.flat_field_filepath,
-            ROI_definitions=sentinel.ROI_definitions,
-        )
-
-        mock_save_summary_statistics_csv.assert_called()
-
-    def test_doesnt_save_summary_csv_if_flagged(self, mocker, mock_side_effects):
-        mock_save_summary_statistics_csv = mocker.patch.object(module, '_save_summary_statistics_csv')
-        module.process_experiment(
-            sentinel.experiment_dir,
-            sentinel.local_sync_path,
-            flat_field_filepath=sentinel.flat_field_filepath,
-            ROI_definitions=sentinel.ROI_definitions,
-            save_summary_csv=False,
-        )
-
-        mock_save_summary_statistics_csv.assert_not_called()
-
     def test_matching_diagnostic_warnings_raised_only_once(self, mocker, mock_side_effects):
         mock_process_image = mocker.patch.object(module, 'process_image')
         mock_process_image.side_effect = _process_image_stub_with_warning
@@ -186,7 +162,7 @@ class TestSaveSummaryStatisticsCsv:
 
         mock_to_csv = Mock()
         mock_image_summary_data = Mock(to_csv=mock_to_csv)
-        module._save_summary_statistics_csv('20180101-120101_experiment_dir', mock_image_summary_data)
+        module.save_summary_statistics_csv('20180101-120101_experiment_dir', mock_image_summary_data)
 
         expected_csv_name = '20180101-120101_experiment_dir - summary statistics (generated <iso_ish_datetime>).csv'
 
