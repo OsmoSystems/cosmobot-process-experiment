@@ -12,6 +12,7 @@ setup(
     entry_points={},
     install_requires=[
         'boto',
+        'imageio',
         'ipywidgets',
         'numpy',
         'matplotlib',

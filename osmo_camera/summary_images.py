@@ -3,8 +3,12 @@ from typing import List, Dict
 import math
 import os
 
+import imageio
+import numpy as np
+from PIL import Image
+
 from osmo_camera import tiff, raw
-from osmo_camera.file_structure import create_output_directory
+from osmo_camera.file_structure import create_output_directory, get_files_with_extension
 from osmo_camera.select_ROI import draw_ROIs_on_image
 
 
@@ -43,3 +47,55 @@ def generate_summary_images(raw_image_paths: List[str], ROI_definitions: Dict[st
 
         print(f'Summary images saved in: {summary_images_dir}\n')
     return summary_images_dir
+
+
+def _read_all_filenames(experiment_directories, local_sync_directory_path):
+    all_filenames = []
+    for experiment_directory in experiment_directories:
+        filenames = get_files_with_extension(os.path.join(local_sync_directory_path, experiment_directory), '.jpeg')
+        all_filenames.append(filenames)
+
+    return [filename for sublist in all_filenames for filename in sublist]
+
+
+def generate_summary_gif(
+    experiment_directories,
+    local_sync_directory_path,
+    ROI_definitions,
+    name='summary',
+    image_resize_factor=5,
+):
+    output_filename = f'{name}.gif'
+    image_dimensions = (3280, 2464)
+
+    all_filenames_flattened = _read_all_filenames(experiment_directories, local_sync_directory_path)
+
+    images = []
+    for filename in all_filenames_flattened:
+        rgb_image = raw.open.as_rgb(filename)
+        annotated_image = draw_ROIs_on_image(rgb_image, ROI_definitions)
+        PIL_image = Image.fromarray((annotated_image * 255).astype('uint8'))
+        resized_PIL_image = PIL_image.resize((
+            round(image_dimensions[0]/image_resize_factor),
+            round(image_dimensions[1]/image_resize_factor)
+        ))
+        resized_numpy_image = np.array(resized_PIL_image)
+        images.append(resized_numpy_image)
+    imageio.mimsave(output_filename, images)
+    return output_filename
+
+
+def generate_summary_video(experiment_directories, local_sync_directory_path, ROI_definitions, name='summary'):
+    output_filename = f'{name}.mp4'
+    writer = imageio.get_writer(output_filename, fps=1)
+
+    all_filenames_flattened = _read_all_filenames(experiment_directories, local_sync_directory_path)
+
+    for filename in all_filenames_flattened:
+        rgb_image = raw.open.as_rgb(filename)
+        annotated_image = draw_ROIs_on_image(rgb_image, ROI_definitions)
+        rgb_image = (annotated_image * 255).astype('uint8')
+        writer.append_data(rgb_image)
+
+    writer.close()
+    return output_filename
