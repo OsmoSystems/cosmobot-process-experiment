@@ -13,6 +13,7 @@ setup(
     install_requires=[
         'boto',
         'imageio',
+        'imageio-ffmpeg',
         'ipywidgets',
         'numpy',
         'matplotlib',

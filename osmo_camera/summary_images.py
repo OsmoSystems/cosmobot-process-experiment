@@ -2,12 +2,14 @@ from typing import List, Dict
 
 import math
 import os
+import logging
+from itertools import chain
 
 import imageio
 import numpy as np
 from PIL import Image
 
-from osmo_camera import tiff, raw
+from osmo_camera import tiff, raw, rgb
 from osmo_camera.file_structure import create_output_directory, get_files_with_extension
 from osmo_camera.select_ROI import draw_ROIs_on_image
 
@@ -49,53 +51,95 @@ def generate_summary_images(raw_image_paths: List[str], ROI_definitions: Dict[st
     return summary_images_dir
 
 
-def _read_all_filenames(experiment_directories, local_sync_directory_path):
-    all_filenames = []
-    for experiment_directory in experiment_directories:
-        filenames = get_files_with_extension(os.path.join(local_sync_directory_path, experiment_directory), '.jpeg')
-        all_filenames.append(filenames)
+def gather_experiment_images(experiment_directories, local_sync_directory_path):
+    ''' Get a list of all .jpeg files in a list of experiment directories.
 
-    return [filename for sublist in all_filenames for filename in sublist]
+    Args:
+        experiment_directories: A list of experiment directory names to search for images.
+        local_sync_directory_path: The path to the local directory where images are synced.
+
+    Return:
+        A list of absolute paths to all .jpeg images in the provided experiment directories.
+    '''
+    all_filenames = [
+        get_files_with_extension(os.path.join(local_sync_directory_path, experiment_directory), '.jpeg')
+        for experiment_directory in experiment_directories
+    ]
+    return list(chain(*all_filenames))
 
 
-def generate_summary_gif(
-    experiment_directories,
-    local_sync_directory_path,
-    ROI_definitions,
-    name='summary',
-    image_resize_factor=5,
-):
+def scale_image(image, image_scale_factor):
+    ''' Resize image from a numpy array, reducing dimensions by a given scale factor.
+
+    Args:
+        image: A numpy array containing a PIL-compatible image to be resized.
+        image_scale_factor: The divisor used to resize the image width and height.
+    '''
+
+    PIL_image = Image.fromarray(image)
+    resized_PIL_image = PIL_image.resize((
+        # Numpy array shape is (height, width, depth)
+        # .resize() expects (width, height)
+        round(image.shape[1] / image_scale_factor),
+        round(image.shape[0] / image_scale_factor)
+    ))
+    return np.array(resized_PIL_image)
+
+
+def _open_annotate_and_resize_image(filename, ROI_definitions, image_scale_factor):
+    rgb_image = raw.open.as_rgb(filename)
+    annotated_image = draw_ROIs_on_image(rgb_image, ROI_definitions)
+    PIL_compatible_image = rgb.convert.to_int(annotated_image)
+    return scale_image(PIL_compatible_image, image_scale_factor)
+
+
+def generate_summary_gif(filenames, ROI_definitions, name='summary', image_scale_factor=4):
+    ''' Compile a list of images into a summary GIF with ROI definitions overlayed.
+
+    Args:
+        filenames: List of image file names to be compiled into the GIF.
+        ROI_definitions: A map of {ROI_name: ROI_definition}
+            Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI:
+                (start_col, start_row, cols, rows)
+        name: Optional. String name of the file to be saved. Defaults to 'summary'
+        image_scale_factor: Optional. Number divisor used to scale down images to reduce file size. Defaults to 4.
+
+    Returns:
+        The name of the GIF file that was saved.
+    '''
     output_filename = f'{name}.gif'
-    image_dimensions = (3280, 2464)
-
-    all_filenames_flattened = _read_all_filenames(experiment_directories, local_sync_directory_path)
-
-    images = []
-    for filename in all_filenames_flattened:
-        rgb_image = raw.open.as_rgb(filename)
-        annotated_image = draw_ROIs_on_image(rgb_image, ROI_definitions)
-        PIL_image = Image.fromarray((annotated_image * 255).astype('uint8'))
-        resized_PIL_image = PIL_image.resize((
-            round(image_dimensions[0]/image_resize_factor),
-            round(image_dimensions[1]/image_resize_factor)
-        ))
-        resized_numpy_image = np.array(resized_PIL_image)
-        images.append(resized_numpy_image)
+    images = [
+        _open_annotate_and_resize_image(filename, ROI_definitions, image_scale_factor)
+        for filename in filenames
+    ]
     imageio.mimsave(output_filename, images)
     return output_filename
 
 
-def generate_summary_video(experiment_directories, local_sync_directory_path, ROI_definitions, name='summary'):
+def generate_summary_video(filenames, ROI_definitions, name='summary', image_scale_factor=1, fps=1):
+    ''' Compile a list of images into a summary video with ROI definitions overlayed.
+
+    Args:
+        filenames: List of image file names to be compiled into the video.
+        ROI_definitions: A map of {ROI_name: ROI_definition}
+            Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI:
+                (start_col, start_row, cols, rows)
+        name: Optional. String name of the file to be saved. Defaults to 'summary'
+        image_scale_factor: Optional. Number divisor used to scale down images to reduce file size. Defaults to 1.
+        fps: Optional. Integer video frames-per-second. Defaults to 1.
+
+    Returns:
+        The name of the summary video file that was saved
+    '''
     output_filename = f'{name}.mp4'
-    writer = imageio.get_writer(output_filename, fps=1)
+    writer = imageio.get_writer(output_filename, fps=fps)
+    # Suppress a warning message about shoehorning image dimensions into mpeg block sizes
+    logger = logging.getLogger('imageio_ffmpeg')
+    logger.setLevel(logging.ERROR)
 
-    all_filenames_flattened = _read_all_filenames(experiment_directories, local_sync_directory_path)
-
-    for filename in all_filenames_flattened:
-        rgb_image = raw.open.as_rgb(filename)
-        annotated_image = draw_ROIs_on_image(rgb_image, ROI_definitions)
-        rgb_image = (annotated_image * 255).astype('uint8')
-        writer.append_data(rgb_image)
+    for filename in filenames:
+        prepared_image = _open_annotate_and_resize_image(filename, ROI_definitions, image_scale_factor)
+        writer.append_data(prepared_image)
 
     writer.close()
     return output_filename
