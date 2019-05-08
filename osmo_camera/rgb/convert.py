@@ -1,5 +1,10 @@
+import logging
+from PIL import Image
+
+logger = logging.getLogger('osmo_camera.rgb.convert')
+
 # Constant used to convert from 0-1 RGB values to 0-255
-MAX_COLOR_VAL = 255
+MAX_COLOR_VALUE = 255
 
 
 def to_bgr(rgb_image):
@@ -18,14 +23,21 @@ def to_bgr(rgb_image):
     return bgr_image
 
 
-def to_int(rgb_image):
-    ''' Converts an `RGB image` with 0-1 RGB float values to
-        numpy array of 0-255 integer values for use with PIL.
+def to_PIL(rgb_image):
+    ''' Converts an `RGB image` with 0-1 RGB float values to PIL image object.
 
     Args:
         rgb_image: An `RGB image`
 
     Returns:
-        A PIL-compatible 3D numpy array of integer values.
+        A PIL image object.
     '''
-    return (rgb_image * MAX_COLOR_VAL).astype('uint8')
+    # Count the number of items which exceed the expected threshold
+    count_above_threshold = (rgb_image > 1).sum()
+    if count_above_threshold > 0:
+        logger.warning(
+            f'''
+            Found {count_above_threshold} items exceeded maxmimum expected value of 1.
+            These values will be truncated to the maximum output value of 255.'''
+        )
+    return Image.fromarray((rgb_image * MAX_COLOR_VALUE).astype('uint8'))

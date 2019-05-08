@@ -1,7 +1,7 @@
 import os
-import pytest
 from unittest.mock import sentinel
 
+from PIL import Image
 import numpy as np
 from . import summary_images as module
 
@@ -9,67 +9,82 @@ from . import summary_images as module
 pytest_plugins = "pytester"
 
 
-@pytest.fixture
-def mock_image_array():
-    return module.rgb.convert.to_int(np.random.rand(10, 10, 3))
-
-
-@pytest.fixture
-def mock_side_effects(mocker, mock_image_array):
-    mocker.patch.object(module.raw.open, 'as_rgb').return_value = sentinel.rgb_image
-    mocker.patch.object(module, 'draw_ROIs_on_image').return_value = sentinel.rgb_image_with_ROI_definitions
-    mocker.patch.object(module.rgb.convert, 'to_int').return_value = sentinel.PIL_compatible_image
-    mock_scale_image = mocker.patch.object(module, 'scale_image')
-    mock_scale_image.return_value = mock_image_array
-    return {'mock_scale_image': mock_scale_image}
-
-
-def test_scale_image(mock_image_array):
-    scaled_image = module.scale_image(mock_image_array, 2)
-
-    assert scaled_image.shape == (5, 5, 3)
-
-
-def test_gather_experiment_images(mocker):
+def test_get_experiment_image_filepaths(mocker):
     mocker.patch.object(module, 'get_files_with_extension').return_value = [
-        sentinel.image_file_1, sentinel.image_file_2]
+        sentinel.image_file_1, sentinel.image_file_2
+    ]
 
-    image_paths = module.gather_experiment_images(['path1', 'path2'], './')
+    image_paths = module.get_experiment_image_filepaths('./', ['path1', 'path2'])
 
-    assert sentinel.image_file_1 in image_paths
-    assert sentinel.image_file_2 in image_paths
-    assert len(image_paths) == 4
-
-
-def test_generate_summary_gif(testdir, mock_side_effects):
-    scale_factor = 4
-    module.generate_summary_gif(
-        ['test_file_1', 'test_file_2'],
-        sentinel.ROI_definitions,
-        name="test",
-        image_scale_factor=scale_factor,
-    )
-
-    expected_filename = 'test.gif'
-
-    assert os.path.isfile(expected_filename)
-    mock_side_effects['mock_scale_image'].assert_called_with(sentinel.PIL_compatible_image, scale_factor)
-
-    testdir.finalize()
+    assert image_paths == [
+        sentinel.image_file_1, sentinel.image_file_2,
+        sentinel.image_file_1, sentinel.image_file_2
+    ]
 
 
-def test_generate_summary_video(testdir, mock_side_effects):
-    scale_factor = 4
-    module.generate_summary_video(
-        ['test_file_1', 'test_file_2'],
-        sentinel.ROI_definitions,
-        name="test",
-        image_scale_factor=scale_factor,
-    )
+class TestScaleImage(object):
+    test_image = Image.fromarray(np.zeros((10, 10, 3)).astype('uint8'))
 
-    expected_filename = 'test.mp4'
+    def test_scale_image_down(self):
+        scaled_image = module.scale_image(self.test_image, 0.5)
 
-    assert os.path.isfile(expected_filename)
-    mock_side_effects['mock_scale_image'].assert_called_with(sentinel.PIL_compatible_image, scale_factor)
+        assert np.array(scaled_image).shape == (5, 5, 3)
 
-    testdir.finalize()
+    def test_scale_image_up(self):
+        scaled_image = module.scale_image(self.test_image, 2)
+        assert np.array(scaled_image).shape == (20, 20, 3)
+
+    def test_scale_image_fractional(self):
+        scaled_image = module.scale_image(self.test_image, 0.3)
+        assert np.array(scaled_image).shape == (3, 3, 3)
+
+
+class TestSummaryMediaGeneration(object):
+    def test_open_annotate_and_scale_image(self, mocker):
+        test_array = np.zeros((10, 10, 3))
+        mock_as_rgb = mocker.patch.object(module.raw.open, 'as_rgb')
+        mock_as_rgb.return_value = sentinel.rgb_image
+        mock_draw_ROIs_on_image = mocker.patch.object(module, 'draw_ROIs_on_image')
+        mock_draw_ROIs_on_image.return_value = test_array
+
+        annotated_scaled_image = module._open_annotate_and_scale_image(
+            sentinel.mock_filepath,
+            sentinel.ROI_definition,
+            image_scale_factor=2
+        )
+
+        np.testing.assert_array_equal(annotated_scaled_image, np.zeros((5, 5, 3)))
+        mock_as_rgb.assert_called_with(sentinel.mock_filepath)
+        mock_draw_ROIs_on_image.assert_called_with(sentinel.rgb_image, sentinel.ROI_definition)
+
+    def test_generate_summary_gif(self, testdir, mocker):
+        mocker.patch.object(module, '_open_annotate_and_scale_image').return_value = np.zeros((10, 10, 3))
+        scale_factor = 4
+        module.generate_summary_gif(
+            ['test_file_1', 'test_file_2'],
+            sentinel.ROI_definitions,
+            name='test',
+            image_scale_factor=scale_factor,
+        )
+
+        expected_filename = 'test.gif'
+
+        assert os.path.isfile(expected_filename)
+
+        testdir.finalize()
+
+    def test_generate_summary_video(self, testdir, mocker):
+        mocker.patch.object(module, '_open_annotate_and_scale_image').return_value = np.zeros((10, 10, 3))
+        scale_factor = 4
+        module.generate_summary_video(
+            ['test_file_1', 'test_file_2'],
+            sentinel.ROI_definitions,
+            name="test",
+            image_scale_factor=scale_factor,
+        )
+
+        expected_filename = 'test.mp4'
+
+        assert os.path.isfile(expected_filename)
+
+        testdir.finalize()
