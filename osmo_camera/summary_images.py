@@ -135,7 +135,7 @@ def generate_summary_video(filepaths, ROI_definitions, name='summary', image_sca
     writer = imageio.get_writer(output_filename, fps=fps)
 
     with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
+        warnings.simplefilter('ignore')
         for filepath in filepaths:
             prepared_image = _open_annotate_and_scale_image(filepath, ROI_definitions, image_scale_factor)
             writer.append_data(prepared_image)

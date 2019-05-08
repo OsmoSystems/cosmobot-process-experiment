@@ -6,7 +6,7 @@ import numpy as np
 from . import summary_images as module
 
 # Needed for `testdir` fixture
-pytest_plugins = "pytester"
+pytest_plugins = 'pytester'
 
 
 def test_get_experiment_image_filepaths(mocker):
@@ -79,7 +79,7 @@ class TestSummaryMediaGeneration(object):
         module.generate_summary_video(
             ['test_file_1', 'test_file_2'],
             sentinel.ROI_definitions,
-            name="test",
+            name='test',
             image_scale_factor=scale_factor,
         )
 
