@@ -2,7 +2,7 @@ from typing import List, Dict
 
 import math
 import os
-import warnings
+import logging
 from itertools import chain
 
 import imageio
@@ -133,13 +133,15 @@ def generate_summary_video(filepaths, ROI_definitions, name='summary', image_sca
     '''
     output_filename = f'{name}.mp4'
     writer = imageio.get_writer(output_filename, fps=fps)
+    # Suppress a warning message about shoehorning image dimensions into mpeg block sizes
+    logger = logging.getLogger('imageio_ffmpeg')
+    logger.setLevel(logging.ERROR)
 
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore')
-        for filepath in filepaths:
-            prepared_image = _open_annotate_and_scale_image(filepath, ROI_definitions, image_scale_factor)
-            writer.append_data(prepared_image)
+    for filepath in filepaths:
+        prepared_image = _open_annotate_and_scale_image(filepath, ROI_definitions, image_scale_factor)
+        writer.append_data(prepared_image)
 
-        writer.close()
+    writer.close()
+    logger.setLevel(logging.WARNING)
 
     return output_filename

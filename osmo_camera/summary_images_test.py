@@ -9,17 +9,18 @@ from . import summary_images as module
 pytest_plugins = 'pytester'
 
 
-def test_get_experiment_image_filepaths(mocker):
-    mocker.patch.object(module, 'get_files_with_extension').return_value = [
-        sentinel.image_file_1, sentinel.image_file_2
-    ]
+class TestImageFilepaths(object):
+    def test_get_experiment_image_filepaths(self, mocker):
+        mocker.patch.object(module, 'get_files_with_extension').return_value = [
+            sentinel.image_file_1, sentinel.image_file_2
+        ]
 
-    image_paths = module.get_experiment_image_filepaths('./', ['path1', 'path2'])
+        image_paths = module.get_experiment_image_filepaths('./', ['path1', 'path2'])
 
-    assert image_paths == [
-        sentinel.image_file_1, sentinel.image_file_2,
-        sentinel.image_file_1, sentinel.image_file_2
-    ]
+        assert image_paths == [
+            sentinel.image_file_1, sentinel.image_file_2,
+            sentinel.image_file_1, sentinel.image_file_2
+        ]
 
 
 class TestScaleImage(object):

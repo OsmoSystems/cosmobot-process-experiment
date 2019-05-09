@@ -1,4 +1,5 @@
 import logging
+from textwrap import dedent
 from PIL import Image
 
 logger = logging.getLogger('osmo_camera.rgb.convert')
@@ -35,9 +36,11 @@ def to_PIL(rgb_image):
     # Count the number of items which exceed the expected threshold
     count_above_threshold = (rgb_image > 1).sum()
     if count_above_threshold > 0:
-        logger.warning(
-            f'''
+        logger.warning(dedent(
+            f'''\
             Found {count_above_threshold} items exceeded maxmimum expected value of 1.
-            These values will be truncated to the maximum output value of 255.'''
-        )
+            These values will be truncated to the maximum output value of {MAX_COLOR_VALUE}.
+            in the converted image\
+            '''
+        ))
     return Image.fromarray((rgb_image * MAX_COLOR_VALUE).astype('uint8'))
