@@ -43,9 +43,8 @@ class TestConvertToPIL(object):
 
         expected = np.array([
             # Check overflow values truncate properly:
-            # 3 * 255 = 765 -> uses 255 as multiplier as this is max value of uint8
-            # 765 % 256 = 253 -> uses 256 a modulus as this is the # of uint8s
-            [[0, 127, 255], [255, 253, 25]]
+            # 3 from input array should be the maximum value
+            [[0, 127, 255], [255, 255, 25]]
         ]).astype('uint8')
 
         PIL_image = module.to_PIL(image)

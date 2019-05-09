@@ -44,4 +44,5 @@ def to_PIL(rgb_image):
             in the converted image\
             '''
         ))
+        rgb_image[rgb_image > 1] = 1
     return Image.fromarray((rgb_image * MAX_COLOR_VALUE).astype('uint8'))
