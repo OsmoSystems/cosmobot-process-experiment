@@ -1,5 +1,6 @@
 import logging
 from textwrap import dedent
+
 from PIL import Image
 
 logger = logging.getLogger('osmo_camera.rgb.convert')
