@@ -14,13 +14,13 @@ temperature_log_path = pkg_resources.resource_filename(
 
 
 class TestProcessTemperatureLog:
-    def test_parses_raw_data_and_applies_calibration(self, mocker, tmp_path):
+    def test_parses_raw_data_and_applies_calibration(self, mocker):
         mocker.patch('os.path.join').return_value = temperature_log_path
         mocker.patch.object(module, 'temperature_given_digital_count_calibrated').return_value = sentinel.temperature
 
         actual = module.process_temperature_log(
-            experiment_dir='mock_experiment_dir',
-            local_sync_directory_path=str(tmp_path),
+            experiment_dir=sentinel.mock_experiment_dir,
+            local_sync_directory_path=sentinel.mock_local_sync_path,
         )
 
         expected_temperature_data = pd.DataFrame({
