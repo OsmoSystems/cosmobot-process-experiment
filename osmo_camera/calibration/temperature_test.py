@@ -9,7 +9,7 @@ from . import temperature as module
 
 PR103J2_temperature_vs_resistance_path = pkg_resources.resource_filename(
     'osmo_camera',
-    'calibration/PR103J2_temperature_vs_resistance.csv'
+    'test_fixtures/PR103J2_temperature_vs_resistance.csv'
 )
 
 
