@@ -38,13 +38,14 @@ class TestConvertToPIL(object):
         mock_warning_logger = mocker.patch.object(module.logger, 'warning')
 
         image = np.array([
-            [[0, 0.5, 1], [1, 3, 0.1]]
+            [[0, 0.5, 1], [1, 3, -0.1]]
         ])
 
         expected = np.array([
             # Check overflow values truncate properly:
             # 3 from input array should be the maximum value
-            [[0, 127, 255], [255, 255, 25]]
+            # -0.1 from input array should be the minimum value
+            [[0, 127, 255], [255, 255, 0]]
         ]).astype('uint8')
 
         PIL_image = module.to_PIL(image)

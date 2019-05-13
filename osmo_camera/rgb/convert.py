@@ -34,15 +34,17 @@ def to_PIL(rgb_image):
     Returns:
         A PIL image object.
     '''
-    # Count the number of items which exceed the expected threshold
-    count_above_threshold = (rgb_image > 1).sum()
-    if count_above_threshold > 0:
+    # Count the number of items which will not convert nicely to uint8 and will be truncated
+    count_out_of_range = (rgb_image > 1).sum() + (rgb_image < 0).sum()
+    if count_out_of_range > 0:
         logger.warning(dedent(
             f'''\
-            Found {count_above_threshold} items exceeded maxmimum expected value of 1.
-            These values will be truncated to the maximum output value of {MAX_COLOR_VALUE}.
-            in the converted image\
+            Found {count_out_of_range} items outside acceptable value range of 0-1.
+            Values greater than 1 will be truncated to the maximum output value of {MAX_COLOR_VALUE}
+            in the converted image.
+            Values less than 0 will be truncated to 0 in the converted image.\
             '''
         ))
         rgb_image[rgb_image > 1] = 1
+        rgb_image[rgb_image < 0] = 0
     return Image.fromarray((rgb_image * MAX_COLOR_VALUE).astype('uint8'))
