@@ -1,6 +1,7 @@
 import logging
 from textwrap import dedent
 
+import numpy as np
 from PIL import Image
 
 logger = logging.getLogger('osmo_camera.rgb.convert')
@@ -45,6 +46,5 @@ def to_PIL(rgb_image):
             Values less than 0 will be truncated to 0 in the converted image.\
             '''
         ))
-        rgb_image[rgb_image > 1] = 1
-        rgb_image[rgb_image < 0] = 0
+        rgb_image = np.clip(rgb_image, 0, 1)
     return Image.fromarray((rgb_image * MAX_COLOR_VALUE).astype('uint8'))

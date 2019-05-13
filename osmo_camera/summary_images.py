@@ -56,6 +56,7 @@ def get_experiment_image_filepaths(local_sync_directory_path, experiment_directo
     Args:
         local_sync_directory_path: The path to the local directory where images are synced.
         experiment_directories: Optional. A list of experiment directory names to search for images. Defaults to None.
+        If experiment_directories is None, search for images in local_sync_directory_path.
 
     Return:
         A list of paths to all .jpeg images in the provided experiment directories.
