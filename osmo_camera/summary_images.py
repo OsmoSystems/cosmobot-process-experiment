@@ -84,15 +84,19 @@ def scale_image(PIL_image, image_scale_factor):
     ))
 
 
-def _open_annotate_and_scale_image(filepath, ROI_definitions, image_scale_factor):
+def _open_filter_annotate_and_scale_image(filepath, ROI_definitions, image_scale_factor, color_channels):
     rgb_image = raw.open.as_rgb(filepath)
-    annotated_image = draw_ROIs_on_image(rgb_image, ROI_definitions)
+    filtered_image = rgb.filter.select_channels(rgb_image, color_channels)
+
+    annotated_image = draw_ROIs_on_image(filtered_image, ROI_definitions)
+
     PIL_image = rgb.convert.to_PIL(annotated_image)
     scaled_image = scale_image(PIL_image, image_scale_factor)
+
     return np.array(scaled_image)
 
 
-def generate_summary_gif(filepaths, ROI_definitions, name='summary', image_scale_factor=0.25):
+def generate_summary_gif(filepaths, ROI_definitions, name='summary', image_scale_factor=0.25, color_channels='rgb'):
     ''' Compile a list of images into a summary GIF with ROI definitions overlayed.
     Saves GIF to the current working directory.
 
@@ -103,20 +107,28 @@ def generate_summary_gif(filepaths, ROI_definitions, name='summary', image_scale
                 (start_col, start_row, cols, rows)
         name: Optional. String name of the file to be saved. Defaults to 'summary'
         image_scale_factor: Optional. Number multiplier used to scale images to adjust file size. Defaults to 1/4.
+        color_channels: Optional. Lowercase string of rgb channels to show in the output image. Defaults to 'rgb'.
 
     Returns:
         The name of the GIF file that was saved.
     '''
     output_filename = f'{name}.gif'
     images = [
-        _open_annotate_and_scale_image(filepath, ROI_definitions, image_scale_factor)
+        _open_filter_annotate_and_scale_image(filepath, ROI_definitions, image_scale_factor, color_channels)
         for filepath in filepaths
     ]
     imageio.mimsave(output_filename, images)
     return output_filename
 
 
-def generate_summary_video(filepaths, ROI_definitions, name='summary', image_scale_factor=1, fps=1):
+def generate_summary_video(
+    filepaths,
+    ROI_definitions,
+    name='summary',
+    image_scale_factor=1,
+    color_channels='rgb',
+    fps=1
+):
     ''' Compile a list of images into a summary video with ROI definitions overlayed.
     Saves video to the current working directory.
 
@@ -127,6 +139,7 @@ def generate_summary_video(filepaths, ROI_definitions, name='summary', image_sca
                 (start_col, start_row, cols, rows)
         name: Optional. String name of the file to be saved. Defaults to 'summary'
         image_scale_factor: Optional. Number multiplier used to scale images to adjust file size. Defaults to 1.
+        color_channels: Optional. Lowercase string of rgb channels to show in the output image. Defaults to 'rgb'.
         fps: Optional. Integer video frames-per-second. Defaults to 1.
 
     Returns:
@@ -139,7 +152,12 @@ def generate_summary_video(filepaths, ROI_definitions, name='summary', image_sca
     logger.setLevel(logging.ERROR)
 
     for filepath in filepaths:
-        prepared_image = _open_annotate_and_scale_image(filepath, ROI_definitions, image_scale_factor)
+        prepared_image = _open_filter_annotate_and_scale_image(
+            filepath,
+            ROI_definitions,
+            image_scale_factor,
+            color_channels
+        )
         writer.append_data(prepared_image)
 
     writer.close()
