@@ -41,26 +41,29 @@ class TestScaleImage(object):
 
 
 class TestSummaryMediaGeneration(object):
-    def test_open_annotate_and_scale_image(self, mocker):
+    def test_open_filter_annotate_and_scale_image(self, mocker):
         test_array = np.zeros((10, 10, 3))
         mock_as_rgb = mocker.patch.object(module.raw.open, 'as_rgb')
         mock_as_rgb.return_value = sentinel.rgb_image
+        mock_select_channels = mocker.patch.object(module.rgb.filter, 'select_channels')
+        mock_select_channels.return_value = sentinel.r_only_image
         mock_draw_ROIs_on_image = mocker.patch.object(module, 'draw_ROIs_on_image')
         mock_draw_ROIs_on_image.return_value = test_array
 
-        annotated_scaled_image = module._open_annotate_and_scale_image(
+        annotated_scaled_image = module._open_filter_annotate_and_scale_image(
             sentinel.mock_filepath,
             sentinel.ROI_definition,
             image_scale_factor=0.5,
-            filter_channels='RGB'
+            select_channels='R'
         )
 
         np.testing.assert_array_equal(annotated_scaled_image, np.zeros((5, 5, 3)))
         mock_as_rgb.assert_called_with(sentinel.mock_filepath)
-        mock_draw_ROIs_on_image.assert_called_with(sentinel.rgb_image, sentinel.ROI_definition)
+        mock_select_channels.assert_called_with(sentinel.rgb_image, 'R')
+        mock_draw_ROIs_on_image.assert_called_with(sentinel.r_only_image, sentinel.ROI_definition)
 
     def test_generate_summary_gif(self, testdir, mocker):
-        mocker.patch.object(module, '_open_annotate_and_scale_image').return_value = np.zeros((10, 10, 3))
+        mocker.patch.object(module, '_open_filter_annotate_and_scale_image').return_value = np.zeros((10, 10, 3))
         scale_factor = 4
         module.generate_summary_gif(
             ['test_file_1', 'test_file_2'],
@@ -74,7 +77,7 @@ class TestSummaryMediaGeneration(object):
         assert os.path.isfile(expected_filename)
 
     def test_generate_summary_video(self, testdir, mocker):
-        mocker.patch.object(module, '_open_annotate_and_scale_image').return_value = np.zeros((10, 10, 3))
+        mocker.patch.object(module, '_open_filter_annotate_and_scale_image').return_value = np.zeros((10, 10, 3))
         scale_factor = 4
         module.generate_summary_video(
             ['test_file_1', 'test_file_2'],

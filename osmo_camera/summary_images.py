@@ -84,7 +84,7 @@ def scale_image(PIL_image, image_scale_factor):
     ))
 
 
-def _open_annotate_and_scale_image(filepath, ROI_definitions, image_scale_factor, select_channels):
+def _open_filter_annotate_and_scale_image(filepath, ROI_definitions, image_scale_factor, select_channels):
     rgb_image = raw.open.as_rgb(filepath)
     filtered_image = rgb.filter.select_channels(rgb_image, select_channels)
     annotated_image = draw_ROIs_on_image(filtered_image, ROI_definitions)
@@ -110,7 +110,7 @@ def generate_summary_gif(filepaths, ROI_definitions, name='summary', image_scale
     '''
     output_filename = f'{name}.gif'
     images = [
-        _open_annotate_and_scale_image(filepath, ROI_definitions, image_scale_factor, select_channels)
+        _open_filter_annotate_and_scale_image(filepath, ROI_definitions, image_scale_factor, select_channels)
         for filepath in filepaths
     ]
     imageio.mimsave(output_filename, images)
@@ -147,7 +147,12 @@ def generate_summary_video(
     logger.setLevel(logging.ERROR)
 
     for filepath in filepaths:
-        prepared_image = _open_annotate_and_scale_image(filepath, ROI_definitions, image_scale_factor)
+        prepared_image = _open_filter_annotate_and_scale_image(
+            filepath,
+            ROI_definitions,
+            image_scale_factor,
+            select_channels
+        )
         writer.append_data(prepared_image)
 
     writer.close()
