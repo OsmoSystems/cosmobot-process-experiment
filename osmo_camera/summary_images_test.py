@@ -73,8 +73,6 @@ class TestSummaryMediaGeneration(object):
 
         assert os.path.isfile(expected_filename)
 
-        testdir.finalize()
-
     def test_generate_summary_video(self, testdir, mocker):
         mocker.patch.object(module, '_open_annotate_and_scale_image').return_value = np.zeros((10, 10, 3))
         scale_factor = 4
@@ -88,5 +86,3 @@ class TestSummaryMediaGeneration(object):
         expected_filename = 'test.mp4'
 
         assert os.path.isfile(expected_filename)
-
-        testdir.finalize()
