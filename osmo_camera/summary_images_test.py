@@ -51,7 +51,8 @@ class TestSummaryMediaGeneration(object):
         annotated_scaled_image = module._open_annotate_and_scale_image(
             sentinel.mock_filepath,
             sentinel.ROI_definition,
-            image_scale_factor=0.5
+            image_scale_factor=0.5,
+            filter_channels='RGB'
         )
 
         np.testing.assert_array_equal(annotated_scaled_image, np.zeros((5, 5, 3)))

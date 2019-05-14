@@ -84,15 +84,16 @@ def scale_image(PIL_image, image_scale_factor):
     ))
 
 
-def _open_annotate_and_scale_image(filepath, ROI_definitions, image_scale_factor):
+def _open_annotate_and_scale_image(filepath, ROI_definitions, image_scale_factor, select_channels):
     rgb_image = raw.open.as_rgb(filepath)
-    annotated_image = draw_ROIs_on_image(rgb_image, ROI_definitions)
+    filtered_image = rgb.filter.select_channels(rgb_image, select_channels)
+    annotated_image = draw_ROIs_on_image(filtered_image, ROI_definitions)
     PIL_image = rgb.convert.to_PIL(annotated_image)
     scaled_image = scale_image(PIL_image, image_scale_factor)
     return np.array(scaled_image)
 
 
-def generate_summary_gif(filepaths, ROI_definitions, name='summary', image_scale_factor=0.25):
+def generate_summary_gif(filepaths, ROI_definitions, name='summary', image_scale_factor=0.25, select_channels='RGB'):
     ''' Compile a list of images into a summary GIF with ROI definitions overlayed.
     Saves GIF to the current working directory.
 
@@ -109,14 +110,21 @@ def generate_summary_gif(filepaths, ROI_definitions, name='summary', image_scale
     '''
     output_filename = f'{name}.gif'
     images = [
-        _open_annotate_and_scale_image(filepath, ROI_definitions, image_scale_factor)
+        _open_annotate_and_scale_image(filepath, ROI_definitions, image_scale_factor, select_channels)
         for filepath in filepaths
     ]
     imageio.mimsave(output_filename, images)
     return output_filename
 
 
-def generate_summary_video(filepaths, ROI_definitions, name='summary', image_scale_factor=1, fps=1):
+def generate_summary_video(
+    filepaths,
+    ROI_definitions,
+    name='summary',
+    image_scale_factor=1,
+    select_channels='RGB',
+    fps=1
+):
     ''' Compile a list of images into a summary video with ROI definitions overlayed.
     Saves video to the current working directory.
 
