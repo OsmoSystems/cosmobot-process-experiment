@@ -12,7 +12,7 @@ def select_channels(rgb_image, channels):
         An RGB image with only the selected channels.
     '''
     colors = 'rgb'
-    if len(set(channels) - set(colors)) > 0:
+    if set(channels) - set(colors):
         raise ValueError(f'Unexpected channel value in select_channels: "{channels}"')
 
     channels_to_drop = set(colors) - set(channels)
