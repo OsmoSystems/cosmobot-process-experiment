@@ -54,12 +54,12 @@ class TestSummaryMediaGeneration(object):
             sentinel.mock_filepath,
             sentinel.ROI_definition,
             image_scale_factor=0.5,
-            select_channels='R'
+            select_channels='r'
         )
 
         np.testing.assert_array_equal(annotated_scaled_image, np.zeros((5, 5, 3)))
         mock_as_rgb.assert_called_with(sentinel.mock_filepath)
-        mock_select_channels.assert_called_with(sentinel.rgb_image, 'R')
+        mock_select_channels.assert_called_with(sentinel.rgb_image, 'r')
         mock_draw_ROIs_on_image.assert_called_with(sentinel.r_only_image, sentinel.ROI_definition)
 
     def test_generate_summary_gif(self, testdir, mocker):

@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 
 import osmo_camera.rgb.filter as module
@@ -10,7 +11,7 @@ class TestFilterColorChannels(object):
     ])
 
     def test_select_all_channels(self):
-        np.testing.assert_array_equal(module.select_channels(self.test_image, 'RGB'), self.test_image)
+        np.testing.assert_array_equal(module.select_channels(self.test_image, 'rgb'), self.test_image)
 
     def test_select_one_channel(self):
         expected = np.array([
@@ -18,10 +19,12 @@ class TestFilterColorChannels(object):
             [['r3', 0, 0], ['r4', 0, 0]]
         ])
 
-        np.testing.assert_array_equal(module.select_channels(self.test_image, 'R'), expected)
+        np.testing.assert_array_equal(module.select_channels(self.test_image, 'r'), expected)
 
-    def test_select_invalid_channel(self, mocker):
-        mock_warning_logger = mocker.patch.object(module.logger, 'warning')
+    def test_select_invalid_channel(self):
+        with pytest.raises(ValueError):
+            module.select_channels(self.test_image, 'MR')
 
-        np.testing.assert_array_equal(module.select_channels(self.test_image, 'M'), self.test_image)
-        mock_warning_logger.assert_called_once()
+    def test_select_invalid_capitalization(self):
+        with pytest.raises(ValueError):
+            module.select_channels(self.test_image, 'R')

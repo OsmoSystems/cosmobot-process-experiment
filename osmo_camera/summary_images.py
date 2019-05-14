@@ -93,7 +93,7 @@ def _open_filter_annotate_and_scale_image(filepath, ROI_definitions, image_scale
     return np.array(scaled_image)
 
 
-def generate_summary_gif(filepaths, ROI_definitions, name='summary', image_scale_factor=0.25, select_channels='RGB'):
+def generate_summary_gif(filepaths, ROI_definitions, name='summary', image_scale_factor=0.25, select_channels='rgb'):
     ''' Compile a list of images into a summary GIF with ROI definitions overlayed.
     Saves GIF to the current working directory.
 
@@ -122,7 +122,7 @@ def generate_summary_video(
     ROI_definitions,
     name='summary',
     image_scale_factor=1,
-    select_channels='RGB',
+    select_channels='rgb',
     fps=1
 ):
     ''' Compile a list of images into a summary video with ROI definitions overlayed.
