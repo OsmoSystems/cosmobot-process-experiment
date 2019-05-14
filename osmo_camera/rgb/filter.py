@@ -11,11 +11,12 @@ def select_channels(rgb_image, channels):
     Returns:
         An RGB image with only the selected channels.
     '''
-    if len(set(channels) - set('rgb')) > 0:
+    colors = 'rgb'
+    if len(set(channels) - set(colors)) > 0:
         raise ValueError(f'Unexpected channel value in select_channels: "{channels}"')
 
-    channels_to_drop = set('rgb') - set(channels)
-    channel_indices_to_drop = ['rgb'.index(channel) for channel in channels_to_drop]
+    channels_to_drop = set(colors) - set(channels)
+    channel_indices_to_drop = [colors.index(channel) for channel in channels_to_drop]
 
     image = np.copy(rgb_image)
     for index in channel_indices_to_drop:

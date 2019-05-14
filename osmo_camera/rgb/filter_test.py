@@ -14,12 +14,17 @@ class TestFilterColorChannels(object):
         np.testing.assert_array_equal(module.select_channels(self.test_image, 'rgb'), self.test_image)
 
     def test_select_one_channel(self):
+        test_image_copy = np.copy(self.test_image)
         expected = np.array([
             [['r1', 0, 0], ['r2', 0, 0]],
             [['r3', 0, 0], ['r4', 0, 0]]
         ])
 
-        np.testing.assert_array_equal(module.select_channels(self.test_image, 'r'), expected)
+        filtered_image = module.select_channels(test_image_copy, 'r')
+        np.testing.assert_array_equal(filtered_image, expected)
+        # Ensure the input image is unchanged
+        np.testing.assert_array_equal(test_image_copy, self.test_image)
+        assert (test_image_copy != filtered_image).any()
 
     def test_select_invalid_channel(self):
         with pytest.raises(ValueError):
