@@ -1,8 +1,10 @@
 import datetime
 import os
 from itertools import filterfalse
+from multiprocessing.pool import ThreadPool
 from subprocess import check_call
 from typing import Sequence, List, Optional
+
 import boto
 import numpy as np
 import pandas as pd
@@ -11,6 +13,13 @@ from . import file_structure
 
 
 CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME = 'camera-sensor-experiments'
+
+
+def _get_experiments_bucket():
+    # TODO (SOFT-538): Stop checking in access key!
+    s3 = boto.connect_s3('AKIAIFJ2IMOKIWPKGZRA', 'vqTb5DpoSouOtgmTJo+Zm8+mtW9KeddRxbFeliny')
+
+    return s3.get_bucket(CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME)
 
 
 def list_camera_sensor_experiments_s3_bucket_contents(directory_name: str = '') -> List[str]:
@@ -24,34 +33,53 @@ def list_camera_sensor_experiments_s3_bucket_contents(directory_name: str = '') 
         list of key names under the prefix provided.
     '''
     try:
-        # TODO (SOFT-538): Stop checking in access key!
-        s3 = boto.connect_s3('AKIAIFJ2IMOKIWPKGZRA', 'vqTb5DpoSouOtgmTJo+Zm8+mtW9KeddRxbFeliny')
+        bucket = _get_experiments_bucket()
     except boto.exception.NoAuthHandlerFound:  # type: ignore
         print('You must have aws credentials already saved, e.g. via `aws configure`. \n')
         return []
 
-    bucket = s3.get_bucket(CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME)
     keys = bucket.list(directory_name, '/')
 
     return list([key.name for key in keys])
 
 
+def _download_s3_directory(experiment_directory: str, output_directory_path: str) -> None:
+    ''' Download an entire experiment directory from s3.
+    '''
+    # Use aws cli subprocess to sync entire directories until Boto supports it
+    # https://github.com/boto/boto3/issues/358
+    command = (
+        f'aws s3 sync s3://{CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME}/{experiment_directory} {output_directory_path}'
+    )
+    check_call([command], shell=True)
+    return
+
+
 def _download_s3_files(experiment_directory: str, file_names: List[str], output_directory_path: str) -> None:
     ''' Download specific filenames from within an experiment directory on s3.
     '''
+    # Use boto to download individual files since the cli can take a long time
+    # applying large numbers of filenames as filters
+    bucket = _get_experiments_bucket()
 
-    include_args = ' '.join([
-        f'--include "{file_name}"'
-        for file_name in file_names
-    ])
+    if not os.path.isdir(output_directory_path):
+        os.mkdir(output_directory_path)
 
-    # Would be better to use boto, but neither boto nor boto3 support sync
-    # https://github.com/boto/boto3/issues/358
-    command = (
-        f'aws s3 sync s3://{CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME}/{experiment_directory} {output_directory_path} '
-        f'--exclude "*" {include_args}'
-    )
-    check_call([command], shell=True)
+    def _download_file(file_name: str) -> None:
+        ''' A closure for multiprocessing file downloads
+        '''
+        file_path = os.path.join(output_directory_path, file_name)
+        if os.path.isfile(file_path):
+            pass  # skip files which have already been downloaded
+
+        else:
+            # Create (+) a new file for writing (w) binary (b) data
+            with open(file_path, 'wb+') as file:
+                key = bucket.get_key(f'{experiment_directory}/{file_name}')
+                key.get_file(file)
+
+    pool = ThreadPool(processes=10)
+    pool.map(_download_file, file_names)
 
 
 _IMAGES_INFO_COLUMNS = [
@@ -221,7 +249,12 @@ def sync_from_s3(
     filtered_image_info = _filter_to_time_range(downsampled_image_info, start_time, end_time)
 
     filenames_to_download = non_image_filenames + list(filtered_image_info['filename'].values)
-    _download_s3_files(experiment_directory, filenames_to_download, local_experiment_dir)
+
+    # Use the aws cli sync when it's most efficient
+    if len(filenames_to_download) == len(filenames):
+        _download_s3_directory(experiment_directory, local_experiment_dir)
+    else:
+        _download_s3_files(experiment_directory, filenames_to_download, local_experiment_dir)
 
     return local_experiment_dir
 
