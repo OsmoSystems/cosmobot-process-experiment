@@ -1,11 +1,12 @@
 import datetime
 import os
 from itertools import filterfalse
-from multiprocessing.pool import ThreadPool
+import concurrent.futures
 from subprocess import check_call
 from typing import Sequence, List, Optional
 
 import boto
+from boto.s3.bucket import Bucket
 import numpy as np
 import pandas as pd
 
@@ -15,7 +16,7 @@ from . import file_structure
 CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME = 'camera-sensor-experiments'
 
 
-def _get_experiments_bucket():
+def _get_experiments_bucket() -> Bucket:
     # TODO (SOFT-538): Stop checking in access key!
     s3 = boto.connect_s3('AKIAIFJ2IMOKIWPKGZRA', 'vqTb5DpoSouOtgmTJo+Zm8+mtW9KeddRxbFeliny')
 
@@ -55,6 +56,23 @@ def _download_s3_directory(experiment_directory: str, output_directory_path: str
     return
 
 
+def _download_s3_file(
+        experiment_directory: str,
+        file_name: str,
+        output_directory_path: str,
+        bucket: Bucket
+        ) -> None:
+    ''' Download and save a single file from s3
+    '''
+    file_path = os.path.join(output_directory_path, file_name)
+    if os.path.isfile(file_path):
+        pass  # skip files which have already been downloaded
+
+    else:
+        key = bucket.get_key(f'{experiment_directory}/{file_name}')
+        key.get_contents_to_filename(file_path)
+
+
 def _download_s3_files(experiment_directory: str, file_names: List[str], output_directory_path: str) -> None:
     ''' Download specific filenames from within an experiment directory on s3.
     '''
@@ -65,21 +83,21 @@ def _download_s3_files(experiment_directory: str, file_names: List[str], output_
     if not os.path.isdir(output_directory_path):
         os.mkdir(output_directory_path)
 
-    def _download_file(file_name: str) -> None:
-        ''' A closure for multiprocessing file downloads
-        '''
-        file_path = os.path.join(output_directory_path, file_name)
-        if os.path.isfile(file_path):
-            pass  # skip files which have already been downloaded
-
-        else:
-            # Create (+) a new file for writing (w) binary (b) data
-            with open(file_path, 'wb+') as file:
-                key = bucket.get_key(f'{experiment_directory}/{file_name}')
-                key.get_file(file)
-
-    pool = ThreadPool(processes=10)
-    pool.map(_download_file, file_names)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        # Using a thread pool over subprocesses allows reuse of the existing bucket
+        # object to remove connection overhead for each file and maximizes I/O
+        futures = [
+            executor.submit(
+                _download_s3_file,
+                experiment_directory,
+                file_name,
+                output_directory_path,
+                bucket
+            )
+            for file_name in file_names
+        ]
+        # Wait until all threads have finished
+        [f.result() for f in futures]
 
 
 _IMAGES_INFO_COLUMNS = [

@@ -1,4 +1,5 @@
 import datetime
+from unittest.mock import sentinel, Mock
 
 import pandas as pd
 import pytest
@@ -30,7 +31,7 @@ def mock_list_camera_sensor_experiments_s3_bucket_contents(mocker):
 
 
 class TestSyncFromS3:
-    def test_sync_from_s3_results_in_call_to_download_file(
+    def test_sync_from_s3_results_in_aws_cli_file_sync(
         self,
         mocker,
         mock_check_call,
@@ -56,11 +57,88 @@ class TestSyncFromS3:
         actual_s3_command = mock_check_call.call_args[0][0][0]
         assert 'aws s3 sync' in actual_s3_command
         assert 'local_sync_path/experiment_directory' in actual_s3_command
-        assert filename in actual_s3_command
+
+    def test_partial_sync_results_in_boto_file_download(
+        self,
+        mocker,
+        mock_get_filenames_from_s3
+    ):
+        filenames = [
+            '2018-01-02--00-00-00_ss_31000_ISO_100.jpeg',
+            '2018-01-03--00-00-00_ss_31000_ISO_100.jpeg',
+            '2018-01-04--00-00-00_ss_31000_ISO_100.jpeg'
+        ]
+        mock_get_filenames_from_s3.return_value = filenames
+        mock_download_s3_files = mocker.patch.object(module, '_download_s3_files')
+
+        module.sync_from_s3(
+            'experiment_directory',
+            'local_sync_path',
+            downsample_ratio=1,
+            start_time=datetime.datetime(2018, 1, 1),
+            end_time=datetime.datetime(2018, 1, 3),
+        )
+
+        mock_download_s3_files.assert_called_with(
+            'experiment_directory',
+            filenames[0:2],
+            'local_sync_path/experiment_directory'
+        )
+
+
+class TestDownloadS3Directory:
+    def test_calls_s3_sync_command(self, mock_check_call):
+        module._download_s3_directory(
+            experiment_directory='my_experiment',
+            output_directory_path='local_sync_path'
+        )
+
+        mock_check_call.assert_called_with(
+            ['aws s3 sync s3://camera-sensor-experiments/my_experiment local_sync_path'],
+            shell=True
+        )
 
 
 class TestDownloadS3Files:
-    def test_calls_s3_sync_command(self, mock_check_call):
+    def test_download_single_file(self, mocker):
+        mock_get_contents_to_filename = Mock()
+        mock_key = Mock(get_contents_to_filename=mock_get_contents_to_filename)
+
+        mock_get_key = Mock()
+        mock_get_key.return_value = mock_key
+        mock_bucket = Mock(get_key=mock_get_key)
+
+        module._download_s3_file(
+            experiment_directory='my_experiment',
+            file_name='image1.jpg',
+            output_directory_path='local_sync_path',
+            bucket=mock_bucket
+        )
+
+        mock_get_contents_to_filename.assert_called_once()
+
+    def test_skips_download_if_exists(self, mocker):
+        mocker.patch('os.path.isfile').return_value = True
+        mock_get_contents_to_filename = Mock()
+        mock_key = Mock(get_contents_to_filename=mock_get_contents_to_filename)
+
+        mock_get_key = Mock()
+        mock_get_key.return_value = mock_key
+        mock_bucket = Mock(get_key=mock_get_key)
+
+        module._download_s3_file(
+            experiment_directory='my_experiment',
+            file_name='image1.jpg',
+            output_directory_path='local_sync_path',
+            bucket=mock_bucket
+        )
+
+        assert mock_get_contents_to_filename.call_count == 0
+
+    def test_calls_boto_get_file(self, mocker):
+        mocker.patch.object(module, '_get_experiments_bucket').return_value = sentinel.bucket
+        mock_download_file = mocker.patch.object(module, '_download_s3_file')
+
         module._download_s3_files(
             experiment_directory='my_experiment',
             file_names=[
@@ -70,13 +148,19 @@ class TestDownloadS3Files:
             output_directory_path='local_sync_path'
         )
 
-        expected_command = (
-            'aws s3 sync s3://camera-sensor-experiments/my_experiment local_sync_path '
-            '--exclude "*" '
-            '--include "image1.jpeg" --include "image2.jpeg"'
+        assert mock_download_file.call_count == 2
+        mock_download_file.assert_any_call(
+            'my_experiment',
+            'image1.jpeg',
+            'local_sync_path',
+            sentinel.bucket
         )
-
-        mock_check_call.assert_called_with([expected_command], shell=True)
+        mock_download_file.assert_any_call(
+            'my_experiment',
+            'image2.jpeg',
+            'local_sync_path',
+            sentinel.bucket
+        )
 
 
 class TestGetImagesInfo:
