@@ -2,7 +2,6 @@ import datetime
 import os
 from itertools import filterfalse
 import concurrent.futures
-from subprocess import check_call
 from typing import Sequence, List, Optional
 
 import boto
@@ -14,6 +13,7 @@ from . import file_structure
 
 
 CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME = 'camera-sensor-experiments'
+allow_downloads = True
 
 
 def _get_experiments_bucket() -> Bucket:
@@ -44,18 +44,6 @@ def list_camera_sensor_experiments_s3_bucket_contents(directory_name: str = '') 
     return list([key.name for key in keys])
 
 
-def _download_s3_directory(experiment_directory: str, output_directory_path: str) -> None:
-    ''' Download an entire experiment directory from s3.
-    '''
-    # Use aws cli subprocess to sync entire directories until Boto supports it
-    # https://github.com/boto/boto3/issues/358
-    command = (
-        f'aws s3 sync s3://{CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME}/{experiment_directory} {output_directory_path}'
-    )
-    check_call([command], shell=True)
-    return
-
-
 def _download_s3_file(
         experiment_directory: str,
         file_name: str,
@@ -64,6 +52,8 @@ def _download_s3_file(
         ) -> None:
     ''' Download and save a single file from s3
     '''
+    if not allow_downloads:
+        return
     file_path = os.path.join(output_directory_path, file_name)
     if os.path.isfile(file_path):
         pass  # skip files which have already been downloaded
@@ -76,14 +66,12 @@ def _download_s3_file(
 def _download_s3_files(experiment_directory: str, file_names: List[str], output_directory_path: str) -> None:
     ''' Download specific filenames from within an experiment directory on s3.
     '''
-    # Use boto to download individual files since the cli can take a long time
-    # applying large numbers of filenames as filters
     bucket = _get_experiments_bucket()
 
     if not os.path.isdir(output_directory_path):
         os.mkdir(output_directory_path)
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
         # Using a thread pool over subprocesses allows reuse of the existing bucket
         # object to remove connection overhead for each file and maximizes I/O
         futures = [
@@ -97,7 +85,11 @@ def _download_s3_files(experiment_directory: str, file_names: List[str], output_
             for file_name in file_names
         ]
         # Wait until all threads have finished
-        [f.result() for f in futures]
+        try:
+            [f.result() for f in futures]
+        except KeyboardInterrupt:
+            global allow_downloads
+            allow_downloads = False
 
 
 _IMAGES_INFO_COLUMNS = [
@@ -268,11 +260,7 @@ def sync_from_s3(
 
     filenames_to_download = non_image_filenames + list(filtered_image_info['filename'].values)
 
-    # Use the aws cli sync when it's most efficient
-    if len(filenames_to_download) == len(filenames):
-        _download_s3_directory(experiment_directory, local_experiment_dir)
-    else:
-        _download_s3_files(experiment_directory, filenames_to_download, local_experiment_dir)
+    _download_s3_files(experiment_directory, filenames_to_download, local_experiment_dir)
 
     return local_experiment_dir
 

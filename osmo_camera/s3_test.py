@@ -8,14 +8,6 @@ from . import s3 as module
 
 
 @pytest.fixture
-def mock_check_call(mocker):
-    mock_check_call = mocker.patch.object(module, 'check_call')
-    mock_check_call.return_value = None
-
-    return mock_check_call
-
-
-@pytest.fixture
 def mock_get_filenames_from_s3(mocker):
     # _get_filenames_from_s3 uses boto to interact with s3
     # (through _list_camera_sensor_experiments_s3_bucket_contents); use this fixture to mock it.
@@ -31,44 +23,36 @@ def mock_list_camera_sensor_experiments_s3_bucket_contents(mocker):
 
 
 class TestSyncFromS3:
-    def test_sync_from_s3_results_in_aws_cli_file_sync(
+    test_filenames = [
+        '2018-01-02--00-00-00_ss_31000_ISO_100.jpeg',
+        '2018-01-03--00-00-00_ss_31000_ISO_100.jpeg',
+        '2018-01-04--00-00-00_ss_31000_ISO_100.jpeg'
+    ]
+
+    def test_sync_all_files(
         self,
         mocker,
-        mock_check_call,
         mock_get_filenames_from_s3
     ):
-        ''' the method under test just calls a lot of sub-functions, so this is a smoke test only. '''
-        filename = '2018-01-02--00-00-00_ss_31000_ISO_100.jpeg'
-        mock_get_filenames_from_s3.return_value = [
-            filename,
-        ]
+        mock_get_filenames_from_s3.return_value = self.test_filenames
+        mock_download_s3_files = mocker.patch.object(module, '_download_s3_files')
         module.sync_from_s3(
             'experiment_directory',
             'local_sync_path',
-            downsample_ratio=1,
-            start_time=datetime.datetime(2018, 1, 1),
-            end_time=datetime.datetime(2018, 1, 3),
         )
 
-        # Should result in exactly one call to s3 do download the image
-        mock_check_call.assert_called_once()
+        mock_download_s3_files.assert_called_with(
+            'experiment_directory',
+            self.test_filenames,
+            'local_sync_path/experiment_directory'
+        )
 
-        # triple indexing: list of calls -> list of call args -> check_call argument 0 is itself a list.
-        actual_s3_command = mock_check_call.call_args[0][0][0]
-        assert 'aws s3 sync' in actual_s3_command
-        assert 'local_sync_path/experiment_directory' in actual_s3_command
-
-    def test_partial_sync_results_in_boto_file_download(
+    def test_sync_partial_directory(
         self,
         mocker,
         mock_get_filenames_from_s3
     ):
-        filenames = [
-            '2018-01-02--00-00-00_ss_31000_ISO_100.jpeg',
-            '2018-01-03--00-00-00_ss_31000_ISO_100.jpeg',
-            '2018-01-04--00-00-00_ss_31000_ISO_100.jpeg'
-        ]
-        mock_get_filenames_from_s3.return_value = filenames
+        mock_get_filenames_from_s3.return_value = self.test_filenames
         mock_download_s3_files = mocker.patch.object(module, '_download_s3_files')
 
         module.sync_from_s3(
@@ -81,21 +65,8 @@ class TestSyncFromS3:
 
         mock_download_s3_files.assert_called_with(
             'experiment_directory',
-            filenames[0:2],
+            self.test_filenames[0:2],
             'local_sync_path/experiment_directory'
-        )
-
-
-class TestDownloadS3Directory:
-    def test_calls_s3_sync_command(self, mock_check_call):
-        module._download_s3_directory(
-            experiment_directory='my_experiment',
-            output_directory_path='local_sync_path'
-        )
-
-        mock_check_call.assert_called_with(
-            ['aws s3 sync s3://camera-sensor-experiments/my_experiment local_sync_path'],
-            shell=True
         )
 
 
