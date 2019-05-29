@@ -1,8 +1,7 @@
-from copy import deepcopy
-
 import cv2
 
 from osmo_camera import rgb, jupyter
+from osmo_camera.rgb.annotate import draw_ROIs_on_image
 
 
 def choose_regions(rgb_image):
@@ -69,37 +68,6 @@ def prompt_for_ROI_selection(rgb_image):
     }
 
     return ROI_definitions
-
-
-def draw_ROIs_on_image(rgb_image, ROI_definitions={}):
-    rgb_image_with_ROI_definitions = deepcopy(rgb_image)
-
-    for ROI_name, ROI_definition in ROI_definitions.items():
-        [start_col, start_row, cols, rows] = ROI_definition
-
-        top_left_corner = (start_col, start_row)
-        bottom_right_corner = (start_col + cols, start_row + rows)
-        green_color = (0, 1, 0)
-
-        cv2.rectangle(
-            rgb_image_with_ROI_definitions,
-            top_left_corner,
-            bottom_right_corner,
-            color=green_color,
-            thickness=3
-        )
-        cv2.putText(
-            rgb_image_with_ROI_definitions,
-            str(ROI_name),
-            top_left_corner,
-            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-            fontScale=2,
-            color=green_color,
-            thickness=5,
-            lineType=cv2.LINE_AA
-        )
-
-    return rgb_image_with_ROI_definitions
 
 
 def get_ROIs_for_image(rgb_image, ROI_definitions):

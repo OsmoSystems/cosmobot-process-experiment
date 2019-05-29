@@ -3,50 +3,13 @@ from typing import List, Dict
 import math
 import os
 import logging
-from copy import deepcopy
 from itertools import chain
 
-import cv2
 import imageio
 import numpy as np
 
 from osmo_camera import tiff, raw, rgb
-from osmo_camera.file_structure import (
-    create_output_directory,
-    get_files_with_extension,
-    datetime_from_filename,
-    filename_has_correct_datetime_format
-)
-from osmo_camera.select_ROI import draw_ROIs_on_image
-
-
-def draw_text_on_image(rgb_image, text, text_color_rgb=(0, 1, 0), text_position=(20, 50), font_scale=1.5):
-    ''' Write the provided datetime timestamp on the provided image with green text in the top left corner.
-
-    Args:
-        rgb_image: An RGB image
-        text: String containing text to write on image
-        text_color: Optional. A 3-tuple of 0-1 floats indicating the rgb font color. Defaults to (0, 1, 0) green.
-        text_position: Optional. A 2-tuple of integer pixel coordinates to align the bottom of the text
-            (origin top left corner). Defaults to (20, 50).
-        font_scale: Optional. Float representing arbitrary font scale factor. Defaults to 1.5.
-    Returns:
-        A new RGB image
-    '''
-    rgb_image_with_timestamp = deepcopy(rgb_image)
-
-    cv2.putText(
-        rgb_image_with_timestamp,
-        text,
-        text_position,
-        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-        fontScale=font_scale,
-        color=text_color_rgb,
-        thickness=5,
-        lineType=cv2.LINE_AA
-    )
-
-    return rgb_image_with_timestamp
+from osmo_camera.file_structure import create_output_directory, get_files_with_extension, datetime_from_filename
 
 
 def generate_summary_images(raw_image_paths: List[str], ROI_definitions: Dict[str, tuple], raw_images_dir: str) -> str:
@@ -74,7 +37,7 @@ def generate_summary_images(raw_image_paths: List[str], ROI_definitions: Dict[st
     # Draw ROIs on them and save
     for image_path in sample_image_paths:
         rgb_image = raw.open.as_rgb(image_path)
-        rgb_image_with_ROIs = draw_ROIs_on_image(rgb_image, ROI_definitions)
+        rgb_image_with_ROIs = rgb.annotate.draw_ROIs_on_image(rgb_image, ROI_definitions)
 
         # Save in new directory, with same name but as a .png.
         filename_root, extension = os.path.splitext(os.path.basename(image_path))
@@ -129,14 +92,14 @@ def _open_filter_annotate_and_scale_image(
 ):
     rgb_image = raw.open.as_rgb(filepath)
     filtered_image = rgb.filter.select_channels(rgb_image, color_channels)
+    annotated_image = rgb.annotate.draw_ROIs_on_image(filtered_image, ROI_definitions)
 
-    annotated_image = draw_ROIs_on_image(filtered_image, ROI_definitions)
     filename = os.path.basename(filepath)
 
-    if show_timestamp and filename_has_correct_datetime_format(filename):
+    if show_timestamp:
         # Extract image timestamp from filename
         timestamp = datetime_from_filename(filename)
-        annotated_image = draw_text_on_image(annotated_image, str(timestamp))
+        annotated_image = rgb.annotate.draw_text_on_image(annotated_image, str(timestamp))
 
     PIL_image = rgb.convert.to_PIL(annotated_image)
     scaled_image = scale_image(PIL_image, image_scale_factor)

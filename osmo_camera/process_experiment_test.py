@@ -20,7 +20,10 @@ def mock_side_effects(mocker):
         pd.DataFrame([{'mock ROI statistic': sentinel.roi_summary_statistic}]),
         pd.Series({'mock image diagnostic': sentinel.image_diagnostic}),
     )
-    mocker.patch.object(module, 'draw_ROIs_on_image').return_value = sentinel.rgb_image_with_ROI_definitions
+    mocker.patch.object(
+        module.rgb.annotate,
+        'draw_ROIs_on_image'
+    ).return_value = sentinel.rgb_image_with_ROI_definitions
     mocker.patch.object(module.raw.open, 'as_rgb').return_value = sentinel.opened_image_filepath
     mocker.patch.object(module, 'get_raw_image_paths_for_experiment').return_value = [sentinel.image_filepath]
 

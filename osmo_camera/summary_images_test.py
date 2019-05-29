@@ -14,9 +14,9 @@ pytest_plugins = 'pytester'
 @pytest.fixture
 def mock_image_helper_functions(mocker):
     mocker.patch.object(module.raw.open, 'as_rgb').return_value = sentinel.rgb_image
-    mocker.patch.object(module.rgb.filter, 'select_channels').return_value = sentinel.r_only_image
-    mocker.patch.object(module, 'draw_ROIs_on_image').return_value = sentinel.roi_image
-    mocker.patch.object(module, 'draw_text_on_image').return_value = sentinel.annotated_image
+    mocker.patch.object(module.rgb.filter, 'select_channels').return_value = sentinel.channel_selected_image
+    mocker.patch.object(module.rgb.annotate, 'draw_ROIs_on_image').return_value = sentinel.roi_image
+    mocker.patch.object(module.rgb.annotate, 'draw_text_on_image').return_value = sentinel.annotated_image
 
 
 class TestImageFilepaths(object):
@@ -54,8 +54,7 @@ class TestSummaryMediaGeneration(object):
     def test_open_filter_annotate_and_scale_image(self, mocker, mock_image_helper_functions):
         test_array = np.zeros((10, 10, 3))
         mocker.patch.object(module.os.path, 'basename').return_value = sentinel.mock_filename
-        mocker.patch.object(module, 'filename_has_correct_datetime_format').return_value = True
-        module.draw_ROIs_on_image.return_value = test_array  # type: ignore
+        module.rgb.annotate.draw_ROIs_on_image.return_value = test_array  # type: ignore
 
         annotated_scaled_image = module._open_filter_annotate_and_scale_image(
             sentinel.mock_filepath,
@@ -66,30 +65,30 @@ class TestSummaryMediaGeneration(object):
         )
 
         np.testing.assert_array_equal(annotated_scaled_image, np.zeros((5, 5, 3)))
-        module.raw.open.as_rgb.assert_called_with(sentinel.mock_filepath)  # type: ignore
-        module.rgb.filter.select_channels.assert_called_with(sentinel.rgb_image, 'r')  # type: ignore
-        module.draw_ROIs_on_image.assert_called_with(sentinel.r_only_image, sentinel.ROI_definition)  # type: ignore
-        module.draw_text_on_image.assert_not_called()  # type: ignore
 
-    def test_draw_text_is_not_called(self, mocker, mock_image_helper_functions):
+    def test_throws_when_no_timestamp_in_filename(self, mocker, mock_image_helper_functions):
         mocker.patch.object(module.rgb.convert, 'to_PIL')
         mocker.patch.object(module, 'scale_image')
 
-        module._open_filter_annotate_and_scale_image(
-            'test_file_1',
-            sentinel.ROI_definition,
-            image_scale_factor=1,
-            color_channels='r',
-            show_timestamp=True
-        )
+        filepath = 'test_file_1'
 
-        module.draw_text_on_image.assert_not_called()  # type: ignore
+        with pytest.raises(ValueError) as exception_info:
+            module._open_filter_annotate_and_scale_image(
+                filepath,
+                sentinel.ROI_definition,
+                image_scale_factor=1,
+                color_channels='r',
+                show_timestamp=True
+            )
 
-    def test_draw_text_is_called(self, mocker, mock_image_helper_functions):
+        assert f'\'{filepath}\' does not match format' in str(exception_info.value)
+        module.rgb.annotate.draw_text_on_image.assert_not_called()  # type: ignore
+
+    def test_calls_draw_text_when_timestamp_in_filename(self, mocker, mock_image_helper_functions):
         filepath = '2019-01-01--00-00-00.jpeg'
         test_array = np.zeros((10, 10, 3))
 
-        module.draw_text_on_image.return_value = test_array  # type: ignore
+        module.rgb.annotate.draw_text_on_image.return_value = test_array  # type: ignore
 
         module._open_filter_annotate_and_scale_image(
             filepath,
@@ -99,7 +98,10 @@ class TestSummaryMediaGeneration(object):
             show_timestamp=True
         )
 
-        module.draw_text_on_image.assert_called_with(sentinel.roi_image, '2019-01-01 00:00:00')  # type: ignore
+        module.rgb.annotate.draw_text_on_image.assert_called_with(  # type: ignore
+            sentinel.roi_image,
+            '2019-01-01 00:00:00'
+        )
 
     def test_generate_summary_gif(self, testdir, mocker):
         mocker.patch.object(module, '_open_filter_annotate_and_scale_image').return_value = np.zeros((10, 10, 3))
@@ -128,23 +130,3 @@ class TestSummaryMediaGeneration(object):
         expected_filename = 'test.mp4'
 
         assert os.path.isfile(expected_filename)
-
-
-class TestDrawTextOnImage(object):
-    def test_output_has_content(self):
-        test_image = np.zeros((5, 5, 3))
-        test_text = '1'
-
-        # These particular text + font settings should result in every pixel
-        # int the image being covered with the text
-        output_image = module.draw_text_on_image(
-            test_image,
-            test_text,
-            text_color_rgb=(1, 1, 1),
-            text_position=(-10, 10),
-            font_scale=1
-        )
-
-        np.testing.assert_array_equal(output_image, np.ones((5, 5, 3)))
-        # Ensure input is not mutated
-        assert (test_image != output_image).any()
