@@ -13,7 +13,7 @@ class TestDrawTextOnImage(object):
             test_text
         )
 
-        assert output_image.any()
-        assert (np.ones_like(output_image) != output_image).any()
+        assert (output_image == 1).any()
+        assert (output_image == 0).any()
         # Ensure input is not mutated
         assert (test_image != output_image).any()
