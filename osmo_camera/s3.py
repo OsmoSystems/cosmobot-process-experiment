@@ -40,6 +40,17 @@ def _download_s3_files(experiment_directory: str, file_names: List[str], output_
     ''' Download specific filenames from within an experiment directory on s3.
     '''
 
+    # 100 is a safe limit for batch sizes to prevent slowdown in how S3 filters files
+    max_batch_size = 100
+    if len(file_names) > max_batch_size:
+        file_name_batches = [
+            file_names[x:x + max_batch_size]
+            for x in range(0, len(file_names), max_batch_size)
+        ]
+
+        for _, batch_file_names in enumerate(file_name_batches):
+            _download_s3_files(experiment_directory, batch_file_names, output_directory_path)
+
     include_args = ' '.join([
         f'--include "{file_name}"'
         for file_name in file_names
