@@ -40,18 +40,29 @@ def _download_s3_files(experiment_directory: str, file_names: List[str], output_
     ''' Download specific filenames from within an experiment directory on s3.
     '''
 
-    include_args = ' '.join([
-        f'--include "{file_name}"'
-        for file_name in file_names
-    ])
+    # Our implementation for performing a filtered download of files from s3 chokes when attempting to
+    # download large numbers of files. To avoid this problem, perform the download in batches.
+    # 100 appears to be a safe batch-size limit
+    batch_size = 100
+    file_name_batches = file_name_batches = [
+        file_names[batch_start_index:batch_start_index + batch_size]
+        for batch_start_index in range(0, len(file_names), batch_size)
+    ]
 
-    # Would be better to use boto, but neither boto nor boto3 support sync
-    # https://github.com/boto/boto3/issues/358
-    command = (
-        f'aws s3 sync s3://{CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME}/{experiment_directory} {output_directory_path} '
-        f'--exclude "*" {include_args}'
-    )
-    check_call([command], shell=True)
+    for batch_file_names in file_name_batches:
+
+        include_args = ' '.join([
+            f'--include "{file_name}"'
+            for file_name in batch_file_names
+        ])
+
+        # Would be better to use boto, but neither boto nor boto3 support sync
+        # https://github.com/boto/boto3/issues/358
+        command = (
+            f'aws s3 sync s3://{CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME}/{experiment_directory} {output_directory_path} '
+            f'--exclude "*" {include_args}'
+        )
+        check_call([command], shell=True)
 
 
 _IMAGES_INFO_COLUMNS = [
