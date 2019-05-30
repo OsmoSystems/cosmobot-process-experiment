@@ -78,7 +78,7 @@ class TestDownloadS3Files:
 
         mock_check_call.assert_called_with([expected_command], shell=True)
 
-    def test_recursive_sync_includes_all_images(self, mock_check_call):
+    def test_many_images_batched_properly(self, mock_check_call):
         test_file_names = [f'test_image{i}.jpeg' for i in range(101)]
 
         module._download_s3_files(
