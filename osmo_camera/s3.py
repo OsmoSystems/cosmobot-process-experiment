@@ -40,29 +40,29 @@ def _download_s3_files(experiment_directory: str, file_names: List[str], output_
     ''' Download specific filenames from within an experiment directory on s3.
     '''
 
-    # 100 is a safe limit for batch sizes to prevent slowdown in how S3 filters files
-    max_batch_size = 100
-    if len(file_names) > max_batch_size:
-        file_name_batches = [
-            file_names[x:x + max_batch_size]
-            for x in range(0, len(file_names), max_batch_size)
-        ]
+    # Our implementation for performing a filtered download of files from s3 chokes when attempting to
+    # download large numbers of files. To avoid this problem, perform the download in batches.
+    # 100 appears to be a safe batch-size limit
+    batch_size = 100
+    file_name_batches = file_name_batches = [
+        file_names[batch_start_index:batch_start_index + batch_size]
+        for batch_start_index in range(0, len(file_names), batch_size)
+    ]
 
-        for _, batch_file_names in enumerate(file_name_batches):
-            _download_s3_files(experiment_directory, batch_file_names, output_directory_path)
+    for batch_file_names in file_name_batches:
 
-    include_args = ' '.join([
-        f'--include "{file_name}"'
-        for file_name in file_names
-    ])
+        include_args = ' '.join([
+            f'--include "{file_name}"'
+            for file_name in batch_file_names
+        ])
 
-    # Would be better to use boto, but neither boto nor boto3 support sync
-    # https://github.com/boto/boto3/issues/358
-    command = (
-        f'aws s3 sync s3://{CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME}/{experiment_directory} {output_directory_path} '
-        f'--exclude "*" {include_args}'
-    )
-    check_call([command], shell=True)
+        # Would be better to use boto, but neither boto nor boto3 support sync
+        # https://github.com/boto/boto3/issues/358
+        command = (
+            f'aws s3 sync s3://{CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME}/{experiment_directory} {output_directory_path} '
+            f'--exclude "*" {include_args}'
+        )
+        check_call([command], shell=True)
 
 
 _IMAGES_INFO_COLUMNS = [

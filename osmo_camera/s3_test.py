@@ -78,6 +78,33 @@ class TestDownloadS3Files:
 
         mock_check_call.assert_called_with([expected_command], shell=True)
 
+    def test_recursive_sync_includes_all_images(self, mock_check_call):
+        test_file_names = [f'test_image{i}.jpeg' for i in range(101)]
+
+        module._download_s3_files(
+            experiment_directory='my_experiment',
+            file_names=test_file_names,
+            output_directory_path='local_sync_path'
+        )
+
+        # Chained indexing to first expected command:
+        # First call() in call list, arguments provided to first call (tuple),
+        # first argument provided (list), first item in list (command string)
+        first_expected_command = mock_check_call.call_args_list[0][0][0][0]
+
+        second_expected_command = (
+            'aws s3 sync s3://camera-sensor-experiments/my_experiment local_sync_path '
+            '--exclude "*" '
+            '--include "test_image100.jpeg"'
+        )
+
+        assert mock_check_call.call_count == 2
+        assert 'test_image0.jpeg' in first_expected_command
+        assert 'test_image99.jpeg' in first_expected_command
+        assert 'test_image100.jpeg' not in first_expected_command
+        assert first_expected_command.count('test_image') == 100
+        mock_check_call.assert_called_with([second_expected_command], shell=True)
+
 
 class TestGetImagesInfo:
     def test_creates_appropriate_dataframe_ignoring_non_jpeg_files(self):
