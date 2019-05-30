@@ -83,6 +83,16 @@ def scale_image(PIL_image, image_scale_factor):
     ))
 
 
+def _annotate_image(rgb_image, ROI_definitions, show_timestamp, filepath):
+    image_with_ROIs = rgb.annotate.draw_ROIs_on_image(rgb_image, ROI_definitions)
+
+    if show_timestamp:
+        timestamp = datetime_from_filename(os.path.basename(filepath))
+        return rgb.annotate.draw_text_on_image(image_with_ROIs, str(timestamp))
+
+    return image_with_ROIs
+
+
 def _open_filter_annotate_and_scale_image(
     filepath,
     ROI_definitions,
@@ -92,14 +102,7 @@ def _open_filter_annotate_and_scale_image(
 ):
     rgb_image = raw.open.as_rgb(filepath)
     filtered_image = rgb.filter.select_channels(rgb_image, color_channels)
-    annotated_image = rgb.annotate.draw_ROIs_on_image(filtered_image, ROI_definitions)
-
-    filename = os.path.basename(filepath)
-
-    if show_timestamp:
-        # Extract image timestamp from filename
-        timestamp = datetime_from_filename(filename)
-        annotated_image = rgb.annotate.draw_text_on_image(annotated_image, str(timestamp))
+    annotated_image = _annotate_image(filtered_image, ROI_definitions, show_timestamp, filepath)
 
     PIL_image = rgb.convert.to_PIL(annotated_image)
     scaled_image = scale_image(PIL_image, image_scale_factor)
@@ -113,7 +116,7 @@ def generate_summary_gif(
     name='summary',
     image_scale_factor=0.25,
     color_channels='rgb',
-    show_timestamp=False
+    show_timestamp=True
 ):
     ''' Compile a list of images into a summary GIF with ROI definitions overlayed.
     Saves GIF to the current working directory.
@@ -127,7 +130,7 @@ def generate_summary_gif(
         image_scale_factor: Optional. Number multiplier used to scale images to adjust file size. Defaults to 1/4.
         color_channels: Optional. Lowercase string of rgb channels to show in the output image. Defaults to 'rgb'.
         show_timestamp: Optional. Boolean indicating whether to write image timestamps in output GIF
-            Defaults to False.
+            Defaults to True.
 
     Returns:
         The name of the GIF file that was saved.
@@ -153,7 +156,7 @@ def generate_summary_video(
     name='summary',
     image_scale_factor=1,
     color_channels='rgb',
-    show_timestamp=False,
+    show_timestamp=True,
     fps=1
 ):
     ''' Compile a list of images into a summary video with ROI definitions overlayed.
@@ -168,7 +171,7 @@ def generate_summary_video(
         image_scale_factor: Optional. Number multiplier used to scale images to adjust file size. Defaults to 1.
         color_channels: Optional. Lowercase string of rgb channels to show in the output image. Defaults to 'rgb'.
         show_timestamp: Optional. Boolean indicating whether to write image timestamps in output video.
-            Defaults to False.
+            Defaults to True.
         fps: Optional. Integer video frames-per-second. Defaults to 1.
 
     Returns:

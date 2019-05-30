@@ -82,7 +82,6 @@ class TestSummaryMediaGeneration(object):
             )
 
         assert f'\'{filepath}\' does not match format' in str(exception_info.value)
-        module.rgb.annotate.draw_text_on_image.assert_not_called()  # type: ignore
 
     def test_calls_draw_text_when_timestamp_in_filename(self, mocker, mock_image_helper_functions):
         filepath = '2019-01-01--00-00-00.jpeg'
