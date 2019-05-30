@@ -1,12 +1,22 @@
 import os
 from unittest.mock import sentinel
 
-from PIL import Image
 import numpy as np
+import pytest
+from PIL import Image
+
 from . import summary_images as module
 
 # Needed for `testdir` fixture
 pytest_plugins = 'pytester'
+
+
+@pytest.fixture
+def mock_image_helper_functions(mocker):
+    mocker.patch.object(module.raw.open, 'as_rgb').return_value = sentinel.rgb_image
+    mocker.patch.object(module.rgb.filter, 'select_channels').return_value = sentinel.channel_selected_image
+    mocker.patch.object(module.rgb.annotate, 'draw_ROIs_on_image').return_value = sentinel.roi_image
+    mocker.patch.object(module.rgb.annotate, 'draw_text_on_image').return_value = sentinel.annotated_image
 
 
 class TestImageFilepaths(object):
@@ -41,26 +51,56 @@ class TestScaleImage(object):
 
 
 class TestSummaryMediaGeneration(object):
-    def test_open_filter_annotate_and_scale_image(self, mocker):
+    def test_open_filter_annotate_and_scale_image(self, mocker, mock_image_helper_functions):
         test_array = np.zeros((10, 10, 3))
-        mock_as_rgb = mocker.patch.object(module.raw.open, 'as_rgb')
-        mock_as_rgb.return_value = sentinel.rgb_image
-        mock_select_channels = mocker.patch.object(module.rgb.filter, 'select_channels')
-        mock_select_channels.return_value = sentinel.r_only_image
-        mock_draw_ROIs_on_image = mocker.patch.object(module, 'draw_ROIs_on_image')
-        mock_draw_ROIs_on_image.return_value = test_array
+        mocker.patch.object(module.os.path, 'basename').return_value = sentinel.mock_filename
+        module.rgb.annotate.draw_ROIs_on_image.return_value = test_array  # type: ignore
 
         annotated_scaled_image = module._open_filter_annotate_and_scale_image(
             sentinel.mock_filepath,
             sentinel.ROI_definition,
             image_scale_factor=0.5,
-            color_channels='r'
+            color_channels='r',
+            show_timestamp=False
         )
 
         np.testing.assert_array_equal(annotated_scaled_image, np.zeros((5, 5, 3)))
-        mock_as_rgb.assert_called_with(sentinel.mock_filepath)
-        mock_select_channels.assert_called_with(sentinel.rgb_image, 'r')
-        mock_draw_ROIs_on_image.assert_called_with(sentinel.r_only_image, sentinel.ROI_definition)
+
+    def test_throws_when_no_timestamp_in_filename(self, mocker, mock_image_helper_functions):
+        mocker.patch.object(module.rgb.convert, 'to_PIL')
+        mocker.patch.object(module, 'scale_image')
+
+        filepath = 'test_file_1'
+
+        with pytest.raises(ValueError) as exception_info:
+            module._open_filter_annotate_and_scale_image(
+                filepath,
+                sentinel.ROI_definition,
+                image_scale_factor=1,
+                color_channels='r',
+                show_timestamp=True
+            )
+
+        assert f'\'{filepath}\' does not match format' in str(exception_info.value)
+
+    def test_calls_draw_text_when_timestamp_in_filename(self, mocker, mock_image_helper_functions):
+        filepath = '2019-01-01--00-00-00.jpeg'
+        test_array = np.zeros((10, 10, 3))
+
+        module.rgb.annotate.draw_text_on_image.return_value = test_array  # type: ignore
+
+        module._open_filter_annotate_and_scale_image(
+            filepath,
+            sentinel.ROI_definition,
+            image_scale_factor=1,
+            color_channels='r',
+            show_timestamp=True
+        )
+
+        module.rgb.annotate.draw_text_on_image.assert_called_with(  # type: ignore
+            sentinel.roi_image,
+            '2019-01-01 00:00:00'
+        )
 
     def test_generate_summary_gif(self, testdir, mocker):
         mocker.patch.object(module, '_open_filter_annotate_and_scale_image').return_value = np.zeros((10, 10, 3))

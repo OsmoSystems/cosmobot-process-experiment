@@ -9,8 +9,7 @@ import imageio
 import numpy as np
 
 from osmo_camera import tiff, raw, rgb
-from osmo_camera.file_structure import create_output_directory, get_files_with_extension
-from osmo_camera.select_ROI import draw_ROIs_on_image
+from osmo_camera.file_structure import create_output_directory, get_files_with_extension, datetime_from_filename
 
 
 def generate_summary_images(raw_image_paths: List[str], ROI_definitions: Dict[str, tuple], raw_images_dir: str) -> str:
@@ -38,7 +37,7 @@ def generate_summary_images(raw_image_paths: List[str], ROI_definitions: Dict[st
     # Draw ROIs on them and save
     for image_path in sample_image_paths:
         rgb_image = raw.open.as_rgb(image_path)
-        rgb_image_with_ROIs = draw_ROIs_on_image(rgb_image, ROI_definitions)
+        rgb_image_with_ROIs = rgb.annotate.draw_ROIs_on_image(rgb_image, ROI_definitions)
 
         # Save in new directory, with same name but as a .png.
         filename_root, extension = os.path.splitext(os.path.basename(image_path))
@@ -84,11 +83,26 @@ def scale_image(PIL_image, image_scale_factor):
     ))
 
 
-def _open_filter_annotate_and_scale_image(filepath, ROI_definitions, image_scale_factor, color_channels):
+def _annotate_image(rgb_image, ROI_definitions, show_timestamp, filepath):
+    image_with_ROIs = rgb.annotate.draw_ROIs_on_image(rgb_image, ROI_definitions)
+
+    if show_timestamp:
+        timestamp = datetime_from_filename(os.path.basename(filepath))
+        return rgb.annotate.draw_text_on_image(image_with_ROIs, str(timestamp))
+
+    return image_with_ROIs
+
+
+def _open_filter_annotate_and_scale_image(
+    filepath,
+    ROI_definitions,
+    image_scale_factor,
+    color_channels,
+    show_timestamp
+):
     rgb_image = raw.open.as_rgb(filepath)
     filtered_image = rgb.filter.select_channels(rgb_image, color_channels)
-
-    annotated_image = draw_ROIs_on_image(filtered_image, ROI_definitions)
+    annotated_image = _annotate_image(filtered_image, ROI_definitions, show_timestamp, filepath)
 
     PIL_image = rgb.convert.to_PIL(annotated_image)
     scaled_image = scale_image(PIL_image, image_scale_factor)
@@ -96,7 +110,14 @@ def _open_filter_annotate_and_scale_image(filepath, ROI_definitions, image_scale
     return np.array(scaled_image)
 
 
-def generate_summary_gif(filepaths, ROI_definitions, name='summary', image_scale_factor=0.25, color_channels='rgb'):
+def generate_summary_gif(
+    filepaths,
+    ROI_definitions,
+    name='summary',
+    image_scale_factor=0.25,
+    color_channels='rgb',
+    show_timestamp=True
+):
     ''' Compile a list of images into a summary GIF with ROI definitions overlayed.
     Saves GIF to the current working directory.
 
@@ -108,13 +129,21 @@ def generate_summary_gif(filepaths, ROI_definitions, name='summary', image_scale
         name: Optional. String name of the file to be saved. Defaults to 'summary'
         image_scale_factor: Optional. Number multiplier used to scale images to adjust file size. Defaults to 1/4.
         color_channels: Optional. Lowercase string of rgb channels to show in the output image. Defaults to 'rgb'.
+        show_timestamp: Optional. Boolean indicating whether to write image timestamps in output GIF
+            Defaults to True.
 
     Returns:
         The name of the GIF file that was saved.
     '''
     output_filename = f'{name}.gif'
     images = [
-        _open_filter_annotate_and_scale_image(filepath, ROI_definitions, image_scale_factor, color_channels)
+        _open_filter_annotate_and_scale_image(
+            filepath,
+            ROI_definitions,
+            image_scale_factor,
+            color_channels,
+            show_timestamp
+        )
         for filepath in filepaths
     ]
     imageio.mimsave(output_filename, images)
@@ -127,6 +156,7 @@ def generate_summary_video(
     name='summary',
     image_scale_factor=1,
     color_channels='rgb',
+    show_timestamp=True,
     fps=1
 ):
     ''' Compile a list of images into a summary video with ROI definitions overlayed.
@@ -140,6 +170,8 @@ def generate_summary_video(
         name: Optional. String name of the file to be saved. Defaults to 'summary'
         image_scale_factor: Optional. Number multiplier used to scale images to adjust file size. Defaults to 1.
         color_channels: Optional. Lowercase string of rgb channels to show in the output image. Defaults to 'rgb'.
+        show_timestamp: Optional. Boolean indicating whether to write image timestamps in output video.
+            Defaults to True.
         fps: Optional. Integer video frames-per-second. Defaults to 1.
 
     Returns:
@@ -156,7 +188,8 @@ def generate_summary_video(
             filepath,
             ROI_definitions,
             image_scale_factor,
-            color_channels
+            color_channels,
+            show_timestamp
         )
         writer.append_data(prepared_image)
 

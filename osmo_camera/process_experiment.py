@@ -8,10 +8,10 @@ import tqdm
 
 from osmo_camera.s3 import sync_from_s3
 from osmo_camera.process_image import process_image
-from osmo_camera.select_ROI import prompt_for_ROI_selection, draw_ROIs_on_image
+from osmo_camera.select_ROI import prompt_for_ROI_selection
 from osmo_camera.summary_images import generate_summary_images
 from osmo_camera.file_structure import iso_datetime_for_filename, get_files_with_extension
-from osmo_camera import raw, jupyter
+from osmo_camera import raw, rgb, jupyter
 
 
 def _open_first_image(raw_image_paths):
@@ -146,7 +146,7 @@ def process_experiment(
         print('ROI definitions:', ROI_definitions)
 
     jupyter.show_image(
-        draw_ROIs_on_image(first_rgb_image, ROI_definitions),
+        rgb.annotate.draw_ROIs_on_image(first_rgb_image, ROI_definitions),
         title='Reference image with labelled ROIs',
         figsize=[7, 7]
     )
