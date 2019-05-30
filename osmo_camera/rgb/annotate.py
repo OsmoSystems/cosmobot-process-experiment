@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-green_color = (0, 1, 0)
+GREEN_COLOR = (0, 1, 0)
 
 
 def draw_ROIs_on_image(rgb_image, ROI_definitions={}):
@@ -17,7 +17,7 @@ def draw_ROIs_on_image(rgb_image, ROI_definitions={}):
             rgb_image_with_ROI_definitions,
             top_left_corner,
             bottom_right_corner,
-            color=green_color,
+            color=GREEN_COLOR,
             thickness=3
         )
         cv2.putText(
@@ -26,7 +26,7 @@ def draw_ROIs_on_image(rgb_image, ROI_definitions={}):
             top_left_corner,
             fontFace=cv2.FONT_HERSHEY_SIMPLEX,
             fontScale=2,
-            color=green_color,
+            color=GREEN_COLOR,
             thickness=5,
             lineType=cv2.LINE_AA
         )
@@ -54,7 +54,7 @@ def draw_text_on_image(rgb_image, text):
         text_position,
         fontFace=cv2.FONT_HERSHEY_SIMPLEX,
         fontScale=font_scale,
-        color=green_color,
+        color=GREEN_COLOR,
         thickness=5,
         lineType=cv2.LINE_AA
     )
