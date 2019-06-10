@@ -65,6 +65,19 @@ def _download_s3_files(experiment_directory: str, file_names: List[str], output_
         check_call([command], shell=True)
 
 
+def get_local_filepaths(
+        experiment_directory: str,
+        file_names: pd.Series,
+        output_directory_path: str,
+        sync_images: bool
+) -> pd.Series:
+    ''' Get local file paths corresponding to files synced from s3, optionally performing the sync too.
+    '''
+    if sync_images:
+        _download_s3_files(experiment_directory, file_names, output_directory_path)
+    return output_directory_path + '/' + file_names
+
+
 _IMAGES_INFO_COLUMNS = [
     'Timestamp',
     'variant',
