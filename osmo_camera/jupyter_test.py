@@ -19,7 +19,7 @@ class TestLoadMultiExperimentDatasetCsv:
         filename = 'filenameeeee.jpeg'
         experiment_name = 'expeeeeeriment'
         test_df = pd.DataFrame([
-            {'experiment': experiment_name, 'image': filename}
+            {'experiment': experiment_name, 'image': filename, 'other': 'other'}
         ])
         csv_filename = 'big_special_dataset.csv'
         csv_filepath = os.path.join(tmp_path, csv_filename)

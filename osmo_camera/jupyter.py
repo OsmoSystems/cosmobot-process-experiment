@@ -148,7 +148,7 @@ def load_multi_experiment_dataset_csv(dataset_csv_path: str, sync_images: bool =
         )
 
     # Use a groupby to get image file paths one experiment at a time
-    local_filepaths = full_dataset.groupby('experiment', as_index=False).progress_apply(
+    local_filepaths = full_dataset.groupby('experiment', as_index=False, group_keys=False).progress_apply(
         lambda rows_for_experiment: get_local_filepaths(
             experiment_directory=rows_for_experiment['experiment'].values[0],
             file_names=rows_for_experiment['image'],
