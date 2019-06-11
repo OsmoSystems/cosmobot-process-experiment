@@ -79,7 +79,8 @@ class TestDownloadS3Files:
         mock_check_call.assert_called_with([expected_command], shell=True)
 
     def test_many_images_batched_properly(self, mock_check_call):
-        test_file_names = [f'test_image{i}.jpeg' for i in range(101)]
+        batch_size = 30
+        test_file_names = [f'test_image{i}.jpeg' for i in range(batch_size + 1)]
 
         module._download_s3_files(
             experiment_directory='my_experiment',
@@ -95,14 +96,14 @@ class TestDownloadS3Files:
         second_expected_command = (
             'aws s3 sync s3://camera-sensor-experiments/my_experiment local_sync_path '
             '--exclude "*" '
-            '--include "test_image100.jpeg"'
+            f'--include "test_image{batch_size}.jpeg"'
         )
 
         assert mock_check_call.call_count == 2
         assert 'test_image0.jpeg' in first_expected_command
-        assert 'test_image99.jpeg' in first_expected_command
-        assert 'test_image100.jpeg' not in first_expected_command
-        assert first_expected_command.count('test_image') == 100
+        assert f'test_image{batch_size - 1}.jpeg' in first_expected_command
+        assert f'test_image{batch_size}.jpeg' not in first_expected_command
+        assert first_expected_command.count('test_image') == 30
         mock_check_call.assert_called_with([second_expected_command], shell=True)
 
 
