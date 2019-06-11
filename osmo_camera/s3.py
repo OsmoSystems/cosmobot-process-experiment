@@ -75,7 +75,9 @@ def get_local_filepaths(
     '''
     if sync_images:
         _download_s3_files(experiment_directory, file_names, output_directory_path)
-    return output_directory_path + '/' + file_names
+    return file_names.apply(
+        lambda filename: os.path.join(output_directory_path, filename)
+    )
 
 
 _IMAGES_INFO_COLUMNS = [
