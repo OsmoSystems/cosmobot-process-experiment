@@ -42,8 +42,8 @@ def _download_s3_files(experiment_directory: str, file_names: List[str], output_
 
     # Our implementation for performing a filtered download of files from s3 chokes when attempting to
     # download large numbers of files. To avoid this problem, perform the download in batches.
-    # 100 appears to be a safe batch-size limit
-    batch_size = 100
+    # 30 appears to be a safe batch-size limit
+    batch_size = 30
     file_name_batches = file_name_batches = [
         file_names[batch_start_index:batch_start_index + batch_size]
         for batch_start_index in range(0, len(file_names), batch_size)
