@@ -6,6 +6,16 @@ from tqdm.auto import tqdm
 from osmo_camera.s3 import naive_s3_sync
 
 
+def _get_files_for_experiment_df(experiment_df, local_image_files_directory):
+    # All rows in the group are the same experiment, so just grab the first one
+    experiment_directory = experiment_df['experiment'].values[0]
+    return naive_s3_sync(
+        experiment_directory=experiment_directory,
+        file_names=experiment_df['image'],
+        output_directory_path=local_image_files_directory,
+    )
+
+
 def load_multi_experiment_dataset_csv(dataset_csv_path: str) -> pd.DataFrame:
     ''' For a pre-prepared ML dataset, load the DataFrame with local image paths, optionally downloading said images
     Note that syncing tends to take a long time, though syncing for individual experiments will be skipped if all files
@@ -48,11 +58,8 @@ def load_multi_experiment_dataset_csv(dataset_csv_path: str) -> pd.DataFrame:
     )
 
     local_filepaths = dataset_by_experiment.progress_apply(
-        lambda rows_for_experiment: naive_s3_sync(
-            experiment_directory=rows_for_experiment['experiment'].values[0],
-            file_names=rows_for_experiment['image'],
-            output_directory_path=local_image_files_directory,
-        )
+        _get_files_for_experiment_df,
+        local_image_files_directory=local_image_files_directory
     )
 
     print('Done syncing images. thanks for waiting.')
