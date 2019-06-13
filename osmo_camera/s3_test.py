@@ -1,4 +1,5 @@
 import datetime
+import os
 
 import pandas as pd
 import pytest
@@ -19,6 +20,11 @@ def mock_get_filenames_from_s3(mocker):
     # _get_filenames_from_s3 uses boto to interact with s3
     # (through _list_camera_sensor_experiments_s3_bucket_contents); use this fixture to mock it.
     return mocker.patch.object(module, '_get_filenames_from_s3')
+
+
+@pytest.fixture
+def mock_download_s3_files(mocker):
+    return mocker.patch.object(module, '_download_s3_files')
 
 
 @pytest.fixture
@@ -79,7 +85,8 @@ class TestDownloadS3Files:
         mock_check_call.assert_called_with([expected_command], shell=True)
 
     def test_many_images_batched_properly(self, mock_check_call):
-        test_file_names = [f'test_image{i}.jpeg' for i in range(101)]
+        batch_size = 30
+        test_file_names = [f'test_image{i}.jpeg' for i in range(batch_size + 1)]
 
         module._download_s3_files(
             experiment_directory='my_experiment',
@@ -95,15 +102,68 @@ class TestDownloadS3Files:
         second_expected_command = (
             'aws s3 sync s3://camera-sensor-experiments/my_experiment local_sync_path '
             '--exclude "*" '
-            '--include "test_image100.jpeg"'
+            f'--include "test_image{batch_size}.jpeg"'
         )
 
         assert mock_check_call.call_count == 2
         assert 'test_image0.jpeg' in first_expected_command
-        assert 'test_image99.jpeg' in first_expected_command
-        assert 'test_image100.jpeg' not in first_expected_command
-        assert first_expected_command.count('test_image') == 100
+        assert f'test_image{batch_size - 1}.jpeg' in first_expected_command
+        assert f'test_image{batch_size}.jpeg' not in first_expected_command
+        assert first_expected_command.count('test_image') == 30
         mock_check_call.assert_called_with([second_expected_command], shell=True)
+
+
+class TestNaiveSyncFromS3:
+    def test_returns_filepaths_series(self, mock_download_s3_files):
+        actual_local_filepaths = module.naive_sync_from_s3(
+            experiment_directory='experiment_dir',
+            file_names=pd.Series(['filename_1', 'filename_2']),
+            output_directory_path='local_dir',
+        )
+
+        expected_local_filepaths = pd.Series([
+            os.path.join('local_dir', 'filename_1'),
+            os.path.join('local_dir', 'filename_2')
+        ])
+        pd.testing.assert_series_equal(actual_local_filepaths, expected_local_filepaths)
+
+    def test_skips_sync_when_all_files_present(self, mocker, mock_download_s3_files):
+        mocker.patch.object(module.os.path, 'isfile', return_value=True)
+
+        module.naive_sync_from_s3(
+            experiment_directory='experiment_dir',
+            file_names=pd.Series(['filename_1', 'filename_2']),
+            output_directory_path='local_dir',
+        )
+
+        mock_download_s3_files.assert_not_called()
+
+    def test_performs_sync_when_any_file_not_present(self, mocker, mock_download_s3_files):
+        mocker.patch.object(module.os.path, 'isfile', side_effect=[False, True])
+
+        experiment_directory = 'experiment_dir'
+        file_names = pd.Series(['filename_1', 'filename_2'])
+        output_directory_path = 'local_dir'
+
+        module.naive_sync_from_s3(
+            experiment_directory=experiment_directory,
+            file_names=file_names,
+            output_directory_path=output_directory_path,
+        )
+
+        mock_download_s3_files.assert_called_with(experiment_directory, file_names, output_directory_path)
+
+    def test_does_reasonable_things_when_no_files_passed(self, mock_download_s3_files):
+        expected_local_filepaths = pd.Series([])
+
+        actual_local_filepaths = module.naive_sync_from_s3(
+            experiment_directory='experiment_dir',
+            file_names=pd.Series([]),
+            output_directory_path='local_dir',
+        )
+
+        mock_download_s3_files.assert_not_called()
+        pd.testing.assert_series_equal(actual_local_filepaths, expected_local_filepaths)
 
 
 class TestGetImagesInfo:
