@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import pytest
 
-from osmo_camera import jupyter as module
+import osmo_camera.ml_dataset.load as module
 
 
 class ComparableSeries(pd.Series):
@@ -26,19 +26,22 @@ class TestLoadMultiExperimentDatasetCsv:
         test_df.to_csv(csv_filepath, index=False)
 
         local_jpeg_path = f'localpath/{filename}'
-        mock_get_local_filepaths = mocker.patch.object(
+        mock_download_s3_files_and_get_local_filepaths = mocker.patch.object(
             module,
-            'get_local_filepaths',
+            'download_s3_files_and_get_local_filepaths',
             return_value=local_jpeg_path
         )
 
-        actual_returned_dataframe = module.load_multi_experiment_dataset_csv(csv_filepath, sync_images=sync_images)
+        actual_returned_dataframe = module.load_multi_experiment_dataset_csv(
+            csv_filepath,
+            sync_images=sync_images
+        )
 
-        mock_get_local_filepaths.assert_called_with(
+        mock_download_s3_files_and_get_local_filepaths.assert_called_with(
             experiment_directory=experiment_name,
             file_names=ComparableSeries([filename]),
             output_directory_path=os.path.expanduser('~/osmo/cosmobot-data-sets/big_special_dataset'),
-            sync_images=sync_images
+            skip_download=not sync_images
         )
 
         expected_returned_dataframe = test_df.copy()

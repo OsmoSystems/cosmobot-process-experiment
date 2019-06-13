@@ -65,15 +65,16 @@ def _download_s3_files(experiment_directory: str, file_names: List[str], output_
         check_call([command], shell=True)
 
 
-def get_local_filepaths(
+def download_s3_files_and_get_local_filepaths(
         experiment_directory: str,
         file_names: pd.Series,
         output_directory_path: str,
-        sync_images: bool
+        skip_download: bool = False
 ) -> pd.Series:
-    ''' Get local file paths corresponding to files synced from s3, optionally performing the sync too.
+    ''' Sync a Series of files from s3, returning local file paths corresponding to the synced files.
+    Allows skipping the sync with skip_download.
     '''
-    if sync_images:
+    if not skip_download:
         _download_s3_files(experiment_directory, file_names, output_directory_path)
     return file_names.apply(
         lambda filename: os.path.join(output_directory_path, filename)
