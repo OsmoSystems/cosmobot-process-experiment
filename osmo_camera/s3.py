@@ -67,7 +67,7 @@ def _download_s3_files(experiment_directory: str, file_names: List[str], output_
         check_call([command], shell=True)
 
 
-def naive_s3_sync(
+def naive_sync_from_s3(
     experiment_directory: str,
     file_names: pd.Series,
     output_directory_path: str,

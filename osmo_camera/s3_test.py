@@ -1,4 +1,5 @@
 import datetime
+import os
 
 import pandas as pd
 import pytest
@@ -112,21 +113,24 @@ class TestDownloadS3Files:
         mock_check_call.assert_called_with([second_expected_command], shell=True)
 
 
-class TestNaiveS3Sync:
-    def test_returns_filenames_series(self, mock_download_s3_files):
-        actual_local_filepaths = module.naive_s3_sync(
+class TestNaiveSyncFromS3:
+    def test_returns_filepaths_series(self, mock_download_s3_files):
+        actual_local_filepaths = module.naive_sync_from_s3(
             experiment_directory='experiment_dir',
             file_names=pd.Series(['filename_1', 'filename_2']),
             output_directory_path='local_dir',
         )
 
-        expected_local_filepaths = pd.Series(['local_dir/filename_1', 'local_dir/filename_2'])
+        expected_local_filepaths = pd.Series([
+            os.path.join('local_dir', 'filename_1'),
+            os.path.join('local_dir', 'filename_2')
+        ])
         pd.testing.assert_series_equal(actual_local_filepaths, expected_local_filepaths)
 
     def test_skips_sync_when_all_files_present(self, mocker, mock_download_s3_files):
         mocker.patch.object(module.os.path, 'isfile', return_value=True)
 
-        module.naive_s3_sync(
+        module.naive_sync_from_s3(
             experiment_directory='experiment_dir',
             file_names=pd.Series(['filename_1', 'filename_2']),
             output_directory_path='local_dir',
@@ -141,7 +145,7 @@ class TestNaiveS3Sync:
         file_names = pd.Series(['filename_1', 'filename_2'])
         output_directory_path = 'local_dir'
 
-        module.naive_s3_sync(
+        module.naive_sync_from_s3(
             experiment_directory=experiment_directory,
             file_names=file_names,
             output_directory_path=output_directory_path,
@@ -152,7 +156,7 @@ class TestNaiveS3Sync:
     def test_does_reasonable_things_when_no_files_passed(self, mock_download_s3_files):
         expected_local_filepaths = pd.Series([])
 
-        actual_local_filepaths = module.naive_s3_sync(
+        actual_local_filepaths = module.naive_sync_from_s3(
             experiment_directory='experiment_dir',
             file_names=pd.Series([]),
             output_directory_path='local_dir',

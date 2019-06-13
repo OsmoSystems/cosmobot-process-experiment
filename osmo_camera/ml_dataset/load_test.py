@@ -22,13 +22,13 @@ class TestLoadMultiExperimentDatasetCsv:
         csv_filepath = os.path.join(tmp_path, csv_filename)
         test_df.to_csv(csv_filepath, index=False)
 
-        local_jpeg_path = f'localpath/{filename}'
+        local_jpeg_path = mocker.sentinel.local_jpeg_path
         expected_returned_dataframe = test_df.copy()
         expected_returned_dataframe['local_filepath'] = [local_jpeg_path]
 
         mock_download_s3_files_and_get_local_filepaths = mocker.patch.object(
             module,
-            'naive_s3_sync',
+            'naive_sync_from_s3',
             return_value=pd.Series([local_jpeg_path])
         )
 
