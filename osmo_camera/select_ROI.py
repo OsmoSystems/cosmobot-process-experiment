@@ -26,13 +26,12 @@ def choose_regions(rgb_image):
     )
 
     window_name = "ROIs selection"
-    cv2.namedWindow(
-        window_name, cv2.WINDOW_GUI_EXPANDED
-    )  # WINDOW_GUI_EXPANDED seems to allow you to resize the window
+    # WINDOW_GUI_EXPANDED seems to allow you to resize the window
+    cv2.namedWindow(window_name, cv2.WINDOW_GUI_EXPANDED)
 
     # Resize the window to a manageable default.
     window_size = 600  # in pixels
-    cv2.resizeWindow(window_name, window_size, window_size)
+    cv2.resizeWindow(window_name, "window_size", window_size)
 
     # Allows user to define ROIs (by selecting and pressing ENTER), until ESC is pressed to end selection process
     bgr_image = rgb.convert.to_bgr(rgb_image)  # OpenCV expects bgr format
@@ -41,9 +40,8 @@ def choose_regions(rgb_image):
     # OpenCV doesn't seem to like to actually close windows. Various attempts to force it have been unsuccessful.
     cv2.destroyWindow(window_name)
     cv2.destroyAllWindows()
-    cv2.waitKey(
-        1
-    )  # Wait for 1ms then (attempt to) close window. Supposedly necessary to "flush" the destroy events
+    # Wait for 1ms then (attempt to) close window. Supposedly necessary to "flush" the destroy events
+    cv2.waitKey(1)
 
     return regions
 
@@ -69,9 +67,7 @@ def prompt_for_ROI_selection(rgb_image):
     print("\nName your ROIs in the same order you selected them. Names must be unique.")
 
     ROI_definitions = {
-        input(
-            f"Unique name for ROI #{roi_number}: "
-        ): ROI  # Convert np array to list to make print readable
+        input(f"Unique name for ROI #{roi_number}: "): ROI
         for roi_number, ROI in numbered_ROI_definitions.items()
     }
 

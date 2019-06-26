@@ -39,9 +39,11 @@ def get_flat_field_diagnostics(before, after, image_path):
         {
             # Logically, the flat field should remove some real first-order effect
             # from the image so the Coefficient of Variation should decrease.
-            "cv_increased": diagnostics["cv_after"] - diagnostics["cv_before"]
-            > MAX_CV_INCREASE,
-            "nan_values_present": diagnostics.nan_values_after,
+            # fmt: off
+            "cv_increased":
+                diagnostics["cv_after"] - diagnostics["cv_before"] > MAX_CV_INCREASE,
+            # fmt: on
+            "nan_values_present": diagnostics.nan_values_after
         },
         # Force these values to be true/false - numbers in here are confusing & make warn_if_any_true mad
         dtype=np.bool_,

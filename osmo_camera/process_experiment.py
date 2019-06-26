@@ -18,9 +18,8 @@ from osmo_camera import raw, rgb, jupyter
 
 
 def _open_first_image(raw_image_paths):
-    first_filepath = sorted(raw_image_paths)[
-        0
-    ]  # Assumes images are prefixed with iso-ish datetimes
+    # Assumes images are prefixed with iso-ish datetimes
+    first_filepath = sorted(raw_image_paths)[0]
     return raw.open.as_rgb(first_filepath)
 
 

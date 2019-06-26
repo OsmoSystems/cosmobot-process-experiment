@@ -20,9 +20,7 @@ def get_ROI_statistics(ROI):
     flattened_channel_stats = {
         f"{color}_{stat}": channel_stats[stat][color_index]
         for stat in channel_stats
-        for color_index, color in enumerate(
-            "rgb"
-        )  # TODO: is it a safe assumption that everything's in rgb??
+        for color_index, color in enumerate("rgb")
     }
 
     return flattened_channel_stats

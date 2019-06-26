@@ -36,9 +36,8 @@ class TestFlatFieldDiagnostics:
         with np.errstate(invalid="ignore"):
             module.get_flat_field_diagnostics(before, after, mocker.sentinel.image_path)
 
-        actual_warning_series = mock_warn_if_any_true.call_args[0][
-            0
-        ]  # Indexing: First arg in first call
+        # Indexing: First arg in first call
+        actual_warning_series = mock_warn_if_any_true.call_args[0][0]
 
         expected_warning_series = pd.Series(
             {"cv_increased": False, "nan_values_present": False}

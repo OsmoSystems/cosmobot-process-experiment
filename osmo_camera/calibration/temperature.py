@@ -167,12 +167,18 @@ def temperature_given_digital_count(
         temperature: Calculated temperature in Celcius
     """
     # This function was artisenally reversed from the digital_count_given_temperature function using pencil and paper
-    numerator = (voltage_divider_resistor) / (
+    # fmt: off
+    numerator = (
+        voltage_divider_resistor /
         (thermistor_r0 * np.exp(-thermistor_beta / T_0_KELVIN))
     )
-    denominator = ((2 ** (adc_bit_depth - 1) - 1) * voltage_divider_v_in) / (
-        digital_count * adc_v_max
-    ) - 1
+    denominator = (
+            ((2 ** (adc_bit_depth - 1) - 1) * voltage_divider_v_in)
+            / (digital_count * adc_v_max)
+            - 1
+    )
+    # fmt: on
+
     temperature_k = thermistor_beta / np.log(numerator / denominator)
     temperature_c = _kelvin_to_celcius(temperature_k)
     return temperature_c

@@ -52,21 +52,24 @@ def get_dark_frame_diagnostics(before, after, image_path):
     )
 
     potential_warnings = pd.Series(
+        # fmt: off
         {
-            "exposure_out_of_training_range": not (
-                TRAINING_EXPOSURE_MIN <= exposure_time <= TRAINING_EXPOSURE_MAX
-            ),
-            "iso_mismatch_with_training": iso != TRAINING_ISO,
-            "min_value_increased": diagnostics.min_value_after
-            > diagnostics.min_value_before,
-            "mean_value_increased": diagnostics.mean_value_after
-            > diagnostics.mean_value_before,
-            "too_many_negative_pixels_after": diagnostics.negative_pixels_pct_after
-            > EXPECTED_MAX_NEGATIVE_PIXELS_AFTER_DARKFRAME,
-            "nan_values_present": diagnostics.nan_values_after,
+            "exposure_out_of_training_range":
+                not (TRAINING_EXPOSURE_MIN <= exposure_time <= TRAINING_EXPOSURE_MAX),
+            "iso_mismatch_with_training":
+                iso != TRAINING_ISO,
+            "min_value_increased":
+                diagnostics.min_value_after > diagnostics.min_value_before,
+            "mean_value_increased":
+                diagnostics.mean_value_after > diagnostics.mean_value_before,
+            "too_many_negative_pixels_after":
+                diagnostics.negative_pixels_pct_after > EXPECTED_MAX_NEGATIVE_PIXELS_AFTER_DARKFRAME,
+            "nan_values_present":
+                diagnostics.nan_values_after,
         },
+        # fmt: on
         # Force these values to be true/false - numbers in here are confusing & make warn_if_any_true mad
-        dtype=np.bool_,
+        dtype=np.bool_
     )
 
     warn_if_any_true(potential_warnings)

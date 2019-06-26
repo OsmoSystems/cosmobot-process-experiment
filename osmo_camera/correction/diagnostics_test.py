@@ -14,9 +14,8 @@ class TestWarnIfAnyTrue:
             pd.Series({"bad_thing": True, "worse_thing": True, "total_disaster": False})
         )
 
-        actual_warning_message = mock_warn.call_args[0][
-            0
-        ]  # indexing: first argument from first call
+        # indexing: first argument from first call
+        actual_warning_message = mock_warn.call_args[0][0]
 
         assert "bad_thing" in actual_warning_message
         assert "worse_thing" in actual_warning_message
