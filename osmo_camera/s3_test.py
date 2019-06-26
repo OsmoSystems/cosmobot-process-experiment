@@ -9,7 +9,7 @@ from . import s3 as module
 
 @pytest.fixture
 def mock_check_call(mocker):
-    mock_check_call = mocker.patch.object(module, 'check_call')
+    mock_check_call = mocker.patch.object(module, "check_call")
     mock_check_call.return_value = None
 
     return mock_check_call
@@ -19,12 +19,12 @@ def mock_check_call(mocker):
 def mock_get_filenames_from_s3(mocker):
     # _get_filenames_from_s3 uses boto to interact with s3
     # (through _list_camera_sensor_experiments_s3_bucket_contents); use this fixture to mock it.
-    return mocker.patch.object(module, '_get_filenames_from_s3')
+    return mocker.patch.object(module, "_get_filenames_from_s3")
 
 
 @pytest.fixture
 def mock_download_s3_files(mocker):
-    return mocker.patch.object(module, '_download_s3_files')
+    return mocker.patch.object(module, "_download_s3_files")
 
 
 @pytest.fixture
@@ -32,24 +32,21 @@ def mock_list_camera_sensor_experiments_s3_bucket_contents(mocker):
     # list_camera_sensor_experiments_s3_bucket_contents uses boto to interact with s3; use this fixture to mock it.
     # If you are trying to avoid side-effects at a high level, note that using this is redundant to using
     # mock_get_filenames_from_s3()
-    return mocker.patch.object(module, 'list_camera_sensor_experiments_s3_bucket_contents')
+    return mocker.patch.object(
+        module, "list_camera_sensor_experiments_s3_bucket_contents"
+    )
 
 
 class TestSyncFromS3:
     def test_sync_from_s3_results_in_call_to_download_file(
-        self,
-        mocker,
-        mock_check_call,
-        mock_get_filenames_from_s3
+        self, mocker, mock_check_call, mock_get_filenames_from_s3
     ):
-        ''' the method under test just calls a lot of sub-functions, so this is a smoke test only. '''
-        filename = '2018-01-02--00-00-00_ss_31000_ISO_100.jpeg'
-        mock_get_filenames_from_s3.return_value = [
-            filename,
-        ]
+        """ the method under test just calls a lot of sub-functions, so this is a smoke test only. """
+        filename = "2018-01-02--00-00-00_ss_31000_ISO_100.jpeg"
+        mock_get_filenames_from_s3.return_value = [filename]
         module.sync_from_s3(
-            'experiment_directory',
-            'local_sync_path',
+            "experiment_directory",
+            "local_sync_path",
             downsample_ratio=1,
             start_time=datetime.datetime(2018, 1, 1),
             end_time=datetime.datetime(2018, 1, 3),
@@ -60,24 +57,21 @@ class TestSyncFromS3:
 
         # triple indexing: list of calls -> list of call args -> check_call argument 0 is itself a list.
         actual_s3_command = mock_check_call.call_args[0][0][0]
-        assert 'aws s3 sync' in actual_s3_command
-        assert 'local_sync_path/experiment_directory' in actual_s3_command
+        assert "aws s3 sync" in actual_s3_command
+        assert "local_sync_path/experiment_directory" in actual_s3_command
         assert filename in actual_s3_command
 
 
 class TestDownloadS3Files:
     def test_calls_s3_sync_command(self, mock_check_call):
         module._download_s3_files(
-            experiment_directory='my_experiment',
-            file_names=[
-                'image1.jpeg',
-                'image2.jpeg',
-            ],
-            output_directory_path='local_sync_path'
+            experiment_directory="my_experiment",
+            file_names=["image1.jpeg", "image2.jpeg"],
+            output_directory_path="local_sync_path",
         )
 
         expected_command = (
-            'aws s3 sync s3://camera-sensor-experiments/my_experiment local_sync_path '
+            "aws s3 sync s3://camera-sensor-experiments/my_experiment local_sync_path "
             '--exclude "*" '
             '--include "image1.jpeg" --include "image2.jpeg"'
         )
@@ -86,12 +80,12 @@ class TestDownloadS3Files:
 
     def test_many_images_batched_properly(self, mock_check_call):
         batch_size = 30
-        test_file_names = [f'test_image{i}.jpeg' for i in range(batch_size + 1)]
+        test_file_names = [f"test_image{i}.jpeg" for i in range(batch_size + 1)]
 
         module._download_s3_files(
-            experiment_directory='my_experiment',
+            experiment_directory="my_experiment",
             file_names=test_file_names,
-            output_directory_path='local_sync_path'
+            output_directory_path="local_sync_path",
         )
 
         # Chained indexing to first expected command:
@@ -100,50 +94,54 @@ class TestDownloadS3Files:
         first_expected_command = mock_check_call.call_args_list[0][0][0][0]
 
         second_expected_command = (
-            'aws s3 sync s3://camera-sensor-experiments/my_experiment local_sync_path '
+            "aws s3 sync s3://camera-sensor-experiments/my_experiment local_sync_path "
             '--exclude "*" '
             f'--include "test_image{batch_size}.jpeg"'
         )
 
         assert mock_check_call.call_count == 2
-        assert 'test_image0.jpeg' in first_expected_command
-        assert f'test_image{batch_size - 1}.jpeg' in first_expected_command
-        assert f'test_image{batch_size}.jpeg' not in first_expected_command
-        assert first_expected_command.count('test_image') == 30
+        assert "test_image0.jpeg" in first_expected_command
+        assert f"test_image{batch_size - 1}.jpeg" in first_expected_command
+        assert f"test_image{batch_size}.jpeg" not in first_expected_command
+        assert first_expected_command.count("test_image") == 30
         mock_check_call.assert_called_with([second_expected_command], shell=True)
 
 
 class TestNaiveSyncFromS3:
     def test_returns_filepaths_series(self, mock_download_s3_files):
         actual_local_filepaths = module.naive_sync_from_s3(
-            experiment_directory='experiment_dir',
-            file_names=pd.Series(['filename_1', 'filename_2']),
-            output_directory_path='local_dir',
+            experiment_directory="experiment_dir",
+            file_names=pd.Series(["filename_1", "filename_2"]),
+            output_directory_path="local_dir",
         )
 
-        expected_local_filepaths = pd.Series([
-            os.path.join('local_dir', 'filename_1'),
-            os.path.join('local_dir', 'filename_2')
-        ])
+        expected_local_filepaths = pd.Series(
+            [
+                os.path.join("local_dir", "filename_1"),
+                os.path.join("local_dir", "filename_2"),
+            ]
+        )
         pd.testing.assert_series_equal(actual_local_filepaths, expected_local_filepaths)
 
     def test_skips_sync_when_all_files_present(self, mocker, mock_download_s3_files):
-        mocker.patch.object(module.os.path, 'isfile', return_value=True)
+        mocker.patch.object(module.os.path, "isfile", return_value=True)
 
         module.naive_sync_from_s3(
-            experiment_directory='experiment_dir',
-            file_names=pd.Series(['filename_1', 'filename_2']),
-            output_directory_path='local_dir',
+            experiment_directory="experiment_dir",
+            file_names=pd.Series(["filename_1", "filename_2"]),
+            output_directory_path="local_dir",
         )
 
         mock_download_s3_files.assert_not_called()
 
-    def test_performs_sync_when_any_file_not_present(self, mocker, mock_download_s3_files):
-        mocker.patch.object(module.os.path, 'isfile', side_effect=[False, True])
+    def test_performs_sync_when_any_file_not_present(
+        self, mocker, mock_download_s3_files
+    ):
+        mocker.patch.object(module.os.path, "isfile", side_effect=[False, True])
 
-        experiment_directory = 'experiment_dir'
-        file_names = pd.Series(['filename_1', 'filename_2'])
-        output_directory_path = 'local_dir'
+        experiment_directory = "experiment_dir"
+        file_names = pd.Series(["filename_1", "filename_2"])
+        output_directory_path = "local_dir"
 
         module.naive_sync_from_s3(
             experiment_directory=experiment_directory,
@@ -151,15 +149,17 @@ class TestNaiveSyncFromS3:
             output_directory_path=output_directory_path,
         )
 
-        mock_download_s3_files.assert_called_with(experiment_directory, file_names, output_directory_path)
+        mock_download_s3_files.assert_called_with(
+            experiment_directory, file_names, output_directory_path
+        )
 
     def test_does_reasonable_things_when_no_files_passed(self, mock_download_s3_files):
         expected_local_filepaths = pd.Series([])
 
         actual_local_filepaths = module.naive_sync_from_s3(
-            experiment_directory='experiment_dir',
+            experiment_directory="experiment_dir",
             file_names=pd.Series([]),
-            output_directory_path='local_dir',
+            output_directory_path="local_dir",
         )
 
         mock_download_s3_files.assert_not_called()
@@ -169,41 +169,42 @@ class TestNaiveSyncFromS3:
 class TestGetImagesInfo:
     def test_creates_appropriate_dataframe_ignoring_non_jpeg_files(self):
         image_filenames = [
-            '2018-10-27--21-24-17_ss_31000_ISO_100.jpeg',
-            '2018-10-27--21-24-23_ss_1_ISO_100.jpeg',
-            'ignored_file.md'
+            "2018-10-27--21-24-17_ss_31000_ISO_100.jpeg",
+            "2018-10-27--21-24-23_ss_1_ISO_100.jpeg",
+            "ignored_file.md",
         ]
 
-        expected_images_info = pd.DataFrame([
-            {
-                'Timestamp': datetime.datetime(2018, 10, 27, 21, 24, 17),
-                'variant': '_ss_31000_ISO_100',
-                'filename': '2018-10-27--21-24-17_ss_31000_ISO_100.jpeg',
-                'capture_group': 0,
-            },
-            {
-                'Timestamp': datetime.datetime(2018, 10, 27, 21, 24, 23),
-                'variant': '_ss_1_ISO_100',
-                'filename': '2018-10-27--21-24-23_ss_1_ISO_100.jpeg',
-                'capture_group': 0,
-            }
-        ], columns=module._IMAGES_INFO_COLUMNS)
+        expected_images_info = pd.DataFrame(
+            [
+                {
+                    "Timestamp": datetime.datetime(2018, 10, 27, 21, 24, 17),
+                    "variant": "_ss_31000_ISO_100",
+                    "filename": "2018-10-27--21-24-17_ss_31000_ISO_100.jpeg",
+                    "capture_group": 0,
+                },
+                {
+                    "Timestamp": datetime.datetime(2018, 10, 27, 21, 24, 23),
+                    "variant": "_ss_1_ISO_100",
+                    "filename": "2018-10-27--21-24-23_ss_1_ISO_100.jpeg",
+                    "capture_group": 0,
+                },
+            ],
+            columns=module._IMAGES_INFO_COLUMNS,
+        )
 
         pd.testing.assert_frame_equal(
-            module._get_images_info(image_filenames),
-            expected_images_info
+            module._get_images_info(image_filenames), expected_images_info
         )
 
     def test_returns_empty_dataframe_if_no_files(self):
         images_df = module._get_images_info([])
         pd.testing.assert_frame_equal(
-            images_df,
-            pd.DataFrame(columns=module._IMAGES_INFO_COLUMNS)
+            images_df, pd.DataFrame(columns=module._IMAGES_INFO_COLUMNS)
         )
 
 
 class TestGetFilenamesFromS3:
-    experiment_directory = 'yyyy-mm-dd-experiment_name'
+    experiment_directory = "yyyy-mm-dd-experiment_name"
 
     def test_calls_list_with_correctly_appended_slash_on_experiment_directory(
         self, mock_list_camera_sensor_experiments_s3_bucket_contents
@@ -213,30 +214,37 @@ class TestGetFilenamesFromS3:
         # Experiment directory has no trailing slash; the slash should be added by
         # list_camera_sensor_experiments_s3_bucket_contents.
         # If it's not added, we'll also get files from directories with longer names than the one we actually want
-        module._get_filenames_from_s3('my_experiment')
+        module._get_filenames_from_s3("my_experiment")
 
-        mock_list_camera_sensor_experiments_s3_bucket_contents.assert_called_once_with('my_experiment/')
+        mock_list_camera_sensor_experiments_s3_bucket_contents.assert_called_once_with(
+            "my_experiment/"
+        )
 
-    @pytest.mark.parametrize('bucket_contents, expected_filenames', [
-        ([], []),
-        (
-            [
-                f'{experiment_directory}/2018-10-27--21-24-17_ss_31000_ISO_100.jpeg',
-                f'{experiment_directory}/experiment_metadata.yml'
-            ],
-            [
-                '2018-10-27--21-24-17_ss_31000_ISO_100.jpeg',
-                'experiment_metadata.yml',
-            ]
-        ),
-    ])
+    @pytest.mark.parametrize(
+        "bucket_contents, expected_filenames",
+        [
+            ([], []),
+            (
+                [
+                    f"{experiment_directory}/2018-10-27--21-24-17_ss_31000_ISO_100.jpeg",
+                    f"{experiment_directory}/experiment_metadata.yml",
+                ],
+                [
+                    "2018-10-27--21-24-17_ss_31000_ISO_100.jpeg",
+                    "experiment_metadata.yml",
+                ],
+            ),
+        ],
+    )
     def test_returns_list_containing_all_filenames(
         self,
         bucket_contents,
         expected_filenames,
-        mock_list_camera_sensor_experiments_s3_bucket_contents
+        mock_list_camera_sensor_experiments_s3_bucket_contents,
     ):
-        mock_list_camera_sensor_experiments_s3_bucket_contents.return_value = bucket_contents
+        mock_list_camera_sensor_experiments_s3_bucket_contents.return_value = (
+            bucket_contents
+        )
 
         actual_filenames = module._get_filenames_from_s3(self.experiment_directory)
 
@@ -245,7 +253,9 @@ class TestGetFilenamesFromS3:
 
 class TestGetNonImageFilenames:
     def test_filters_to_non_image_filenames(self):
-        assert module._get_non_image_filenames(['not an image', 'image.jpeg']) == ['not an image']
+        assert module._get_non_image_filenames(["not an image", "image.jpeg"]) == [
+            "not an image"
+        ]
 
 
 class TestGetCaptureGroups:
@@ -254,80 +264,74 @@ class TestGetCaptureGroups:
         expected_capture_groups = pd.Series()
 
         pd.testing.assert_series_equal(
-            module._get_capture_groups(variants),
-            expected_capture_groups
+            module._get_capture_groups(variants), expected_capture_groups
         )
 
     def test_single_variant__capture_groups_are_just_a_linear_series(self):
-        variants = pd.Series([
-            'abc', 'abc', 'abc', 'abc', 'abc',
-        ])
+        variants = pd.Series(["abc", "abc", "abc", "abc", "abc"])
         expected_capture_groups = pd.Series([0, 1, 2, 3, 4])
 
         pd.testing.assert_series_equal(
-            module._get_capture_groups(variants),
-            expected_capture_groups
+            module._get_capture_groups(variants), expected_capture_groups
         )
 
     def test_two_variants__capture_groups_match_up(self):
-        variants = pd.Series([
-            'abc', 'd', 'abc', 'd', 'abc', 'd', 'abc', 'd', 'abc', 'd',
-        ])
-        expected_capture_groups = pd.Series(
-            [0, 0, 1, 1, 2, 2, 3, 3, 4, 4]
+        variants = pd.Series(
+            ["abc", "d", "abc", "d", "abc", "d", "abc", "d", "abc", "d"]
         )
+        expected_capture_groups = pd.Series([0, 0, 1, 1, 2, 2, 3, 3, 4, 4])
 
         pd.testing.assert_series_equal(
-            module._get_capture_groups(variants),
-            expected_capture_groups
+            module._get_capture_groups(variants), expected_capture_groups
         )
 
     def test_missing_variants_at_end__creates_small_capture_group_at_end(self):
-        variants = pd.Series([
-            'abc', 'd', 'abc', 'd', 'abc',
-        ])
-        expected_capture_groups = pd.Series(
-            [0, 0, 1, 1, 2]
-        )
+        variants = pd.Series(["abc", "d", "abc", "d", "abc"])
+        expected_capture_groups = pd.Series([0, 0, 1, 1, 2])
 
         pd.testing.assert_series_equal(
-            module._get_capture_groups(variants),
-            expected_capture_groups
+            module._get_capture_groups(variants), expected_capture_groups
         )
 
 
 class TestDownsample:
     def test_base_case(self):
-        images_info = pd.DataFrame([
-            {'capture_group': 0, 'variant': 'abc'},
-            {'capture_group': 0, 'variant': 'def'},
-            {'capture_group': 1, 'variant': 'abc'},
-            {'capture_group': 1, 'variant': 'def'},
-        ])
-        pd.testing.assert_frame_equal(
-            module._downsample(images_info, 1),
-            images_info
+        images_info = pd.DataFrame(
+            [
+                {"capture_group": 0, "variant": "abc"},
+                {"capture_group": 0, "variant": "def"},
+                {"capture_group": 1, "variant": "abc"},
+                {"capture_group": 1, "variant": "def"},
+            ]
         )
+        pd.testing.assert_frame_equal(module._downsample(images_info, 1), images_info)
 
-    @pytest.mark.parametrize("name, ratio, expected_capture_groups", [
-        ('ratio 2 provides half', 2, [0, 2, 4]),
-        ('ratio 3 provides 1/3', 3, [0, 3]),
-        ('ratio > groups returns first group', 30, [0]),
-    ])
+    @pytest.mark.parametrize(
+        "name, ratio, expected_capture_groups",
+        [
+            ("ratio 2 provides half", 2, [0, 2, 4]),
+            ("ratio 3 provides 1/3", 3, [0, 3]),
+            ("ratio > groups returns first group", 30, [0]),
+        ],
+    )
     def test_downsampling(self, name, ratio, expected_capture_groups):
-        images_info = pd.DataFrame([
-            {'capture_group': 0, 'variant': 'abc'},
-            {'capture_group': 0, 'variant': 'def'},
-            {'capture_group': 1, 'variant': 'abc'},
-            {'capture_group': 1, 'variant': 'def'},
-            {'capture_group': 2, 'variant': 'abc'},
-            {'capture_group': 2, 'variant': 'def'},
-            {'capture_group': 3, 'variant': 'abc'},
-            {'capture_group': 3, 'variant': 'def'},
-            {'capture_group': 4, 'variant': 'abc'},
-            {'capture_group': 4, 'variant': 'def'},
-        ])
-        expected_downsampled_df = images_info[images_info['capture_group'].isin(expected_capture_groups)]
+        images_info = pd.DataFrame(
+            [
+                {"capture_group": 0, "variant": "abc"},
+                {"capture_group": 0, "variant": "def"},
+                {"capture_group": 1, "variant": "abc"},
+                {"capture_group": 1, "variant": "def"},
+                {"capture_group": 2, "variant": "abc"},
+                {"capture_group": 2, "variant": "def"},
+                {"capture_group": 3, "variant": "abc"},
+                {"capture_group": 3, "variant": "def"},
+                {"capture_group": 4, "variant": "abc"},
+                {"capture_group": 4, "variant": "def"},
+            ]
+        )
+        expected_downsampled_df = images_info[
+            images_info["capture_group"].isin(expected_capture_groups)
+        ]
 
         actual_downsampled_df = module._downsample(images_info, ratio)
 
@@ -335,52 +339,81 @@ class TestDownsample:
 
 
 class TestFilterToTimeRange:
-    @pytest.mark.parametrize("name, start_time, end_time, expected_indices", [
-        ('leaves everything alone if no start or end time provided', None, None, [0, 1, 2, 3, 4]),
-        ('filter start only, inclusive', datetime.datetime(2018, 2, 1), None, [1, 2, 3, 4]),
-        ('filter end only, inclusive', None, datetime.datetime(2018, 3, 1), [0, 1, 2]),
-        ('filter both', datetime.datetime(2018, 2, 15), datetime.datetime(2018, 4, 15), [2, 3]),
-    ])
+    @pytest.mark.parametrize(
+        "name, start_time, end_time, expected_indices",
+        [
+            (
+                "leaves everything alone if no start or end time provided",
+                None,
+                None,
+                [0, 1, 2, 3, 4],
+            ),
+            (
+                "filter start only, inclusive",
+                datetime.datetime(2018, 2, 1),
+                None,
+                [1, 2, 3, 4],
+            ),
+            (
+                "filter end only, inclusive",
+                None,
+                datetime.datetime(2018, 3, 1),
+                [0, 1, 2],
+            ),
+            (
+                "filter both",
+                datetime.datetime(2018, 2, 15),
+                datetime.datetime(2018, 4, 15),
+                [2, 3],
+            ),
+        ],
+    )
     def test_filtering(self, name, start_time, end_time, expected_indices):
-        images_info = pd.DataFrame([
-            {'Timestamp': datetime.datetime(2018, 1, 1)},
-            {'Timestamp': datetime.datetime(2018, 2, 1)},
-            {'Timestamp': datetime.datetime(2018, 3, 1)},
-            {'Timestamp': datetime.datetime(2018, 4, 1)},
-            {'Timestamp': datetime.datetime(2018, 5, 1)},
-        ], index=[0, 1, 2, 3, 4])
-
-        filtered_df = module._filter_to_time_range(
-            images_info,
-            start_time,
-            end_time
+        images_info = pd.DataFrame(
+            [
+                {"Timestamp": datetime.datetime(2018, 1, 1)},
+                {"Timestamp": datetime.datetime(2018, 2, 1)},
+                {"Timestamp": datetime.datetime(2018, 3, 1)},
+                {"Timestamp": datetime.datetime(2018, 4, 1)},
+                {"Timestamp": datetime.datetime(2018, 5, 1)},
+            ],
+            index=[0, 1, 2, 3, 4],
         )
+
+        filtered_df = module._filter_to_time_range(images_info, start_time, end_time)
         assert list(filtered_df.index.values) == expected_indices
 
 
 class TestListExperiments:
     def test_returns_cleaned_sorted_directories(self, mocker):
-        mocker.patch.object(module, 'list_camera_sensor_experiments_s3_bucket_contents').return_value = [
-            '2018-01-01--12-01-01_directory_1/',
-            '2018-01-01--12-02-01_directory_2/',
+        mocker.patch.object(
+            module, "list_camera_sensor_experiments_s3_bucket_contents"
+        ).return_value = [
+            "2018-01-01--12-01-01_directory_1/",
+            "2018-01-01--12-02-01_directory_2/",
         ]
-        assert module.list_experiments() == ['2018-01-01--12-02-01_directory_2', '2018-01-01--12-01-01_directory_1']
+        assert module.list_experiments() == [
+            "2018-01-01--12-02-01_directory_2",
+            "2018-01-01--12-01-01_directory_1",
+        ]
 
 
 UNORDERED_UNFILTERED_LIST_FOR_TESTS = [
-    '20180902103709_temperature',
-    '20180902103940_temperature',
-    '2018-11-08--11-25-27-Pi4E82-test',
-    '2018-11-08--11-26-00-Pi4E82-test',
-    'should_be_filtered.jpng'
+    "20180902103709_temperature",
+    "20180902103940_temperature",
+    "2018-11-08--11-25-27-Pi4E82-test",
+    "2018-11-08--11-26-00-Pi4E82-test",
+    "should_be_filtered.jpng",
 ]
 
 
 class TestFilterAndSortExperimentList:
     def test_returns_filtered_list_for_new_isodate_format(self):
-        actual_filtered_list = module._experiment_list_by_isodate_format_date_desc(UNORDERED_UNFILTERED_LIST_FOR_TESTS)
+        actual_filtered_list = module._experiment_list_by_isodate_format_date_desc(
+            UNORDERED_UNFILTERED_LIST_FOR_TESTS
+        )
         expected_filtered_list = [
-            '2018-11-08--11-26-00-Pi4E82-test',
-            '2018-11-08--11-25-27-Pi4E82-test'
+            "2018-11-08--11-26-00-Pi4E82-test",
+            "2018-11-08--11-25-27-Pi4E82-test",
         ]
         assert actual_filtered_list == expected_filtered_list

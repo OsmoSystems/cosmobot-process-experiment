@@ -10,17 +10,21 @@ from osmo_camera.s3 import sync_from_s3
 from osmo_camera.process_image import process_image
 from osmo_camera.select_ROI import prompt_for_ROI_selection
 from osmo_camera.summary_images import generate_summary_images
-from osmo_camera.file_structure import iso_datetime_for_filename, get_files_with_extension
+from osmo_camera.file_structure import (
+    iso_datetime_for_filename,
+    get_files_with_extension,
+)
 from osmo_camera import raw, rgb, jupyter
 
 
 def _open_first_image(raw_image_paths):
-    first_filepath = sorted(raw_image_paths)[0]  # Assumes images are prefixed with iso-ish datetimes
+    # Assumes images are prefixed with iso-ish datetimes
+    first_filepath = sorted(raw_image_paths)[0]
     return raw.open.as_rgb(first_filepath)
 
 
 def save_summary_statistics_csv(experiment_name, roi_summary_data):
-    ''' Saves summary statistics as a csv file in the current directory and returns the output filename.
+    """ Saves summary statistics as a csv file in the current directory and returns the output filename.
 
     Args:
         experiment_name: The experiment name to use in the output filename.
@@ -29,16 +33,16 @@ def save_summary_statistics_csv(experiment_name, roi_summary_data):
 
     Return:
         A string with the filename of the saved csv file.
-    '''
-    csv_name = f'{experiment_name} - summary statistics (generated {iso_datetime_for_filename(datetime.now())}).csv'
+    """
+    csv_name = f"{experiment_name} - summary statistics (generated {iso_datetime_for_filename(datetime.now())}).csv"
     roi_summary_data.to_csv(csv_name, index=False)
-    print(f'Summary statistics saved as: {csv_name}\n')
+    print(f"Summary statistics saved as: {csv_name}\n")
 
     return csv_name
 
 
 def get_raw_image_paths_for_experiment(local_sync_directory_path, experiment_directory):
-    ''' Opens all JPEG+RAW images in the specified experiment directory and returns as a map of
+    """ Opens all JPEG+RAW images in the specified experiment directory and returns as a map of
         {image_filepath: `RGB Image`}.
 
         A convenience function intended to be used by technicians inside a jupyter notebook, which will
@@ -51,28 +55,28 @@ def get_raw_image_paths_for_experiment(local_sync_directory_path, experiment_dir
 
     Return:
         A pandas Series of {image_filepath: `RGB Image`}
-    '''
+    """
     raw_images_directory = os.path.join(local_sync_directory_path, experiment_directory)
-    raw_image_paths = get_files_with_extension(raw_images_directory, '.jpeg')
+    raw_image_paths = get_files_with_extension(raw_images_directory, ".jpeg")
     return pd.Series(raw_image_paths)
 
 
 def _stack_dataframes(dataframes: List[pd.DataFrame]) -> pd.DataFrame:
-    ''' stack pandas DataFrames logically into a bigger DataFrame,
+    """ stack pandas DataFrames logically into a bigger DataFrame,
     resets the index of the resulting DataFrame to avoid duplicates in the index
-    '''
+    """
     return pd.concat(dataframes).reset_index(drop=True)
 
 
 def _stack_serieses(serieses: List[pd.Series]) -> pd.DataFrame:
-    ''' stack pandas Series logically into a DataFrame
+    """ stack pandas Series logically into a DataFrame
     Args:
         serieses: iterable of Pandas series
 
     Returns:
         pandas DataFrame with a row per series. If each Series has a Name, that will be its index label
-    '''
-    return pd.concat(serieses, axis='columns').T
+    """
+    return pd.concat(serieses, axis="columns").T
 
 
 def process_experiment(
@@ -88,7 +92,7 @@ def process_experiment(
     save_dark_frame_corrected_images=False,
     save_flat_field_corrected_images=False,
 ):
-    ''' Process all images from an experiment:
+    """ Process all images from an experiment:
         1. Sync raw images from s3
         2. Prompt for ROI selections (using first image) if ROI_definitions not provided
         3. Process images into summary statistics and save summary images
@@ -125,8 +129,10 @@ def process_experiment(
         Saves the roi_summary_data as a .csv in the directory where this function was called.
         Raises warnings if any of the image diagnostics are outside of normal ranges. If multiple images have matching
         diagnostic warnings, only one copy of a particular warning will be shown.
-    '''
-    print(f'1. Sync images from s3 to local directory within {local_sync_directory_path}...')
+    """
+    print(
+        f"1. Sync images from s3 to local directory within {local_sync_directory_path}..."
+    )
     raw_images_dir = sync_from_s3(
         experiment_dir,
         local_sync_directory_path=local_sync_directory_path,
@@ -135,24 +141,28 @@ def process_experiment(
         end_time=sync_end_time,
     )
 
-    raw_image_paths = get_raw_image_paths_for_experiment(local_sync_directory_path, experiment_dir)
+    raw_image_paths = get_raw_image_paths_for_experiment(
+        local_sync_directory_path, experiment_dir
+    )
 
     # Display the first image for reference
     first_rgb_image = _open_first_image(raw_image_paths)
 
-    print('2. Prompt for ROI selections if ROI_definitions not provided...')
+    print("2. Prompt for ROI selections if ROI_definitions not provided...")
     if not ROI_definitions:
         ROI_definitions = prompt_for_ROI_selection(first_rgb_image)
-        print('ROI definitions:', ROI_definitions)
+        print("ROI definitions:", ROI_definitions)
 
     jupyter.show_image(
         rgb.annotate.draw_ROIs_on_image(first_rgb_image, ROI_definitions),
-        title='Reference image with labelled ROIs',
-        figsize=[7, 7]
+        title="Reference image with labelled ROIs",
+        figsize=[7, 7],
     )
 
-    saving_or_not = 'save' if save_summary_images else 'don\'t save'
-    print(f'3. Process images into summary statistics and {saving_or_not} summary images...')
+    saving_or_not = "save" if save_summary_images else "don't save"
+    print(
+        f"3. Process images into summary statistics and {saving_or_not} summary images..."
+    )
     if save_summary_images:
         generate_summary_images(raw_image_paths, ROI_definitions, raw_images_dir)
 
@@ -177,9 +187,15 @@ def process_experiment(
             for raw_image_path in tqdm.tqdm_notebook(raw_image_paths)
         ]
 
-    roi_summary_data_for_files, image_diagnostics_for_files = zip(*roi_summary_data_and_image_diagnostics_dfs_for_files)
+    roi_summary_data_for_files, image_diagnostics_for_files = zip(
+        *roi_summary_data_and_image_diagnostics_dfs_for_files
+    )
 
     roi_summary_data_for_all_files = _stack_dataframes(roi_summary_data_for_files)
     image_diagnostics_for_all_files = _stack_serieses(image_diagnostics_for_files)
 
-    return roi_summary_data_for_all_files, image_diagnostics_for_all_files, ROI_definitions
+    return (
+        roi_summary_data_for_all_files,
+        image_diagnostics_for_all_files,
+        ROI_definitions,
+    )

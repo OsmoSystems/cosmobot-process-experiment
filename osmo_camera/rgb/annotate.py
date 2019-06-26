@@ -18,7 +18,7 @@ def draw_ROIs_on_image(rgb_image, ROI_definitions={}):
             top_left_corner,
             bottom_right_corner,
             color=GREEN_COLOR,
-            thickness=3
+            thickness=3,
         )
         cv2.putText(
             rgb_image_with_ROI_definitions,
@@ -28,21 +28,21 @@ def draw_ROIs_on_image(rgb_image, ROI_definitions={}):
             fontScale=2,
             color=GREEN_COLOR,
             thickness=5,
-            lineType=cv2.LINE_AA
+            lineType=cv2.LINE_AA,
         )
 
     return rgb_image_with_ROI_definitions
 
 
 def draw_text_on_image(rgb_image, text):
-    ''' Write the provided text on the provided image in the top left corner.
+    """ Write the provided text on the provided image in the top left corner.
 
     Args:
         rgb_image: An RGB image
         text: String containing text to write on image
     Returns:
         A new RGB image
-    '''
+    """
     rgb_image_with_text = np.copy(rgb_image)
 
     text_position = (20, 50)
@@ -56,7 +56,7 @@ def draw_text_on_image(rgb_image, text):
         fontScale=font_scale,
         color=GREEN_COLOR,
         thickness=5,
-        lineType=cv2.LINE_AA
+        lineType=cv2.LINE_AA,
     )
 
     return rgb_image_with_text
