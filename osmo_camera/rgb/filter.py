@@ -2,7 +2,7 @@ import numpy as np
 
 
 def select_channels(rgb_image, channels):
-    ''' Selectively filters channels on an RGB image
+    """ Selectively filters channels on an RGB image
 
     Args:
         image: An RGB image
@@ -10,8 +10,8 @@ def select_channels(rgb_image, channels):
             Ex. 'gb' to keep green and blue channels and set all red pixels to 0.
     Returns:
         An RGB image with only the selected channels.
-    '''
-    colors = 'rgb'
+    """
+    colors = "rgb"
     if set(channels) - set(colors):
         raise ValueError(f'Unexpected channel value in select_channels: "{channels}"')
 

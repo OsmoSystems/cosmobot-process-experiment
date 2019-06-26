@@ -10,11 +10,13 @@ import pandas as pd
 from . import file_structure
 
 
-CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME = 'camera-sensor-experiments'
+CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME = "camera-sensor-experiments"
 
 
-def list_camera_sensor_experiments_s3_bucket_contents(directory_name: str = '') -> List[str]:
-    ''' Get a list of all of the files in a logical directory off s3, within the camera sensor experiments bucket.
+def list_camera_sensor_experiments_s3_bucket_contents(
+    directory_name: str = ""
+) -> List[str]:
+    """ Get a list of all of the files in a logical directory off s3, within the camera sensor experiments bucket.
 
     Arguments:
         directory_name: prefix within our experiments bucket on s3, inclusive of trailing slash if you'd like the list
@@ -22,60 +24,63 @@ def list_camera_sensor_experiments_s3_bucket_contents(directory_name: str = '') 
 
     Returns:
         list of key names under the prefix provided.
-    '''
+    """
     try:
         # TODO (SOFT-538): Stop checking in access key!
-        s3 = boto.connect_s3('AKIAIFJ2IMOKIWPKGZRA', 'vqTb5DpoSouOtgmTJo+Zm8+mtW9KeddRxbFeliny')
+        s3 = boto.connect_s3(
+            "AKIAIFJ2IMOKIWPKGZRA", "vqTb5DpoSouOtgmTJo+Zm8+mtW9KeddRxbFeliny"
+        )
     except boto.exception.NoAuthHandlerFound:  # type: ignore
-        print('You must have aws credentials already saved, e.g. via `aws configure`. \n')
+        print(
+            "You must have aws credentials already saved, e.g. via `aws configure`. \n"
+        )
         return []
 
     bucket = s3.get_bucket(CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME)
-    keys = bucket.list(directory_name, '/')
+    keys = bucket.list(directory_name, "/")
 
     return list([key.name for key in keys])
 
 
-def _download_s3_files(experiment_directory: str, file_names: List[str], output_directory_path: str) -> None:
-    ''' Download specific filenames from within an experiment directory on s3.
+def _download_s3_files(
+    experiment_directory: str, file_names: List[str], output_directory_path: str
+) -> None:
+    """ Download specific filenames from within an experiment directory on s3.
     Suitable for syncing files that change over time - uses s3 sync's timestamp-based approach to checking if a
     particular file needs to be re-synced.
-    '''
+    """
 
     # Our implementation for performing a filtered download of files from s3 chokes when attempting to
     # download large numbers of files. To avoid this problem, perform the download in batches.
     # 30 appears to be a safe batch-size limit
     batch_size = 30
     file_name_batches = file_name_batches = [
-        file_names[batch_start_index:batch_start_index + batch_size]
+        file_names[batch_start_index : batch_start_index + batch_size]
         for batch_start_index in range(0, len(file_names), batch_size)
     ]
 
     for batch_file_names in file_name_batches:
 
-        include_args = ' '.join([
-            f'--include "{file_name}"'
-            for file_name in batch_file_names
-        ])
+        include_args = " ".join(
+            [f'--include "{file_name}"' for file_name in batch_file_names]
+        )
 
         # Would be better to use boto, but neither boto nor boto3 support sync
         # https://github.com/boto/boto3/issues/358
         command = (
-            f'aws s3 sync s3://{CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME}/{experiment_directory} {output_directory_path} '
+            f"aws s3 sync s3://{CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME}/{experiment_directory} {output_directory_path} "
             f'--exclude "*" {include_args}'
         )
         check_call([command], shell=True)
 
 
 def naive_sync_from_s3(
-    experiment_directory: str,
-    file_names: pd.Series,
-    output_directory_path: str,
+    experiment_directory: str, file_names: pd.Series, output_directory_path: str
 ) -> pd.Series:
-    ''' Sync a Series of files from s3, returning local file paths corresponding to the synced files.
+    """ Sync a Series of files from s3, returning local file paths corresponding to the synced files.
     Uses a naive approach to checking if sync is necessary - if all s3 filenames are present locally, skips syncing.
     This makes this function unsuitable for syncing files that change over time.
-    '''
+    """
     local_filepaths = file_names.apply(
         lambda filename: os.path.join(output_directory_path, filename)
     )
@@ -86,16 +91,11 @@ def naive_sync_from_s3(
     return local_filepaths
 
 
-_IMAGES_INFO_COLUMNS = [
-    'Timestamp',
-    'variant',
-    'filename',
-    'capture_group'
-]
+_IMAGES_INFO_COLUMNS = ["Timestamp", "variant", "filename", "capture_group"]
 
 
 def _is_jpeg(filename: str):
-    return filename.endswith('.jpeg')
+    return filename.endswith(".jpeg")
 
 
 def _get_non_image_filenames(filenames: List[str]):
@@ -104,13 +104,13 @@ def _get_non_image_filenames(filenames: List[str]):
 
 def _get_timestamp_and_variant(filename: str):
     timestamp = file_structure.datetime_from_filename(filename)
-    rest = filename[file_structure.FILENAME_TIMESTAMP_LENGTH:]
+    rest = filename[file_structure.FILENAME_TIMESTAMP_LENGTH :]
     variant, extension = os.path.splitext(rest)
     return timestamp, variant
 
 
 def _get_images_info(filenames: List[str]) -> pd.DataFrame:
-    ''' Create a DataFrame with metadata from the .jpeg files in the provided file list.
+    """ Create a DataFrame with metadata from the .jpeg files in the provided file list.
 
     Arguments:
         experiment_directory: directory name for an experiment within our experiment results bucket on s3
@@ -120,27 +120,32 @@ def _get_images_info(filenames: List[str]) -> pd.DataFrame:
             variant: variant portion of the .jpeg filename
             capture_group: a capture group index; see _get_capture_groups() for what that means
             filename: full filename with extension
-    '''
+    """
     jpeg_filenames = list(filter(_is_jpeg, filenames))
 
     # Handle zero-length case here to avoid having to do so in all the functions this calls
     if not jpeg_filenames:
         return pd.DataFrame(columns=_IMAGES_INFO_COLUMNS)
 
-    timestamps_and_variants = [_get_timestamp_and_variant(filename) for filename in jpeg_filenames]
+    timestamps_and_variants = [
+        _get_timestamp_and_variant(filename) for filename in jpeg_filenames
+    ]
 
     timestamps, variants = zip(*timestamps_and_variants)
 
-    return pd.DataFrame({
-        'Timestamp': timestamps,
-        'variant': variants,
-        'filename': jpeg_filenames,
-        'capture_group': _get_capture_groups(variants)
-    }, columns=_IMAGES_INFO_COLUMNS)
+    return pd.DataFrame(
+        {
+            "Timestamp": timestamps,
+            "variant": variants,
+            "filename": jpeg_filenames,
+            "capture_group": _get_capture_groups(variants),
+        },
+        columns=_IMAGES_INFO_COLUMNS,
+    )
 
 
 def _get_filenames_from_s3(experiment_directory: str) -> List[str]:
-    s3_prefix = f'{experiment_directory}/'
+    s3_prefix = f"{experiment_directory}/"
     all_keys = list_camera_sensor_experiments_s3_bucket_contents(s3_prefix)
     prefix_length = len(s3_prefix)
     filenames = [key[prefix_length:] for key in all_keys]
@@ -148,7 +153,7 @@ def _get_filenames_from_s3(experiment_directory: str) -> List[str]:
 
 
 def _get_capture_groups(variants: Sequence[str]) -> pd.Series:
-    ''' Provide a series which groups images into logical "capture groups"
+    """ Provide a series which groups images into logical "capture groups"
      by time.
 
     This implementation deals with the case of a "small" capture group in case an experiment is terminated early,
@@ -162,7 +167,7 @@ def _get_capture_groups(variants: Sequence[str]) -> pd.Series:
         For instance, if the experiment captured 3 variants and looped over those variants 5 times
         (for a total of 15 images), the first image of each variant will get capture_group 0, the second will get
         capture_group 1, etc. so _get_capture_groups would return pd.Series([0,0,0,1,1,1,2,2,2,3,3,3,4,4,4]).
-    '''
+    """
     num_images = len(variants)
     num_variants = len(set(variants))
     if not num_images:
@@ -172,10 +177,9 @@ def _get_capture_groups(variants: Sequence[str]) -> pd.Series:
     # Make sure to round up for the number of capture groups
     num_capture_groups = int(np.ceil(num_images / num_variants))
 
-    full_capture_groups = np.concatenate([
-        [i] * num_variants
-        for i in range(num_capture_groups)
-    ])
+    full_capture_groups = np.concatenate(
+        [[i] * num_variants for i in range(num_capture_groups)]
+    )
 
     # In case there is a "small capture group" at the end that doesn't have all variants, truncate the list
     capture_groups = full_capture_groups[:num_images]
@@ -184,7 +188,7 @@ def _get_capture_groups(variants: Sequence[str]) -> pd.Series:
 
 
 def _downsample(images_info: pd.DataFrame, downsample_ratio: int) -> pd.DataFrame:
-    ''' Take an images_info DataFrame, downsample it based on capture group
+    """ Take an images_info DataFrame, downsample it based on capture group
 
     Args:
         images_info: pandas DataFrame with a capture_group column
@@ -194,16 +198,16 @@ def _downsample(images_info: pd.DataFrame, downsample_ratio: int) -> pd.DataFram
             If downsample_ratio = 3, keep one in three groups
     Returns:
         a slice of the images_info DataFrame downsampled as instructed
-    '''
-    return images_info[images_info['capture_group'] % downsample_ratio == 0]
+    """
+    return images_info[images_info["capture_group"] % downsample_ratio == 0]
 
 
 def _filter_to_time_range(
     images_info: pd.DataFrame,
     start_time: Optional[datetime.datetime],
-    end_time: Optional[datetime.datetime]
+    end_time: Optional[datetime.datetime],
 ) -> pd.DataFrame:
-    ''' Take an images_info DataFrame and return a version filtered by time range
+    """ Take an images_info DataFrame and return a version filtered by time range
     If start/end not provided, the appropriate end won't be filtered
     Args:
         images_info: pandas DataFrame with a Timestamp column
@@ -211,12 +215,15 @@ def _filter_to_time_range(
         end_time: Optional. Inclusive time value to filter the output data
     Returns:
         slice of the input DataFrame matching the start and end values provided
-    '''
+    """
     # Need to use pd.Timestamp.min here instead of datetime.min because datetime.min is actually earlier than pd's
     # version and causes pd to blow up.
     start_time = start_time or pd.Timestamp.min
     end_time = end_time or pd.Timestamp.max
-    return images_info[(images_info['Timestamp'] >= start_time) & (images_info['Timestamp'] <= end_time)]
+    return images_info[
+        (images_info["Timestamp"] >= start_time)
+        & (images_info["Timestamp"] <= end_time)
+    ]
 
 
 def sync_from_s3(
@@ -226,7 +233,7 @@ def sync_from_s3(
     start_time: Optional[datetime.datetime] = None,
     end_time: Optional[datetime.datetime] = None,
 ) -> str:
-    ''' Syncs raw images from s3 to a local tmp directory (can optionally be provided)
+    """ Syncs raw images from s3 to a local tmp directory (can optionally be provided)
 
     Args:
         experiment_directory: The name of the experiment directory in s3
@@ -241,7 +248,7 @@ def sync_from_s3(
 
     Returns:
         Full path of the tmp directory for this experiment
-    '''
+    """
 
     local_experiment_dir = os.path.join(local_sync_directory_path, experiment_directory)
 
@@ -250,10 +257,16 @@ def sync_from_s3(
 
     images_info = _get_images_info(filenames)
     downsampled_image_info = _downsample(images_info, downsample_ratio)
-    filtered_image_info = _filter_to_time_range(downsampled_image_info, start_time, end_time)
+    filtered_image_info = _filter_to_time_range(
+        downsampled_image_info, start_time, end_time
+    )
 
-    filenames_to_download = non_image_filenames + list(filtered_image_info['filename'].values)
-    _download_s3_files(experiment_directory, filenames_to_download, local_experiment_dir)
+    filenames_to_download = non_image_filenames + list(
+        filtered_image_info["filename"].values
+    )
+    _download_s3_files(
+        experiment_directory, filenames_to_download, local_experiment_dir
+    )
 
     return local_experiment_dir
 
@@ -261,21 +274,22 @@ def sync_from_s3(
 def _experiment_list_by_isodate_format_date_desc(experiment_names):
     # Filter only filenames that contain the correct iso date format and reverse, sorting most recent first
     filtered_list = [
-        experiment_name for experiment_name in experiment_names
+        experiment_name
+        for experiment_name in experiment_names
         if file_structure.filename_has_correct_datetime_format(experiment_name)
     ]
     return sorted(filtered_list, reverse=True)
 
 
 def list_experiments():
-    ''' Lists all experiment directories in the "camera-sensor-experiments" bucket
+    """ Lists all experiment directories in the "camera-sensor-experiments" bucket
 
         Returns: a list of experiment names that is filtered and ordered (by isodate formats YYYY-MM-DD & YYYYMMDD)
         The list will be a concatenated set of lists, with the items starting with a list of YYYY-MM-DD formated names
         that are ordered by descending date followed by the same ordering but with a list of YYYYMMDD formatted names.
-    '''
-    experiment_directories = list_camera_sensor_experiments_s3_bucket_contents('')
+    """
+    experiment_directories = list_camera_sensor_experiments_s3_bucket_contents("")
 
-    experiment_names = [directory.rstrip('/') for directory in experiment_directories]
+    experiment_names = [directory.rstrip("/") for directory in experiment_directories]
 
     return _experiment_list_by_isodate_format_date_desc(experiment_names)

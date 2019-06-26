@@ -18,16 +18,18 @@ def get_ROI_statistics(ROI):
     }
 
     flattened_channel_stats = {
-        f'{color}_{stat}': channel_stats[stat][color_index]
+        f"{color}_{stat}": channel_stats[stat][color_index]
         for stat in channel_stats
-        for color_index, color in enumerate('rgb')  # TODO: is it a safe assumption that everything's in rgb??
+        for color_index, color in enumerate(
+            "rgb"
+        )  # TODO: is it a safe assumption that everything's in rgb??
     }
 
     return flattened_channel_stats
 
 
 def save_ROI_crops(ROI_crops_dir, raw_image_path, rgb_ROIs_by_name):
-    ''' Save ROI crops from the given image as .PNGs in the specified directory
+    """ Save ROI crops from the given image as .PNGs in the specified directory
 
     Args:
         ROI_crops_dir: The directory where ROI crops should be saved
@@ -36,17 +38,17 @@ def save_ROI_crops(ROI_crops_dir, raw_image_path, rgb_ROIs_by_name):
 
     Returns:
         None
-    '''
+    """
     # Construct ROI crop file name from root filename plus ROI name, plus .png extension
     image_filename_root, _ = os.path.splitext(os.path.basename(raw_image_path))
     for ROI_name, rgb_ROI in rgb_ROIs_by_name.items():
-        ROI_crop_filename = f'ROI {ROI_name} - {image_filename_root}.tiff'
+        ROI_crop_filename = f"ROI {ROI_name} - {image_filename_root}.tiff"
         ROI_crop_path = os.path.join(ROI_crops_dir, ROI_crop_filename)
         tiff.save.as_tiff(rgb_ROI, ROI_crop_path)
 
 
 def process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir=None):
-    ''' Process all the ROIs in a single JPEG+RAW image into summary statistics
+    """ Process all the ROIs in a single JPEG+RAW image into summary statistics
 
     For each ROI:
         1. Crop
@@ -62,7 +64,7 @@ def process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir=None)
 
     Returns:
         An array of summary statistics dictionaries - one for each ROI
-    '''
+    """
     ROIs = get_ROIs_for_image(rgb_image, ROI_definitions)
 
     if ROI_crops_dir is not None:
@@ -70,18 +72,22 @@ def process_ROIs(rgb_image, raw_image_path, ROI_definitions, ROI_crops_dir=None)
 
     exif_tags = raw.metadata.get_exif_tags(raw_image_path)
 
-    return pd.DataFrame([
-        pd.Series({
-            'timestamp': exif_tags.capture_datetime,
-            'iso': exif_tags.iso,
-            'exposure_seconds': exif_tags.exposure_time,
-            'image': os.path.basename(raw_image_path),
-            'ROI': ROI_name,
-            'ROI definition': ROI_definitions[ROI_name],
-            **get_ROI_statistics(ROI)
-        })
-        for ROI_name, ROI in ROIs.items()
-    ])
+    return pd.DataFrame(
+        [
+            pd.Series(
+                {
+                    "timestamp": exif_tags.capture_datetime,
+                    "iso": exif_tags.iso,
+                    "exposure_seconds": exif_tags.exposure_time,
+                    "image": os.path.basename(raw_image_path),
+                    "ROI": ROI_name,
+                    "ROI definition": ROI_definitions[ROI_name],
+                    **get_ROI_statistics(ROI),
+                }
+            )
+            for ROI_name, ROI in ROIs.items()
+        ]
+    )
 
 
 def process_image(
@@ -94,7 +100,7 @@ def process_image(
     save_dark_frame_corrected_image: bool = False,
     save_flat_field_corrected_image: bool = False,
 ) -> Tuple[pd.DataFrame, pd.Series]:
-    ''' Process an image by applying corrections and analyzing ROIs
+    """ Process an image by applying corrections and analyzing ROIs
 
     Args:
         original_rgb_image: RGB image to process
@@ -114,13 +120,13 @@ def process_image(
             single image.
             image_diagnostics is a pandas Series of diagnostics for an entire image; the name of this series is the
             image filename.
-    '''
+    """
 
     # If ROI crops should be saved, create a directory for them
     ROI_crops_dir = None
     if save_ROIs:
-        ROI_crops_dir = create_output_directory(raw_images_dir, 'ROI crops')
-        print('ROI crops saved in:', ROI_crops_dir)
+        ROI_crops_dir = create_output_directory(raw_images_dir, "ROI crops")
+        print("ROI crops saved in:", ROI_crops_dir)
 
     corrected_rgb_image, image_diagnostics = correct_image(
         original_rgb_image,
@@ -131,14 +137,11 @@ def process_image(
     )
 
     roi_statistics = process_ROIs(
-        corrected_rgb_image,
-        original_image_filepath,
-        ROI_definitions,
-        ROI_crops_dir
+        corrected_rgb_image, original_image_filepath, ROI_definitions, ROI_crops_dir
     )
 
     # Reorder columns to put the most commonly used ones up front
-    initial_column_order = ['ROI', 'image', 'exposure_seconds', 'iso']
+    initial_column_order = ["ROI", "image", "exposure_seconds", "iso"]
     reordered_columns = initial_column_order + [
         column for column in roi_statistics if column not in initial_column_order
     ]

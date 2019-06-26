@@ -6,21 +6,14 @@ import PIL.ExifTags
 
 
 # Just the EXIF tags we care about
-ExifTags = namedtuple(
-    'ExifTags',
-    [
-        'capture_datetime',
-        'iso',
-        'exposure_time'
-    ]
-)
+ExifTags = namedtuple("ExifTags", ["capture_datetime", "iso", "exposure_time"])
 
 
 def _read_exif_tags(image_path):
-    '''
+    """
     Uses (an "experimental" private function from) PIL to read EXIF tags from an image file.
     Returns a dictionary of tag names to values
-    '''
+    """
     PIL_image = PIL.Image.open(image_path)
     EXIF_CODES_TO_NAMES = PIL.ExifTags.TAGS
 
@@ -36,19 +29,19 @@ def _read_exif_tags(image_path):
 
 
 def _parse_date_time_original(tags):
-    date_time_string = tags['DateTimeOriginal']
+    date_time_string = tags["DateTimeOriginal"]
 
     # For DateTimeOriginal, PIL _getexif returns an ISO8601-ish string
-    return datetime.strptime(date_time_string, '%Y:%m:%d %H:%M:%S')
+    return datetime.strptime(date_time_string, "%Y:%m:%d %H:%M:%S")
 
 
 def _parse_iso(tags):
     # For ISOSpeedRatings PIL _getexif returns an int
-    return tags['ISOSpeedRatings']
+    return tags["ISOSpeedRatings"]
 
 
 def _parse_exposure_time(tags):
-    exposure = tags['ExposureTime']
+    exposure = tags["ExposureTime"]
 
     # For ExposureTime, PIL _getexif returns a tuple of (numerator, denominator)
     numerator, denominator = exposure
@@ -56,14 +49,14 @@ def _parse_exposure_time(tags):
 
 
 def get_exif_tags(raw_image_path):
-    ''' Extracts relevant EXIF tags from a JPEG+RAW file.
+    """ Extracts relevant EXIF tags from a JPEG+RAW file.
 
     Args:
         raw_image_path: The full file path of the JPEG+RAW file to extract metadata from
 
     Returns:
         Relevant EXIF tags, as an ExifTags namedtuple
-    '''
+    """
     tags = _read_exif_tags(raw_image_path)
 
     return ExifTags(

@@ -9,11 +9,17 @@ import imageio
 import numpy as np
 
 from osmo_camera import tiff, raw, rgb
-from osmo_camera.file_structure import create_output_directory, get_files_with_extension, datetime_from_filename
+from osmo_camera.file_structure import (
+    create_output_directory,
+    get_files_with_extension,
+    datetime_from_filename,
+)
 
 
-def generate_summary_images(raw_image_paths: List[str], ROI_definitions: Dict[str, tuple], raw_images_dir: str) -> str:
-    ''' Pick some representative images and draw ROIs on them for reference
+def generate_summary_images(
+    raw_image_paths: List[str], ROI_definitions: Dict[str, tuple], raw_images_dir: str
+) -> str:
+    """ Pick some representative images and draw ROIs on them for reference
 
     Args:
         raw_image_paths: A list of paths to raw image files
@@ -23,8 +29,8 @@ def generate_summary_images(raw_image_paths: List[str], ROI_definitions: Dict[st
 
     Returns:
         The name of the directory where the summary images are saved
-    '''
-    summary_images_dir = create_output_directory(raw_images_dir, 'summary images')
+    """
+    summary_images_dir = create_output_directory(raw_images_dir, "summary images")
 
     # Pick a representative sample of images (assumes images are prefixed with iso-ish datetimes)
     raw_image_paths = sorted(raw_image_paths)
@@ -37,20 +43,24 @@ def generate_summary_images(raw_image_paths: List[str], ROI_definitions: Dict[st
     # Draw ROIs on them and save
     for image_path in sample_image_paths:
         rgb_image = raw.open.as_rgb(image_path)
-        rgb_image_with_ROIs = rgb.annotate.draw_ROIs_on_image(rgb_image, ROI_definitions)
+        rgb_image_with_ROIs = rgb.annotate.draw_ROIs_on_image(
+            rgb_image, ROI_definitions
+        )
 
         # Save in new directory, with same name but as a .png.
         filename_root, extension = os.path.splitext(os.path.basename(image_path))
-        summary_image_path = os.path.join(summary_images_dir, f'{filename_root}.tiff')
+        summary_image_path = os.path.join(summary_images_dir, f"{filename_root}.tiff")
 
         tiff.save.as_tiff(rgb_image_with_ROIs, summary_image_path)
 
-        print(f'Summary images saved in: {summary_images_dir}\n')
+        print(f"Summary images saved in: {summary_images_dir}\n")
     return summary_images_dir
 
 
-def get_experiment_image_filepaths(local_sync_directory_path, experiment_directories=None):
-    ''' Get a list of all .jpeg files in a list of experiment directories.
+def get_experiment_image_filepaths(
+    local_sync_directory_path, experiment_directories=None
+):
+    """ Get a list of all .jpeg files in a list of experiment directories.
 
     Args:
         local_sync_directory_path: The path to the local directory where images are synced.
@@ -59,28 +69,29 @@ def get_experiment_image_filepaths(local_sync_directory_path, experiment_directo
 
     Return:
         A list of paths to all .jpeg images in the provided experiment directories.
-    '''
+    """
     if experiment_directories is None:
-        experiment_directories = ['']
+        experiment_directories = [""]
     all_filepaths = [
-        get_files_with_extension(os.path.join(local_sync_directory_path, experiment_directory), '.jpeg')
+        get_files_with_extension(
+            os.path.join(local_sync_directory_path, experiment_directory), ".jpeg"
+        )
         for experiment_directory in experiment_directories
     ]
     return list(chain(*all_filepaths))
 
 
 def scale_image(PIL_image, image_scale_factor):
-    ''' Scale a PIL image, multiplying dimensions by a given scale factor.
+    """ Scale a PIL image, multiplying dimensions by a given scale factor.
 
     Args:
         PIL_image: A PIL image to be scaled.
         image_scale_factor: The multiplier used to scale the image width and height.
-    '''
+    """
     width, height = PIL_image.size
-    return PIL_image.resize((
-        round(width * image_scale_factor),
-        round(height * image_scale_factor)
-    ))
+    return PIL_image.resize(
+        (round(width * image_scale_factor), round(height * image_scale_factor))
+    )
 
 
 def _annotate_image(rgb_image, ROI_definitions, show_timestamp, filepath):
@@ -94,15 +105,13 @@ def _annotate_image(rgb_image, ROI_definitions, show_timestamp, filepath):
 
 
 def _open_filter_annotate_and_scale_image(
-    filepath,
-    ROI_definitions,
-    image_scale_factor,
-    color_channels,
-    show_timestamp
+    filepath, ROI_definitions, image_scale_factor, color_channels, show_timestamp
 ):
     rgb_image = raw.open.as_rgb(filepath)
     filtered_image = rgb.filter.select_channels(rgb_image, color_channels)
-    annotated_image = _annotate_image(filtered_image, ROI_definitions, show_timestamp, filepath)
+    annotated_image = _annotate_image(
+        filtered_image, ROI_definitions, show_timestamp, filepath
+    )
 
     PIL_image = rgb.convert.to_PIL(annotated_image)
     scaled_image = scale_image(PIL_image, image_scale_factor)
@@ -113,12 +122,12 @@ def _open_filter_annotate_and_scale_image(
 def generate_summary_gif(
     filepaths,
     ROI_definitions,
-    name='summary',
+    name="summary",
     image_scale_factor=0.25,
-    color_channels='rgb',
-    show_timestamp=True
+    color_channels="rgb",
+    show_timestamp=True,
 ):
-    ''' Compile a list of images into a summary GIF with ROI definitions overlayed.
+    """ Compile a list of images into a summary GIF with ROI definitions overlayed.
     Saves GIF to the current working directory.
 
     Args:
@@ -134,15 +143,15 @@ def generate_summary_gif(
 
     Returns:
         The name of the GIF file that was saved.
-    '''
-    output_filename = f'{name}.gif'
+    """
+    output_filename = f"{name}.gif"
     images = [
         _open_filter_annotate_and_scale_image(
             filepath,
             ROI_definitions,
             image_scale_factor,
             color_channels,
-            show_timestamp
+            show_timestamp,
         )
         for filepath in filepaths
     ]
@@ -153,13 +162,13 @@ def generate_summary_gif(
 def generate_summary_video(
     filepaths,
     ROI_definitions,
-    name='summary',
+    name="summary",
     image_scale_factor=1,
-    color_channels='rgb',
+    color_channels="rgb",
     show_timestamp=True,
-    fps=1
+    fps=1,
 ):
-    ''' Compile a list of images into a summary video with ROI definitions overlayed.
+    """ Compile a list of images into a summary video with ROI definitions overlayed.
     Saves video to the current working directory.
 
     Args:
@@ -176,11 +185,11 @@ def generate_summary_video(
 
     Returns:
         The name of the summary video file that was saved
-    '''
-    output_filename = f'{name}.mp4'
+    """
+    output_filename = f"{name}.mp4"
     writer = imageio.get_writer(output_filename, fps=fps)
     # Suppress a warning message about shoehorning image dimensions into mpeg block sizes
-    logger = logging.getLogger('imageio_ffmpeg')
+    logger = logging.getLogger("imageio_ffmpeg")
     logger.setLevel(logging.ERROR)
 
     for filepath in filepaths:
@@ -189,7 +198,7 @@ def generate_summary_video(
             ROI_definitions,
             image_scale_factor,
             color_channels,
-            show_timestamp
+            show_timestamp,
         )
         writer.append_data(prepared_image)
 

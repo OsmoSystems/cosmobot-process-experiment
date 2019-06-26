@@ -1,3 +1,5 @@
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
+
 # Terminology
 * `RAW image file` - A JPEG+RAW image file as directly captured by a PiCam v2, saved as a .JPEG
 * `RGB image` - A 3D numpy.ndarray: a 2D array of "pixels" (row-major), where each "pixel" is a 1D array of [red, green, blue] channels with a value between 0 and 1. This is our default format for interacting with images. An example 4-pixel (2x2) image would have this shape:
