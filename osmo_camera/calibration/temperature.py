@@ -169,13 +169,13 @@ def temperature_given_digital_count(
     # This function was artisenally reversed from the digital_count_given_temperature function using pencil and paper
     # fmt: off
     numerator = (
-        voltage_divider_resistor /
-        (thermistor_r0 * np.exp(-thermistor_beta / T_0_KELVIN))
+        voltage_divider_resistor
+        / (thermistor_r0 * np.exp(-thermistor_beta / T_0_KELVIN))
     )
     denominator = (
-            ((2 ** (adc_bit_depth - 1) - 1) * voltage_divider_v_in)
-            / (digital_count * adc_v_max)
-            - 1
+        ((2 ** (adc_bit_depth - 1) - 1) * voltage_divider_v_in)
+        / (digital_count * adc_v_max)
+        - 1
     )
     # fmt: on
 
