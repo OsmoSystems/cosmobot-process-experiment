@@ -74,23 +74,6 @@ def _download_s3_files(
         check_call([command], shell=True)
 
 
-def naive_sync_from_s3(
-    experiment_directory: str, file_names: pd.Series, output_directory_path: str
-) -> pd.Series:
-    """ Sync a Series of files from s3, returning local file paths corresponding to the synced files.
-    Uses a naive approach to checking if sync is necessary - if all s3 filenames are present locally, skips syncing.
-    This makes this function unsuitable for syncing files that change over time.
-    """
-    local_filepaths = file_names.apply(
-        lambda filename: os.path.join(output_directory_path, filename)
-    )
-    already_downloaded = local_filepaths.apply(os.path.isfile)
-    if not already_downloaded.all():
-        _download_s3_files(experiment_directory, file_names, output_directory_path)
-
-    return local_filepaths
-
-
 _IMAGES_INFO_COLUMNS = ["Timestamp", "variant", "filename", "capture_group"]
 
 
