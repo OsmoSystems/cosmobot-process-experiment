@@ -21,7 +21,7 @@ setup(
         "pandas",
         "picamraw",
         "Pillow",
-        "plotly >= 3, < 4",
+        "plotly >= 4, < 5",
         "scipy",
         "tifffile == 2018.11.28",
         "tqdm",
