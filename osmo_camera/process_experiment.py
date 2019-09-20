@@ -167,6 +167,18 @@ def process_experiment(
     if save_summary_images:
         generate_summary_images(raw_image_paths, ROI_definitions, raw_images_dir)
 
+    def process_an_image(raw_image_path):
+        process_image(
+            original_rgb_image=raw.open.as_rgb(raw_image_path),
+            original_image_filepath=raw_image_path,
+            raw_images_dir=raw_images_dir,
+            ROI_definitions=ROI_definitions,
+            flat_field_filepath_or_none=flat_field_filepath,
+            save_ROIs=save_ROIs,
+            save_dark_frame_corrected_image=save_dark_frame_corrected_images,
+            save_flat_field_corrected_image=save_flat_field_corrected_images,
+        )
+
     with concurrent.futures.ProcessPoolExecutor() as executor:
         # We want identical warnings to be shown only for the first image they occur on (the default),
         # but we also want subsequent calls to process_experiment to start with a fresh warning store
@@ -175,21 +187,7 @@ def process_experiment(
         with warnings.catch_warnings():
             # process_image returns roi_summary_data df, image_diagnostics df -> this will be a list of 2-tuples
             roi_summary_data_and_image_diagnostics_dfs_for_files = list(
-                tqdm(
-                    executor.map(
-                        lambda raw_image_path: process_image(
-                            original_rgb_image=raw.open.as_rgb(raw_image_path),
-                            original_image_filepath=raw_image_path,
-                            raw_images_dir=raw_images_dir,
-                            ROI_definitions=ROI_definitions,
-                            flat_field_filepath_or_none=flat_field_filepath,
-                            save_ROIs=save_ROIs,
-                            save_dark_frame_corrected_image=save_dark_frame_corrected_images,
-                            save_flat_field_corrected_image=save_flat_field_corrected_images,
-                        ),
-                        raw_image_paths,
-                    )
-                )
+                tqdm(executor.map(process_an_image, raw_image_paths))
             )
 
     roi_summary_data_for_files, image_diagnostics_for_files = zip(
