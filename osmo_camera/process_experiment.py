@@ -168,7 +168,7 @@ def process_experiment(
         generate_summary_images(raw_image_paths, ROI_definitions, raw_images_dir)
 
     def process_an_image(raw_image_path):
-        process_image(
+        return process_image(
             original_rgb_image=raw.open.as_rgb(raw_image_path),
             original_image_filepath=raw_image_path,
             raw_images_dir=raw_images_dir,
