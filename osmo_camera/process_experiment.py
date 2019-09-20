@@ -187,7 +187,10 @@ def process_experiment(
         with warnings.catch_warnings():
             # process_image returns roi_summary_data df, image_diagnostics df -> this will be a list of 2-tuples
             roi_summary_data_and_image_diagnostics_dfs_for_files = list(
-                tqdm(executor.map(process_an_image, raw_image_paths))
+                tqdm(
+                    executor.map(process_an_image, raw_image_paths),
+                    total=len(raw_image_paths),
+                )
             )
 
     roi_summary_data_for_files, image_diagnostics_for_files = zip(
