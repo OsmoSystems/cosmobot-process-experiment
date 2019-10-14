@@ -137,21 +137,26 @@ class TestProcessExperiment:
 
         mock_generate_summary_images.assert_not_called()
 
+
+class TestProcessImages:
     def test_matching_diagnostic_warnings_raised_only_once(
         self, mocker, mock_side_effects
     ):
         mock_process_image = mocker.patch.object(module, "process_image")
         mock_process_image.side_effect = _process_image_stub_with_warning
-        mocker.patch.object(
-            module, "get_raw_image_paths_for_experiment"
-        ).return_value = [sentinel.image_filepath_one, sentinel.image_filepath_two]
 
         with warnings.catch_warnings(record=True) as _warnings:
-            module.process_experiment(
-                sentinel.experiment_dir,
-                sentinel.local_sync_path,
-                flat_field_filepath=sentinel.flat_field_filepath,
+            module._process_images(
+                raw_image_paths=[
+                    sentinel.image_filepath_one,
+                    sentinel.image_filepath_two,
+                ],
+                raw_images_dir=sentinel.experiment_dir,
                 ROI_definitions=sentinel.ROI_definitions,
+                flat_field_filepath_or_none=sentinel.flat_field_filepath,
+                save_ROIs=sentinel.save_ROIs,
+                save_dark_frame_corrected_images=sentinel.save_dark_frame_corrected_images,
+                save_flat_field_corrected_images=sentinel.save_flat_field_corrected_images,
             )
 
         # meta-test to make sure we're actually getting two images processed here
