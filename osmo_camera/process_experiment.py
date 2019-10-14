@@ -93,7 +93,9 @@ def _process_images(
     """
 
     def _process_image_local(raw_image_path):
-        """ Version of process_image with all of the local configuration variables packed in """
+        """ Version of process_image with all of the local configuration variables packed in.
+        Also encapsulates the opening of the image.
+        """
         return process_image(
             original_rgb_image=raw.open.as_rgb(raw_image_path),
             original_image_filepath=raw_image_path,
