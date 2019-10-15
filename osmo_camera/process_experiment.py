@@ -1,10 +1,11 @@
 import warnings
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 import os
-from typing import List
+from typing import List, Tuple, Dict, Union
 
 import pandas as pd
-import tqdm
+from tqdm.auto import tqdm
 
 from osmo_camera.s3 import sync_from_s3
 from osmo_camera.process_image import process_image
@@ -77,6 +78,56 @@ def _stack_serieses(serieses: List[pd.Series]) -> pd.DataFrame:
         pandas DataFrame with a row per series. If each Series has a Name, that will be its index label
     """
     return pd.concat(serieses, axis="columns").T
+
+
+def _process_images(
+    raw_image_paths: pd.Series,
+    raw_images_dir: str,
+    ROI_definitions: Dict[str, Tuple],
+    flat_field_filepath_or_none: Union[str, None],
+    save_ROIs: bool,
+    save_dark_frame_corrected_images: bool,
+    save_flat_field_corrected_images: bool,
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """ Process a full set of images, with parallelization if multiple CPU threads are available on this machine
+    """
+
+    def _process_image_local(raw_image_path):
+        """ Version of process_image with all of the local configuration variables packed in.
+        Also encapsulates the opening of the image.
+        """
+        return process_image(
+            original_rgb_image=raw.open.as_rgb(raw_image_path),
+            original_image_filepath=raw_image_path,
+            raw_images_dir=raw_images_dir,
+            ROI_definitions=ROI_definitions,
+            flat_field_filepath_or_none=flat_field_filepath_or_none,
+            save_ROIs=save_ROIs,
+            save_dark_frame_corrected_image=save_dark_frame_corrected_images,
+            save_flat_field_corrected_image=save_flat_field_corrected_images,
+        )
+
+    with ThreadPoolExecutor() as executor:
+        # We want identical warnings to be shown only for the first image they occur on (the default),
+        # but we also want subsequent calls to process_experiment to start with a fresh warning store
+        # so that warnings don't stop showing after the first run.
+        # catch_warnings gives us this fresh warning store.
+        with warnings.catch_warnings():
+            # process_image returns roi_summary_data df, image_diagnostics df -> this will be a list of 2-tuples
+            roi_summary_data_and_image_diagnostics_dfs_for_files = list(
+                tqdm(
+                    executor.map(_process_image_local, raw_image_paths),
+                    total=len(raw_image_paths),
+                )
+            )
+    roi_summary_data_for_files, image_diagnostics_for_files = zip(
+        *roi_summary_data_and_image_diagnostics_dfs_for_files
+    )
+
+    roi_summary_data_for_all_files = _stack_dataframes(roi_summary_data_for_files)
+    image_diagnostics_for_all_files = _stack_serieses(image_diagnostics_for_files)
+
+    return roi_summary_data_for_all_files, image_diagnostics_for_all_files
 
 
 def process_experiment(
@@ -166,33 +217,15 @@ def process_experiment(
     if save_summary_images:
         generate_summary_images(raw_image_paths, ROI_definitions, raw_images_dir)
 
-    # We want identical warnings to be shown only for the first image they occur on (the default),
-    # but we also want subsequent calls to process_experiment to start with a fresh warning store so that warnings don't
-    # stop showing after the first run.
-    # catch_warnings gives us this fresh warning store.
-    with warnings.catch_warnings():
-        # process_image returns roi_summary_data df, image_diagnostics df -> this will be a list of 2-tuples
-        roi_summary_data_and_image_diagnostics_dfs_for_files = [
-            process_image(
-                original_rgb_image=raw.open.as_rgb(raw_image_path),
-                original_image_filepath=raw_image_path,
-                raw_images_dir=raw_images_dir,
-                ROI_definitions=ROI_definitions,
-                flat_field_filepath_or_none=flat_field_filepath,
-                save_ROIs=save_ROIs,
-                save_dark_frame_corrected_image=save_dark_frame_corrected_images,
-                save_flat_field_corrected_image=save_flat_field_corrected_images,
-            )
-            # tqdm_notebook is the tqdm progress bar version for use in jupyter notebooks
-            for raw_image_path in tqdm.tqdm_notebook(raw_image_paths)
-        ]
-
-    roi_summary_data_for_files, image_diagnostics_for_files = zip(
-        *roi_summary_data_and_image_diagnostics_dfs_for_files
+    roi_summary_data_for_all_files, image_diagnostics_for_all_files = _process_images(
+        raw_image_paths,
+        raw_images_dir=raw_images_dir,
+        ROI_definitions=ROI_definitions,
+        flat_field_filepath_or_none=flat_field_filepath,
+        save_ROIs=save_ROIs,
+        save_dark_frame_corrected_images=save_dark_frame_corrected_images,
+        save_flat_field_corrected_images=save_flat_field_corrected_images,
     )
-
-    roi_summary_data_for_all_files = _stack_dataframes(roi_summary_data_for_files)
-    image_diagnostics_for_all_files = _stack_serieses(image_diagnostics_for_files)
 
     return (
         roi_summary_data_for_all_files,

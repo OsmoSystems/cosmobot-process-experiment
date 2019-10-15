@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Dict, Sequence
 
 import math
 import os
@@ -17,7 +17,9 @@ from osmo_camera.file_structure import (
 
 
 def generate_summary_images(
-    raw_image_paths: List[str], ROI_definitions: Dict[str, tuple], raw_images_dir: str
+    raw_image_paths: Sequence[str],
+    ROI_definitions: Dict[str, tuple],
+    raw_images_dir: str,
 ) -> str:
     """ Pick some representative images and draw ROIs on them for reference
 
