@@ -31,6 +31,7 @@ def mock_side_effects(mocker):
     mocker.patch.object(module, "get_raw_image_paths_for_experiment").return_value = [
         sentinel.image_filepath
     ]
+    return {"sync_from_s3": module.sync_from_s3}
 
 
 @pytest.fixture
@@ -76,6 +77,15 @@ class TestProcessExperiment:
             actual_image_diagnostics, expected_image_diagnostics
         )
         assert actual_ROI_definitions == sentinel.ROI_definitions
+
+    def test_blows_up_if_ROIs_not_provided(self, mock_side_effects):
+        with pytest.raises(ValueError):
+            module.process_experiment(
+                sentinel.experiment_dir,
+                sentinel.local_sync_path,
+                flat_field_filepath=sentinel.flat_field_filepath,
+                ROI_definitions=None,
+            )
 
     def test_saves_summary_images_if_flagged(
         self, mocker, mock_side_effects, mock_generate_summary_images
