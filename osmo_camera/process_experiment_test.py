@@ -31,7 +31,6 @@ def mock_side_effects(mocker):
     mocker.patch.object(module, "get_raw_image_paths_for_experiment").return_value = [
         sentinel.image_filepath
     ]
-    return {"sync_from_s3": module.sync_from_s3}
 
 
 @pytest.fixture
