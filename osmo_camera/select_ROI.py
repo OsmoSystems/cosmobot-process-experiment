@@ -87,6 +87,9 @@ class ROISelectionInterface:
         display(self.roi_text_box)
 
     def _update_output(self):
+        """ Update the ROI text box and image display with representations of
+        the currently selected ROI definitions.
+        """
         self._is_updating = True
 
         self.roi_text_box.value = _prettify_roi_defintions(self.ROI_definitions)
@@ -100,23 +103,31 @@ class ROISelectionInterface:
         self._is_updating = False
 
     def get_image_with_rois(self):
+        """ Get a copy of the original image, with current ROI definitions overlayed on it. """
         return draw_ROIs_on_image(self.original_image, self.ROI_definitions)
 
     def _get_current_roi(self):
+        """ Get the ROI selected by the rectangle selector right now. """
         xmin, xmax, ymin, ymax = self.roi_rectangle_selector.extents
         # Round for cleanliness
         return (int(xmin), int(ymin), int(xmax - xmin), int(ymax - ymin))
 
+    def _handle_rectangle_change(self, _, __):
+        """ The user interacted with the ROI selection rectangle on the image. Incorporate the new value. """
+        self.current_ROI = self._get_current_roi()
+        # Add placeholder ROI definition named with an empty string
+        self.ROI_definitions[""] = self.current_ROI
+        self._update_output()
+
     def _handle_roi_text_box_change(self, event):
+        """
+        Either: The user changed the value in the ROI text box and then focused away.
+            Thus we have updated ROI values to use
+        OR, update_output() just updated the value in the ROI text box (in which case _is_updating=True)
+            and we don't need to do anything because internal state is already up-to-date
+        """
         if not self._is_updating:
             self.ROI_definitions = literal_eval(self.roi_text_box.value)
-            self._update_output()
-
-    def _handle_rectangle_change(self, _, __):
-        if not self._is_updating:
-            self.current_ROI = self._get_current_roi()
-            # Add placeholder ROI definition named with an empty string
-            self.ROI_definitions[""] = self.current_ROI
             self._update_output()
 
 
