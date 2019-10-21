@@ -65,7 +65,7 @@ class ROISelectionInterface:
         )
         self.figure.tight_layout(pad=0)
 
-        self.rectangle_selector = RectangleSelector(
+        self.roi_rectangle_selector = RectangleSelector(
             self.axes,
             self._handle_rectangle_change,
             drawtype="box",
@@ -103,7 +103,7 @@ class ROISelectionInterface:
         return draw_ROIs_on_image(self.original_image, self.ROI_definitions)
 
     def _get_current_roi(self):
-        xmin, xmax, ymin, ymax = self.rectangle_selector.extents
+        xmin, xmax, ymin, ymax = self.roi_rectangle_selector.extents
         # Round for cleanliness
         return (int(xmin), int(ymin), int(xmax - xmin), int(ymax - ymin))
 
