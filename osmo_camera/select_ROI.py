@@ -91,7 +91,7 @@ class ROISelectionInterface:
 
         self.roi_text_box.value = _prettify_roi_defintions(self.ROI_definitions)
 
-        # Show the old image before cleaning up the old one to prevent a period with no image
+        # Show the new image before cleaning up the old one to prevent a period with no image
         self.axes.imshow(self.get_image_with_rois())
         # Clear old image, if any. If we let them pile up, the UI gets laggy
         for image in self.axes.get_images()[:-1]:
