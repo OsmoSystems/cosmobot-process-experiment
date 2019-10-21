@@ -12,15 +12,16 @@ from osmo_camera.rgb.annotate import draw_ROIs_on_image
 
 
 def _prettify_roi_defintions(ROI_definitions):
-    """ Nice concise format for ROI definitions
+    """ Convert ROI definitions to a nice concise format for printing.
+    Output is something like:
     {
         "DO patch": (1, 1, 100, 100),
     }
     """
     pretty_printed_keys_and_values = [
-        f'    "{key}": {value},' for key, value in ROI_definitions.items()
+        f'\n    "{key}": {value},' for key, value in ROI_definitions.items()
     ]
-    return "{{\n{}\n}}".format("\n".join(pretty_printed_keys_and_values))
+    return "{" + "".join(pretty_printed_keys_and_values) + "\n}"
 
 
 class ROISelectionInterface:
@@ -56,10 +57,12 @@ class ROISelectionInterface:
 
     def _initialize_widgets(self):
         """ Set up image display, ROI saving UI and ROI view/edit text box.
-        Creates instance variables that we'll reference elsewhere
+        Creates instance attributes that we'll reference elsewhere
         """
         matplotlib.use("nbAgg")  # Engage interactive mode. this is a global setting
-        self.figure, self.axes = plt.subplots(figsize=(10, 8), num="ROI selection")
+        self.figure, self.axes = plt.subplots(
+            figsize=(10, 8), num="ROI selection"  # num = Figure name in the UI.
+        )
         self.figure.tight_layout(pad=0)
 
         self.rectangle_selector = RectangleSelector(
@@ -74,6 +77,7 @@ class ROISelectionInterface:
         self.roi_text_box = widgets.Textarea(
             description="ROIs:",
             disabled=False,
+            # Since input often goes through invalid states while the user is typing,
             # Only trigger the callback when user submits or changes focus away
             continuous_update=False,
         )
@@ -87,9 +91,9 @@ class ROISelectionInterface:
 
         self.roi_text_box.value = _prettify_roi_defintions(self.ROI_definitions)
 
+        # Show the old image before cleaning up the old one to prevent a period with no image
         self.axes.imshow(self.get_image_with_rois())
-        # Clear old image, if any, and replace.
-        # If we let them pile up, the UI gets laggy
+        # Clear old image, if any. If we let them pile up, the UI gets laggy
         for image in self.axes.get_images()[:-1]:
             image.remove()
 
@@ -111,6 +115,7 @@ class ROISelectionInterface:
     def _handle_rectangle_change(self, _, __):
         if not self._is_updating:
             self.current_ROI = self._get_current_roi()
+            # Add placeholder ROI definition named with an empty string
             self.ROI_definitions[""] = self.current_ROI
             self._update_output()
 
