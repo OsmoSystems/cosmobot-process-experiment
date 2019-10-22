@@ -132,7 +132,7 @@ def _process_images(
 def process_experiment(
     experiment_dir,
     local_sync_directory_path,
-    ROI_definitions={},
+    ROI_definitions=None,
     flat_field_filepath=None,
     sync_downsample_ratio=1,
     sync_start_time=None,
