@@ -34,11 +34,6 @@ def mock_side_effects(mocker):
 
 
 @pytest.fixture
-def mock_prompt_for_ROI_selection(mocker):
-    return mocker.patch.object(module, "prompt_for_ROI_selection")
-
-
-@pytest.fixture
 def mock_generate_summary_images(mocker):
     return mocker.patch.object(module, "generate_summary_images")
 
@@ -82,33 +77,14 @@ class TestProcessExperiment:
         )
         assert actual_ROI_definitions == sentinel.ROI_definitions
 
-    def test_prompts_ROI_if_not_provided(
-        self, mock_side_effects, mock_prompt_for_ROI_selection
-    ):
-        mock_prompt_for_ROI_selection.return_value = sentinel.prompted_ROI_definitions
-
-        actual_roi_summary_data, actual_image_diagnostics, actual_ROI_definitions = module.process_experiment(
-            sentinel.experiment_dir,
-            sentinel.local_sync_path,
-            flat_field_filepath=sentinel.flat_field_filepath,
-            ROI_definitions=None,
-        )
-
-        mock_prompt_for_ROI_selection.assert_called_with(sentinel.first_rgb_image)
-        assert actual_ROI_definitions == sentinel.prompted_ROI_definitions
-
-    def test_doesnt_prompt_ROI_if_provided(
-        self, mock_side_effects, mock_prompt_for_ROI_selection
-    ):
-        actual_roi_summary_data, actual_image_diagnostics, actual_ROI_definitions = module.process_experiment(
-            sentinel.experiment_dir,
-            sentinel.local_sync_path,
-            flat_field_filepath=sentinel.flat_field_filepath,
-            ROI_definitions=sentinel.ROI_definitions,
-        )
-
-        mock_prompt_for_ROI_selection.assert_not_called()
-        assert actual_ROI_definitions == sentinel.ROI_definitions
+    def test_blows_up_if_ROIs_not_provided(self, mock_side_effects):
+        with pytest.raises(ValueError):
+            module.process_experiment(
+                sentinel.experiment_dir,
+                sentinel.local_sync_path,
+                flat_field_filepath=sentinel.flat_field_filepath,
+                ROI_definitions=None,
+            )
 
     def test_saves_summary_images_if_flagged(
         self, mocker, mock_side_effects, mock_generate_summary_images

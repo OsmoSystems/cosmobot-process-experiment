@@ -1,77 +1,134 @@
-import cv2
+from ast import literal_eval
+from typing import Dict, Tuple
 
-from osmo_camera import rgb, jupyter
+import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib.widgets import RectangleSelector
+from IPython.display import display
+from ipywidgets import widgets
+
+from osmo_camera import rgb
 from osmo_camera.rgb.annotate import draw_ROIs_on_image
 
 
-def choose_regions(rgb_image):
-    """ Funky interaction to select regions within an image.
+def _prettify_roi_defintions(ROI_definitions):
+    """ Convert ROI definitions to a nice concise format for printing.
+    Output is something like:
+    {
+        "DO patch": (1, 1, 100, 100),
+    }
+    """
+    pretty_printed_keys_and_values = [
+        f'\n    "{key}": {value},' for key, value in ROI_definitions.items()
+    ]
+    return "{" + "".join(pretty_printed_keys_and_values) + "\n}"
 
-    Arguments:
-        rbg_image: 3D numpy.ndarray as an RGB image
+
+class ROISelectionInterface:
+    """ UI for selecting ROIs on an image.
+    To add an ROI:
+    1. Click and drag with the mouse on the image
+    2. Give the ROI a name in the ROIs text box
+    3. Click outside of the text box to see updated labels on the image.
+    You can also make arbitrary edits to ROIs using the text box.
+
+    Args:
+        image: RGB image
     Returns:
-        numpy 2d array, essentially an iterable containing iterables of (start_col, start_row, cols, rows)
-        corresponding to the regions that you selected.
+        ROISelectionInterface instance
+
+    Attributes:
+        ROI_definitions: dict of named regions of interest that have been selected
+        get_image_with_rois(): returns a version of the input image with labeled ROI overlays
+
+    Note: Using this forces matplotlib to use the notebook backend globally.
+    You can revert this with `matplotlib.use(your preferred backend)`
     """
 
-    print(
-        """\n Working around some OpenCV bugs. Here's how to select ROIs:
+    def __init__(self, image):
+        self.original_image = image
+        self.ROI_definitions: Dict[str, Tuple[int, int, int, int]] = {}
 
-    1. Go to the window that has popped up (likely behind other windows)
-    2. Click + drag to select a region
-    3. PRESS ENTER ONCE. (Pressing enter multiple times will save the same region again)
-    4. Repeat steps 2-3 to select multiple regions
-    5. Press ESC to complete the process. The window might not actually close :(
-    """
-    )
+        self._initialize_widgets()
 
-    window_name = "ROIs selection"
-    # WINDOW_GUI_EXPANDED seems to allow you to resize the window
-    cv2.namedWindow(window_name, cv2.WINDOW_GUI_EXPANDED)
+        # Flag used to prevent triggering events from an update (-> unwanted recursion)
+        self._is_updating = False
+        self._update_output()
 
-    # Resize the window to a manageable default.
-    window_size = 600  # in pixels
-    cv2.resizeWindow(window_name, "window_size", window_size)
+    def _initialize_widgets(self):
+        """ Set up image display, ROI saving UI and ROI view/edit text box.
+        Creates instance attributes that we'll reference elsewhere
+        """
+        matplotlib.use("nbAgg")  # Engage interactive mode. this is a global setting
+        self.figure, self.axes = plt.subplots(
+            figsize=(10, 8), num="ROI selection"  # num = Figure name in the UI.
+        )
+        self.figure.tight_layout(pad=0)
 
-    # Allows user to define ROIs (by selecting and pressing ENTER), until ESC is pressed to end selection process
-    bgr_image = rgb.convert.to_bgr(rgb_image)  # OpenCV expects bgr format
-    regions = cv2.selectROIs(window_name, bgr_image, showCrosshair=False)
+        self.roi_rectangle_selector = RectangleSelector(
+            self.axes,
+            self._handle_rectangle_change,
+            drawtype="box",
+            useblit=True,
+            interactive=True,
+            rectprops=dict(edgecolor="#00ff00", fill=False),
+        )
 
-    # OpenCV doesn't seem to like to actually close windows. Various attempts to force it have been unsuccessful.
-    cv2.destroyWindow(window_name)
-    cv2.destroyAllWindows()
-    # Wait for 1ms then (attempt to) close window. Supposedly necessary to "flush" the destroy events
-    cv2.waitKey(1)
+        self.roi_text_box = widgets.Textarea(
+            description="ROIs:",
+            disabled=False,
+            # Since input often goes through invalid states while the user is typing,
+            # Only trigger the callback when user submits or changes focus away
+            continuous_update=False,
+        )
+        self.roi_text_box.layout.height = "150px"
+        self.roi_text_box.layout.width = "100%"
+        self.roi_text_box.observe(self._handle_roi_text_box_change, names="value")
+        display(self.roi_text_box)
 
-    return regions
+    def _update_output(self):
+        """ Update the ROI text box and image display with representations of
+        the currently selected ROI definitions.
+        """
+        self._is_updating = True
 
+        self.roi_text_box.value = _prettify_roi_defintions(self.ROI_definitions)
 
-def prompt_for_ROI_selection(rgb_image):
-    # Make image brighter to enable selecting ROIs even on very dark images
-    brighter_rgb_image = rgb_image * 3
-    unnamed_ROI_definitions = choose_regions(brighter_rgb_image)
+        # Show the new image before cleaning up the old one to prevent a period with no image
+        self.axes.imshow(self.get_image_with_rois())
+        # Clear old image, if any. If we let them pile up, the UI gets laggy
+        for image in self.axes.get_images()[:-1]:
+            image.remove()
 
-    # human comprehendable dictionary for annotation (ROI 1, 2, 3, etc)
-    numbered_ROI_definitions = {
-        zero_based_index + 1: list(ROI)
-        for zero_based_index, ROI in enumerate(unnamed_ROI_definitions)
-    }
+        self._is_updating = False
 
-    # show helper image for naming ROIs
-    jupyter.show_image(
-        draw_ROIs_on_image(brighter_rgb_image, numbered_ROI_definitions),
-        title="Image to assist in ROI naming",
-        figsize=[7, 7],
-    )
+    def get_image_with_rois(self):
+        """ Get a copy of the original image, with current ROI definitions overlayed on it. """
+        return draw_ROIs_on_image(self.original_image, self.ROI_definitions)
 
-    print("\nName your ROIs in the same order you selected them. Names must be unique.")
+    def _get_current_roi(self):
+        """ Get the ROI selected by the rectangle selector right now. """
+        xmin, xmax, ymin, ymax = self.roi_rectangle_selector.extents
+        # Round for cleanliness
+        return (int(xmin), int(ymin), int(xmax - xmin), int(ymax - ymin))
 
-    ROI_definitions = {
-        input(f"Unique name for ROI #{roi_number}: "): ROI
-        for roi_number, ROI in numbered_ROI_definitions.items()
-    }
+    def _handle_rectangle_change(self, _, __):
+        """ The user interacted with the ROI selection rectangle on the image. Incorporate the new value. """
+        self.current_ROI = self._get_current_roi()
+        # Add placeholder ROI definition named with an empty string
+        self.ROI_definitions[""] = self.current_ROI
+        self._update_output()
 
-    return ROI_definitions
+    def _handle_roi_text_box_change(self, event):
+        """
+        Either: The user changed the value in the ROI text box and then focused away.
+            Thus we have updated ROI values to use
+        OR, update_output() just updated the value in the ROI text box (in which case _is_updating=True)
+            and we don't need to do anything because internal state is already up-to-date
+        """
+        if not self._is_updating:
+            self.ROI_definitions = literal_eval(self.roi_text_box.value)
+            self._update_output()
 
 
 def get_ROIs_for_image(rgb_image, ROI_definitions):

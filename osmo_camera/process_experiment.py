@@ -9,7 +9,6 @@ from tqdm.auto import tqdm
 
 from osmo_camera.s3 import sync_from_s3
 from osmo_camera.process_image import process_image
-from osmo_camera.select_ROI import prompt_for_ROI_selection
 from osmo_camera.summary_images import generate_summary_images
 from osmo_camera.file_structure import (
     iso_datetime_for_filename,
@@ -133,7 +132,7 @@ def _process_images(
 def process_experiment(
     experiment_dir,
     local_sync_directory_path,
-    ROI_definitions=[],
+    ROI_definitions=None,
     flat_field_filepath=None,
     sync_downsample_ratio=1,
     sync_start_time=None,
@@ -152,10 +151,9 @@ def process_experiment(
         experiment_dir: The name of the experiment directory in s3
         local_sync_directory_path: The path to the local directory where images will be synced and processed
         flat_field_filepath: The path of the image to use for flat field correction. Must be a .npy file.
-        ROI_definitions: Optional. Pre-selected ROI_definitions: a map of {ROI_name: ROI_definition}
+        ROI_definitions: Pre-selected ROI_definitions: a map of {ROI_name: ROI_definition}
             Where ROI_definition is a 4-tuple in the format provided by cv2.selectROI:
                 (start_col, start_row, cols, rows)
-            If not provided, we'll present you with a GUI to select ROI definitions.
         sync_downsample_ratio: Optional. Ratio to downsample images by when syncing:
             If downsample_ratio = 1, keep all images (default)
             If downsample_ratio = 2, keep half of the images for each variant
@@ -181,6 +179,13 @@ def process_experiment(
         Raises warnings if any of the image diagnostics are outside of normal ranges. If multiple images have matching
         diagnostic warnings, only one copy of a particular warning will be shown.
     """
+    if not ROI_definitions:
+        raise ValueError(
+            "No ROI definitions. Cannot process images.\n"
+            "If you'd just like to download images, use osmo_camera.s3.sync_from_s3().\n"
+            "For ROI selection, see osmo_camera.select_ROI.ROISelectionInterface."
+        )
+
     print(
         f"1. Sync images from s3 to local directory within {local_sync_directory_path}..."
     )
@@ -198,12 +203,6 @@ def process_experiment(
 
     # Display the first image for reference
     first_rgb_image = _open_first_image(raw_image_paths)
-
-    print("2. Prompt for ROI selections if ROI_definitions not provided...")
-    if not ROI_definitions:
-        ROI_definitions = prompt_for_ROI_selection(first_rgb_image)
-        print("ROI definitions:", ROI_definitions)
-
     jupyter.show_image(
         rgb.annotate.draw_ROIs_on_image(first_rgb_image, ROI_definitions),
         title="Reference image with labelled ROIs",
@@ -212,7 +211,7 @@ def process_experiment(
 
     saving_or_not = "save" if save_summary_images else "don't save"
     print(
-        f"3. Process images into summary statistics and {saving_or_not} summary images..."
+        f"2. Process images into summary statistics and {saving_or_not} summary images..."
     )
     if save_summary_images:
         generate_summary_images(raw_image_paths, ROI_definitions, raw_images_dir)
