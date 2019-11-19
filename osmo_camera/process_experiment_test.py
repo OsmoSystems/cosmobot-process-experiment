@@ -1,9 +1,9 @@
-import warnings
+from pathlib import Path
 from unittest.mock import sentinel
+import warnings
 
 import pandas as pd
 import pytest
-import os
 
 from . import process_experiment as module
 
@@ -41,6 +41,15 @@ def mock_generate_summary_images(mocker):
 @pytest.fixture
 def mock_os_path_join(mocker):
     return mocker.patch("os.path.join")
+
+
+@pytest.fixture
+def mock_iso_datetime_for_filename(mocker):
+    mock_iso_datetime_for_filename = mocker.patch.object(
+        module, "iso_datetime_for_filename"
+    )
+    mock_iso_datetime_for_filename.return_value = "<iso_ish_datetime>"
+    return mock_iso_datetime_for_filename
 
 
 def _process_image_stub_with_warning(**kwargs):
@@ -169,20 +178,56 @@ class TestProcessImages:
 
 
 class TestSaveSummaryStatisticsCsv:
-    def test_names_csv_with_current_iso_ish_datetime(self, testdir, mocker):
-        mocker.patch.object(
-            module, "iso_datetime_for_filename"
-        ).return_value = "<iso_ish_datetime>"
+    def test_names_csv_with_current_iso_ish_datetime(
+        self, testdir, mock_iso_datetime_for_filename
+    ):
+        mock_iso_datetime_for_filename.return_value = "<iso_ish_datetime>"
 
-        mock_image_summary_data = pd.DataFrame(
-            [{"mock ROI statistic": sentinel.roi_summary_statistic}]
-        )
         module.save_summary_statistics_csv(
-            "20180101-120101_experiment_dir", mock_image_summary_data
+            experiment_name="<experiment_name>",
+            roi_summary_data=pd.DataFrame([{"mock ROI statistic": sentinel.statistic}]),
         )
-        expected_csv_name = "20180101-120101_experiment_dir - summary statistics (generated <iso_ish_datetime>).csv"
 
-        assert os.path.isfile(expected_csv_name)
+        expected_csv_path = Path(
+            "<experiment_name> - summary statistics (generated <iso_ish_datetime>).csv"
+        )
+
+        assert expected_csv_path.is_file()
+
+        # The default for save_summary_statistics_csv is to save the csv in the cwd. Using the testdir fixture
+        # and testdir.finalize() causes this to be appropriately cleaned up.
+        testdir.finalize()
+
+    @pytest.mark.parametrize(
+        "mock_save_directory_path",
+        [
+            "",
+            "somedir",
+            "./relative/path/to/somedir",
+            "full/path/to/somedir",
+            Path("./relative/path/to/somedir"),
+        ],
+    )
+    def test_optionally_saves_to_given_directory(
+        self, testdir, mock_iso_datetime_for_filename, mock_save_directory_path
+    ):
+        mock_iso_datetime_for_filename.return_value = "<iso_ish_datetime>"
+
+        # Set up tmp directories on the path we want to mock
+        Path(mock_save_directory_path).mkdir(parents=True, exist_ok=True)
+
+        module.save_summary_statistics_csv(
+            experiment_name="<experiment_name>",
+            roi_summary_data=pd.DataFrame([{"mock ROI statistic": sentinel.statistic}]),
+            save_directory_path=mock_save_directory_path,
+        )
+
+        expected_csv_name = (
+            f"<experiment_name> - summary statistics (generated <iso_ish_datetime>).csv"
+        )
+        expected_csv_path = Path(mock_save_directory_path) / expected_csv_name
+
+        assert expected_csv_path.is_file()
 
         testdir.finalize()
 
