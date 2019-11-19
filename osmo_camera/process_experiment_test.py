@@ -204,7 +204,6 @@ class TestSaveSummaryStatisticsCsv:
             "",
             "somedir",
             "./relative/path/to/somedir",
-            "full/path/to/somedir",
             Path("./relative/path/to/somedir"),
         ],
     )
