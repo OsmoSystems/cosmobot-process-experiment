@@ -208,13 +208,10 @@ class TestSaveSummaryStatisticsCsv:
             Path("./relative/path/to/somedir"),
         ],
     )
-    def test_optionally_saves_to_given_directory(
+    def test_optionally_creates_and_saves_to_given_directory(
         self, testdir, mock_iso_datetime_for_filename, mock_save_directory_path
     ):
         mock_iso_datetime_for_filename.return_value = "<iso_ish_datetime>"
-
-        # Set up tmp directories on the path we want to mock
-        Path(mock_save_directory_path).mkdir(parents=True, exist_ok=True)
 
         module.save_summary_statistics_csv(
             experiment_name="<experiment_name>",

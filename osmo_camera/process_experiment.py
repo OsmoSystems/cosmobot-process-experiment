@@ -39,6 +39,9 @@ def save_summary_statistics_csv(
     Return:
         A string with the filename of the saved csv file.
     """
+    # Create directories on the path if they don't already exist
+    Path(save_directory_path).mkdir(parents=True, exist_ok=True)
+
     csv_filename = f"{experiment_name} - summary statistics (generated {iso_datetime_for_filename(datetime.now())}).csv"
     csv_filepath = Path(save_directory_path) / csv_filename
     roi_summary_data.to_csv(csv_filepath, index=False)
