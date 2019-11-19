@@ -60,7 +60,11 @@ class TestProcessExperiment:
     def test_returns_image_summary_dataframes_and_ROI_definitions(
         self, mock_side_effects
     ):
-        actual_roi_summary_data, actual_image_diagnostics, actual_ROI_definitions = module.process_experiment(
+        (
+            actual_roi_summary_data,
+            actual_image_diagnostics,
+            actual_ROI_definitions,
+        ) = module.process_experiment(
             sentinel.experiment_dir,
             sentinel.local_sync_path,
             flat_field_filepath=sentinel.flat_field_filepath,

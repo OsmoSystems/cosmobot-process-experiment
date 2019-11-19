@@ -143,7 +143,7 @@ class TestFlatFieldCorrection:
             )
 
     def test_load_flat_field_and_apply_correction_no_ops_and_warns_if_missing_path(
-        self
+        self,
     ):
         with warnings.catch_warnings(record=True) as _warnings:
             actual = module.load_flat_field_and_apply_correction(

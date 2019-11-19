@@ -14,7 +14,7 @@ CAMERA_SENSOR_EXPERIMENTS_BUCKET_NAME = "camera-sensor-experiments"
 
 
 def list_camera_sensor_experiments_s3_bucket_contents(
-    directory_name: str = ""
+    directory_name: str = "",
 ) -> List[str]:
     """ Get a list of all of the files in a logical directory off s3, within the camera sensor experiments bucket.
 
