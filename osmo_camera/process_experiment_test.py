@@ -45,11 +45,7 @@ def mock_os_path_join(mocker):
 
 @pytest.fixture
 def mock_iso_datetime_for_filename(mocker):
-    mock_iso_datetime_for_filename = mocker.patch.object(
-        module, "iso_datetime_for_filename"
-    )
-    mock_iso_datetime_for_filename.return_value = "<iso_ish_datetime>"
-    return mock_iso_datetime_for_filename
+    return mocker.patch.object(module, "iso_datetime_for_filename")
 
 
 def _process_image_stub_with_warning(**kwargs):
