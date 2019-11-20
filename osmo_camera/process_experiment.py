@@ -1,6 +1,7 @@
 import warnings
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from pathlib import Path
 import os
 from typing import List, Tuple, Dict, Union
 
@@ -23,22 +24,30 @@ def _open_first_image(raw_image_paths):
     return raw.open.as_rgb(first_filepath)
 
 
-def save_summary_statistics_csv(experiment_name, roi_summary_data):
+def save_summary_statistics_csv(
+    experiment_name, roi_summary_data, save_directory_path: str = ""
+):
     """ Saves summary statistics as a csv file in the current directory and returns the output filename.
 
     Args:
         experiment_name: The experiment name to use in the output filename.
         roi_summary_data: The image ROI summary data DataFrames to be exported to csv.
-        This data is returned by process_experiment.
+            This data is returned by process_experiment.
+        save_directory_path: A full or relative path to the directory where the csv should be saved.
+            Defaults to current working directory.
 
     Return:
         A string with the filename of the saved csv file.
     """
-    csv_name = f"{experiment_name} - summary statistics (generated {iso_datetime_for_filename(datetime.now())}).csv"
-    roi_summary_data.to_csv(csv_name, index=False)
-    print(f"Summary statistics saved as: {csv_name}\n")
+    # Create directories on the path if they don't already exist
+    Path(save_directory_path).mkdir(parents=True, exist_ok=True)
 
-    return csv_name
+    csv_filename = f"{experiment_name} - summary statistics (generated {iso_datetime_for_filename(datetime.now())}).csv"
+    csv_filepath = Path(save_directory_path) / csv_filename
+    roi_summary_data.to_csv(csv_filepath, index=False)
+    print(f"Summary statistics saved to: {csv_filepath}\n")
+
+    return csv_filepath
 
 
 def get_raw_image_paths_for_experiment(local_sync_directory_path, experiment_directory):
